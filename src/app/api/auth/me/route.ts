@@ -4,9 +4,9 @@ import { getCurrentUser } from '@/lib/auth';
 export async function GET() {
   try {
     const user = await getCurrentUser();
-    return NextResponse.json({ success: true, user });
+    return NextResponse.json({ success: true, authenticated: Boolean(user), user });
   } catch (error: any) {
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+    return NextResponse.json({ success: false, authenticated: false, error: error.message }, { status: 500 });
   }
 }
 

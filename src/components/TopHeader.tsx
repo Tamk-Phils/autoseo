@@ -26,8 +26,10 @@ export default function TopHeader({ currentProject }: TopHeaderProps) {
     fetch('/api/auth/me')
       .then((r) => r.json())
       .then((data) => {
-        if (data.authenticated && data.user) {
+        if (data.user) {
           setUser(data.user);
+        } else {
+          setUser(null);
         }
       })
       .catch(() => {});
@@ -71,10 +73,9 @@ export default function TopHeader({ currentProject }: TopHeaderProps) {
     try {
       await fetch('/api/auth/logout', { method: 'POST' });
       localStorage.removeItem('activeProjectId');
-      router.push('/login');
-      router.refresh();
+      window.location.href = '/login';
     } catch {
-      router.push('/login');
+      window.location.href = '/login';
     }
   };
 

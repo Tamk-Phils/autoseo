@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
@@ -18,13 +19,28 @@ import {
   Globe2,
   History,
   Radio,
-  FileSpreadsheet,
   Boxes,
   Zap,
+  User,
+  LogIn,
 } from 'lucide-react';
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const [user, setUser] = useState<{ id: string; email: string; name?: string | null } | null>(null);
+
+  useEffect(() => {
+    fetch('/api/auth/me')
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.user) {
+          setUser(data.user);
+        } else {
+          setUser(null);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   const navItems = [
     { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
@@ -104,10 +120,72 @@ export default function Sidebar() {
         })}
       </nav>
 
-      <div className="sidebar-footer">
-        <div>Autonomous Mode: <span style={{ color: '#10b981', fontWeight: 600 }}>ACTIVE</span></div>
+      <div className="sidebar-footer" style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem', padding: '1rem', borderTop: '1px solid var(--border-color)' }}>
+        {user ? (
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.6rem',
+              padding: '0.5rem 0.65rem',
+              background: 'rgba(56, 189, 248, 0.08)',
+              borderRadius: 'var(--radius-md)',
+              border: '1px solid rgba(56, 189, 248, 0.15)',
+            }}
+          >
+            <div
+              style={{
+                width: '28px',
+                height: '28px',
+                borderRadius: '50%',
+                background: 'var(--accent-cyan)',
+                color: '#0b1120',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontWeight: 700,
+                fontSize: '0.78rem',
+                flexShrink: 0,
+              }}
+            >
+              {(user.name || user.email)[0].toUpperCase()}
+            </div>
+            <div style={{ minWidth: 0, flex: 1 }}>
+              <div style={{ fontSize: '0.82rem', fontWeight: 600, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                {user.name || user.email.split('@')[0]}
+              </div>
+              <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                {user.email}
+              </div>
+            </div>
+          </div>
+        ) : (
+          <Link
+            href="/login"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '0.45rem',
+              padding: '0.5rem',
+              background: 'var(--bg-card)',
+              border: '1px solid var(--border-color)',
+              borderRadius: 'var(--radius-md)',
+              fontSize: '0.82rem',
+              fontWeight: 600,
+              color: 'var(--accent-cyan)',
+              textDecoration: 'none',
+            }}
+          >
+            <LogIn size={14} />
+            <span>Sign In to Account</span>
+          </Link>
+        )}
+        <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <span>Autonomous Mode:</span>
+          <span style={{ color: '#10b981', fontWeight: 600 }}>ACTIVE</span>
+        </div>
       </div>
     </aside>
   );
 }
-

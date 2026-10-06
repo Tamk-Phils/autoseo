@@ -32,7 +32,7 @@ export default function SignupPage() {
         return;
       }
 
-      router.push('/dashboard');
+      window.location.href = '/dashboard';
     } catch (err: any) {
       setError(err.message || 'An unexpected error occurred');
       setLoading(false);
