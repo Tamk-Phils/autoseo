@@ -41,7 +41,7 @@ export async function POST(req: Request) {
     // SSRF Check
     const ssrf = await validateUrlForSsrf(url);
     if (!ssrf.valid) {
-      return NextResponse.json({ success: false, error: `Security validation blocked URL: ${ssrf.error}` }, { status: 400 });
+      return NextResponse.json({ success: false, error: ssrf.error }, { status: 400 });
     }
 
     const parsed = new URL(url);

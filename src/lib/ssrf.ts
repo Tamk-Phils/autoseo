@@ -27,22 +27,47 @@ export async function validateUrlForSsrf(inputUrl: string): Promise<{ valid: boo
       return { valid: false, error: 'Access to local hostnames is strictly forbidden.' };
     }
 
-    // Resolve IP address
+    // Resolve IP address with fallback & retries to prevent libuv threadpool EBUSY errors
     let addresses: string[] = [];
-    try {
-      const lookupResult = await dns.lookup(hostname, { all: true });
-      addresses = lookupResult.map((r) => r.address);
-    } catch (e: any) {
-      return { valid: false, error: `DNS resolution failed for hostname "${hostname}": ${e.message}` };
+    let lastError: any = null;
+
+    // Attempt 1: dns.lookup with retry on EBUSY / EAI_AGAIN
+    for (let attempt = 0; attempt < 2; attempt++) {
+      try {
+        const lookupResult = await dns.lookup(hostname, { all: true });
+        addresses = lookupResult.map((r) => r.address);
+        if (addresses.length > 0) break;
+      } catch (e: any) {
+        lastError = e;
+        if (e.code === 'EBUSY' || e.code === 'EAI_AGAIN') {
+          await new Promise((res) => setTimeout(res, 150));
+          continue;
+        }
+        break;
+      }
+    }
+
+    // Attempt 2: Fallback to c-ares dns.resolve4 and dns.resolve6 (bypasses threadpool)
+    if (addresses.length === 0) {
+      try {
+        const ipv4s = await dns.resolve4(hostname).catch(() => []);
+        const ipv6s = await dns.resolve6(hostname).catch(() => []);
+        addresses = [...ipv4s, ...ipv6s];
+      } catch (e: any) {
+        lastError = e;
+      }
     }
 
     if (addresses.length === 0) {
-      return { valid: false, error: `Unable to resolve DNS for ${hostname}.` };
+      return {
+        valid: false,
+        error: `Could not find website domain "${hostname}". Please double-check for spelling mistakes or typos, and verify your domain is active online.`,
+      };
     }
 
     for (const ip of addresses) {
       if (isPrivateOrRestrictedIp(ip)) {
-        return { valid: false, error: `Host resolves to prohibited internal address (${ip}).` };
+        return { valid: false, error: `Host resolves to prohibited private network address (${ip}).` };
       }
     }
 
