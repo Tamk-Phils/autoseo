@@ -18,6 +18,9 @@ import {
   Trash2,
   ArrowRight,
   Info,
+  Key,
+  FolderGit2,
+  Sparkles,
 } from 'lucide-react';
 
 export default function IntegrationsPage() {
@@ -33,12 +36,16 @@ export default function IntegrationsPage() {
   const [wpTesting, setWpTesting] = useState(false);
   const [wpStatus, setWpStatus] = useState<{ success?: boolean; message?: string } | null>(null);
 
-  // GitHub Form State
+  // GitHub Form State (Simplified)
   const [ghToken, setGhToken] = useState('');
-  const [ghRepo, setGhRepo] = useState('');
+  const [ghRepo, setGhRepo] = useState('Tamk-Phils/autoseo');
   const [ghBranch, setGhBranch] = useState('main');
   const [ghTesting, setGhTesting] = useState(false);
   const [ghStatus, setGhStatus] = useState<{ success?: boolean; message?: string } | null>(null);
+  const [ghUser, setGhUser] = useState<any>(null);
+  const [ghRepos, setGhRepos] = useState<any[]>([]);
+  const [ghLoadingRepos, setGhLoadingRepos] = useState(false);
+  const [hasEnvToken, setHasEnvToken] = useState(false);
 
   // Cloudflare State
   const [copiedWorker, setCopiedWorker] = useState(false);
@@ -60,6 +67,12 @@ export default function IntegrationsPage() {
           setLoading(false);
         }
       });
+
+    // Check if server has environment token
+    fetch('/api/integrations/github/repos')
+      .then((r) => r.json())
+      .then((d) => setHasEnvToken(Boolean(d.hasEnvToken)))
+      .catch(() => {});
   }, []);
 
   const loadIntegrations = (projectId: string) => {
@@ -127,6 +140,53 @@ export default function IntegrationsPage() {
     } finally {
       setWpTesting(false);
     }
+  };
+
+  // Fetch repositories from token (simplifies picking repo)
+  const fetchUserRepos = async (tokenOverride?: string) => {
+    const t = tokenOverride !== undefined ? tokenOverride : ghToken;
+    setGhLoadingRepos(true);
+    setGhStatus(null);
+    try {
+      const res = await fetch('/api/integrations/github/repos', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token: t }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setGhUser(data.user);
+        setGhRepos(data.repos || []);
+        if (data.repos && data.repos.length > 0) {
+          const match = data.repos.find((r: any) => r.fullName.toLowerCase().includes('seo') || r.fullName === ghRepo);
+          if (match) {
+            setGhRepo(match.fullName);
+            setGhBranch(match.defaultBranch || 'main');
+          }
+        }
+        setGhStatus({
+          success: true,
+          message: `Authenticated as @${data.user.login}. Found ${data.repos.length} accessible repositories.`,
+        });
+      } else {
+        setGhStatus({ success: false, message: data.error });
+      }
+    } catch (e: any) {
+      setGhStatus({ success: false, message: e.message });
+    } finally {
+      setGhLoadingRepos(false);
+    }
+  };
+
+  // Smart Repo URL paste cleaner
+  const handleRepoInput = (val: string) => {
+    let clean = val
+      .trim()
+      .replace(/^https?:\/\/github\.com\//, '')
+      .replace(/^git@github\.com:/, '')
+      .replace(/\.git$/, '')
+      .replace(/\/+$/, '');
+    setGhRepo(clean);
   };
 
   // Test & Save GitHub
@@ -491,16 +551,17 @@ export default {
             </div>
           )}
 
-          {/* TAB 2: GITHUB */}
+          {/* TAB 2: GITHUB (SIMPLIFIED) */}
           {activeTab === 'github' && (
             <div className="card">
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
                 <div>
-                  <h3 style={{ fontSize: '1.15rem', fontWeight: 600, color: '#fff' }}>
-                    GitHub Automated Pull Request Workflow
+                  <h3 style={{ fontSize: '1.15rem', fontWeight: 600, color: '#fff', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <GitPullRequest color="var(--accent-cyan)" size={20} />
+                    GitHub Automated Pull Requests
                   </h3>
                   <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-                    Whenever you approve an SEO optimization, ApexSEO opens an isolated branch and Pull Request for your developers to review.
+                    Connect once. Every approved SEO fix opens an automated Pull Request with clear diffs for your engineering team to merge.
                   </p>
                 </div>
                 {ghConnected && (
@@ -512,6 +573,43 @@ export default {
                     <Trash2 size={14} /> Disconnect
                   </button>
                 )}
+              </div>
+
+              {/* 1-Click Fast Setup Helper Banner */}
+              <div
+                style={{
+                  background: 'linear-gradient(135deg, rgba(0, 240, 255, 0.08), rgba(99, 102, 241, 0.08))',
+                  border: '1px solid rgba(0, 240, 255, 0.25)',
+                  borderRadius: 'var(--radius-md)',
+                  padding: '1rem 1.25rem',
+                  marginBottom: '1.5rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  flexWrap: 'wrap',
+                  gap: '1rem',
+                }}
+              >
+                <div>
+                  <div style={{ fontSize: '0.92rem', fontWeight: 600, color: '#fff', marginBottom: '0.2rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                    <Sparkles size={16} color="var(--accent-cyan)" />
+                    Need a token? Use the 1-Click Pre-configured Link
+                  </div>
+                  <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>
+                    Opens GitHub with the exact required permissions (<code>repo</code> scope) pre-checked. Just click "Generate token" at the bottom!
+                  </div>
+                </div>
+
+                <a
+                  href="https://github.com/settings/tokens/new?scopes=repo&description=ApexSEO%20Autonomous%20PR%20Engine"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="btn btn-primary btn-sm"
+                  style={{ textDecoration: 'none' }}
+                >
+                  <ExternalLink size={14} />
+                  1-Click Token on GitHub
+                </a>
               </div>
 
               {ghStatus && (
@@ -536,33 +634,97 @@ export default {
 
               <div className="grid-2">
                 <div>
+                  {/* Step 1: Token */}
                   <div className="form-group">
-                    <label className="form-label">GitHub Personal Access Token (PAT)</label>
-                    <input
-                      type="password"
-                      className="form-control"
-                      value={ghToken}
-                      onChange={(e) => setGhToken(e.target.value)}
-                      placeholder="ghp_xxxxxxxxxxxxxxxxxxxx"
-                    />
-                    <small style={{ color: 'var(--text-secondary)', fontSize: '0.78rem', display: 'block', marginTop: '0.25rem' }}>
-                      Token requires <code>repo</code> scope (or Contents + Pull Requests permissions).
-                    </small>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.35rem' }}>
+                      <label className="form-label" style={{ margin: 0 }}>
+                        Step 1: Paste GitHub Token
+                      </label>
+                      {hasEnvToken && (
+                        <button
+                          type="button"
+                          onClick={() => fetchUserRepos('')}
+                          style={{
+                            background: 'none',
+                            border: 'none',
+                            color: 'var(--accent-cyan)',
+                            fontSize: '0.78rem',
+                            cursor: 'pointer',
+                            textDecoration: 'underline',
+                          }}
+                        >
+                          Use Server GITHUB_TOKEN
+                        </button>
+                      )}
+                    </div>
+                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                      <input
+                        type="password"
+                        className="form-control"
+                        value={ghToken}
+                        onChange={(e) => {
+                          setGhToken(e.target.value);
+                          if (e.target.value.length > 30) {
+                            fetchUserRepos(e.target.value);
+                          }
+                        }}
+                        placeholder="ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+                      />
+                      <button
+                        type="button"
+                        className="btn btn-secondary btn-sm"
+                        onClick={() => fetchUserRepos()}
+                        disabled={ghLoadingRepos || (!ghToken && !hasEnvToken)}
+                        title="Auto-detect all repos accessible by this token"
+                      >
+                        <RefreshCw size={14} className={ghLoadingRepos ? 'animate-spin' : ''} />
+                        {ghLoadingRepos ? 'Detecting...' : 'Detect'}
+                      </button>
+                    </div>
                   </div>
 
+                  {/* Step 2: Pick or Paste Repo */}
                   <div className="form-group">
-                    <label className="form-label">Repository Name (owner/repo)</label>
+                    <label className="form-label">
+                      Step 2: Repository (owner/repo or GitHub URL)
+                    </label>
+
+                    {ghRepos.length > 0 ? (
+                      <div style={{ marginBottom: '0.5rem' }}>
+                        <select
+                          className="form-control"
+                          value={ghRepo}
+                          onChange={(e) => {
+                            setGhRepo(e.target.value);
+                            const found = ghRepos.find((r) => r.fullName === e.target.value);
+                            if (found) setGhBranch(found.defaultBranch || 'main');
+                          }}
+                        >
+                          <option value="">-- Choose from your {ghRepos.length} repositories --</option>
+                          {ghRepos.map((r) => (
+                            <option key={r.id} value={r.fullName}>
+                              {r.fullName} {r.isPrivate ? '(Private)' : '(Public)'}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    ) : null}
+
                     <input
                       type="text"
                       className="form-control"
                       value={ghRepo}
-                      onChange={(e) => setGhRepo(e.target.value)}
-                      placeholder="Tamk-Phils/autoseo"
+                      onChange={(e) => handleRepoInput(e.target.value)}
+                      placeholder="e.g. Tamk-Phils/autoseo"
                     />
+                    <small style={{ color: 'var(--text-secondary)', fontSize: '0.78rem', display: 'block', marginTop: '0.25rem' }}>
+                      You can paste your full GitHub URL (e.g. <code>https://github.com/Tamk-Phils/autoseo</code>). It auto-formats.
+                    </small>
                   </div>
 
+                  {/* Step 3: Branch */}
                   <div className="form-group">
-                    <label className="form-label">Default Target Branch</label>
+                    <label className="form-label">Step 3: Base Branch</label>
                     <input
                       type="text"
                       className="form-control"
@@ -577,37 +739,65 @@ export default {
                       type="button"
                       className="btn btn-secondary btn-sm"
                       onClick={() => handleTestGitHub(false)}
-                      disabled={ghTesting || !ghToken || !ghRepo}
+                      disabled={ghTesting || (!ghToken && !hasEnvToken) || !ghRepo}
                     >
                       <RefreshCw size={14} className={ghTesting ? 'animate-spin' : ''} />
-                      {ghTesting ? 'Testing...' : 'Test Connection'}
+                      {ghTesting ? 'Verifying...' : 'Test Connection'}
                     </button>
                     <button
                       type="button"
                       className="btn btn-primary btn-sm"
                       onClick={() => handleTestGitHub(true)}
-                      disabled={ghTesting || !ghToken || !ghRepo}
+                      disabled={ghTesting || (!ghToken && !hasEnvToken) || !ghRepo}
                     >
                       <CheckCircle2 size={14} />
-                      Save & Connect GitHub
+                      Save & Connect Repository
                     </button>
                   </div>
                 </div>
 
-                <div style={{ background: 'var(--bg-input)', padding: '1.25rem', borderRadius: 'var(--radius-md)' }}>
-                  <h4 style={{ fontSize: '0.92rem', color: '#fff', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                    <ShieldCheck size={16} color="var(--accent-cyan)" /> Safety & PR Workflow
-                  </h4>
-                  <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', lineHeight: '1.6', marginBottom: '0.75rem' }}>
-                    ApexSEO never writes directly to your production or main branch. It guarantees code safety by adhering to the pull request protocol:
-                  </p>
-                  <ol style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', lineHeight: '1.6', paddingLeft: '1.2rem' }}>
-                    <li>Fetches current commit on your base branch.</li>
-                    <li>Creates an isolated branch (e.g. <code>seo-fix-169823...</code>).</li>
-                    <li>Writes metadata changes into <code>seo.config.json</code>.</li>
-                    <li>Opens a formal Pull Request with change summary and confidence metrics.</li>
-                    <li>Your team reviews and merges whenever ready.</li>
-                  </ol>
+                {/* Right side: Live Profile & Safety */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                  {ghUser ? (
+                    <div style={{ background: 'var(--bg-input)', padding: '1rem', borderRadius: 'var(--radius-md)', display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
+                      {ghUser.avatarUrl && (
+                        <img
+                          src={ghUser.avatarUrl}
+                          alt={ghUser.login}
+                          style={{ width: '42px', height: '42px', borderRadius: '50%', border: '1px solid var(--border-color)' }}
+                        />
+                      )}
+                      <div>
+                        <div style={{ fontSize: '0.92rem', fontWeight: 600, color: '#fff' }}>
+                          {ghUser.name} <span style={{ color: 'var(--text-secondary)', fontSize: '0.82rem' }}>@{ghUser.login}</span>
+                        </div>
+                        <div style={{ fontSize: '0.78rem', color: 'var(--color-success)', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                          <CheckCircle2 size={13} />
+                          GitHub Token Authenticated & Ready
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div style={{ background: 'var(--bg-input)', padding: '1rem', borderRadius: 'var(--radius-md)' }}>
+                      <div style={{ fontSize: '0.88rem', fontWeight: 600, color: '#fff', marginBottom: '0.35rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                        <Key size={15} color="var(--accent-cyan)" />
+                        Fastest 2-Step Authentication:
+                      </div>
+                      <ol style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', lineHeight: '1.6', paddingLeft: '1.2rem', margin: 0 }}>
+                        <li>Click the <strong>1-Click Token on GitHub</strong> button above.</li>
+                        <li>Click the green <strong>Generate token</strong> button on GitHub, paste the token here, and click <strong>Save & Connect</strong>.</li>
+                      </ol>
+                    </div>
+                  )}
+
+                  <div style={{ background: 'var(--bg-input)', padding: '1rem', borderRadius: 'var(--radius-md)' }}>
+                    <h4 style={{ fontSize: '0.88rem', color: '#fff', marginBottom: '0.4rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                      <ShieldCheck size={16} color="var(--accent-cyan)" /> How Pull Requests Protect Your Code
+                    </h4>
+                    <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: '1.5', margin: 0 }}>
+                      ApexSEO never modifies your <code>main</code> branch directly. Every optimization opens an isolated branch (e.g. <code>seo-fix-1728...</code>) with clean file diffs, allowing your team to review and merge via standard GitHub PR approvals.
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
