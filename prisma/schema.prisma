@@ -1,0 +1,401 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id            String         @id @default(uuid())
+  email         String         @unique
+  name          String?
+  passwordHash  String?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  organizations Organization[]
+  projects      Project[]
+  auditLogs     AuditLog[]
+}
+
+model Organization {
+  id        String    @id @default(uuid())
+  name      String
+  ownerId   String
+  owner     User      @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  projects  Project[]
+}
+
+model Project {
+  id                       String                    @id @default(uuid())
+  name                     String
+  domain                   String
+  url                      String
+  industry                 String?
+  country                  String?                   @default("US")
+  targetLocations          String?                   // JSON array of locations
+  targetLanguages          String?                   // JSON array, e.g. ["en", "fr"]
+  optimizationMode         String                    @default("ASSISTED") // ANALYZE_ONLY, ASSISTED, AUTONOMOUS
+  seoScore                 Int?                      @default(0)
+  technicalScore           Int?                      @default(0)
+  contentScore             Int?                      @default(0)
+  indexabilityScore        Int?                      @default(0)
+  performanceScore         Int?                      @default(0)
+  internalLinkScore        Int?                      @default(0)
+  structuredDataScore      Int?                      @default(0)
+  searchVisibility         Float?                    @default(0.0)
+  lastCrawlAt              DateTime?
+  crawlStatus              String                    @default("IDLE") // IDLE, RUNNING, COMPLETED, FAILED
+  userId                   String
+  user                     User                      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organizationId           String?
+  organization             Organization?             @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  createdAt                DateTime                  @default(now())
+  updatedAt                DateTime                  @updatedAt
+
+  crawlJobs                CrawlJob[]
+  pages                    CrawlPage[]
+  issues                   CrawlIssue[]
+  keywords                 Keyword[]
+  searchConsoleConnections SearchConsoleConnection[]
+  searchConsoleData        SearchConsoleData[]
+  competitors              Competitor[]
+  contentOpportunities     ContentOpportunity[]
+  recommendations          SeoRecommendation[]
+  optimizationTasks        OptimizationTask[]
+  optimizationChanges      OptimizationChange[]
+  integrations             Integration[]
+  backlinks                Backlink[]
+  alerts                   Alert[]
+  reports                  Report[]
+  auditLogs                AuditLog[]
+  autopilotConfig          AutopilotConfig?
+}
+
+model AutopilotConfig {
+  id                   String   @id @default(uuid())
+  projectId            String   @unique
+  project              Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  enabled              Boolean  @default(false)
+  mode                 String   @default("ASSISTED") // OFF, ASSISTED, AUTONOMOUS
+  allowTitleUpdate     Boolean  @default(true)
+  allowMetaDescUpdate  Boolean  @default(true)
+  allowAltTextUpdate   Boolean  @default(true)
+  allowInternalLinking Boolean  @default(true)
+  allowSchemaUpdate    Boolean  @default(true)
+  allowRobotsTxtUpdate Boolean  @default(false) // requires manual approval
+  allowRedirectsUpdate Boolean  @default(false)
+  allowRewriteContent  Boolean  @default(false)
+  allowPublishPages    Boolean  @default(false)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+}
+
+model CrawlJob {
+  id             String       @id @default(uuid())
+  projectId      String
+  project        Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  status         String       @default("QUEUED") // QUEUED, RUNNING, COMPLETED, FAILED
+  pagesDiscovered Int         @default(0)
+  pagesCrawled   Int          @default(0)
+  maxPages       Int          @default(50)
+  maxDepth       Int          @default(3)
+  startedAt      DateTime?
+  completedAt    DateTime?
+  errorMessage   String?
+  logs           String?      // JSON array of progress log entries
+  createdAt      DateTime     @default(now())
+  pages          CrawlPage[]
+  issues         CrawlIssue[]
+}
+
+model CrawlPage {
+  id                String       @id @default(uuid())
+  projectId         String
+  project           Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  crawlJobId        String?
+  crawlJob          CrawlJob?    @relation(fields: [crawlJobId], references: [id], onDelete: SetNull)
+  url               String
+  path              String
+  httpStatus        Int          @default(200)
+  isIndexable       Boolean      @default(true)
+  canonicalUrl      String?
+  title             String?
+  metaDescription   String?
+  h1                String?
+  h2Tags            String?      // JSON array
+  h3Tags            String?      // JSON array
+  wordCount         Int          @default(0)
+  imagesTotal       Int          @default(0)
+  imagesMissingAlt  Int          @default(0)
+  internalLinksCount Int         @default(0)
+  externalLinksCount Int         @default(0)
+  schemaTypes       String?      // JSON array e.g. ["WebPage", "Organization"]
+  hasOpenGraph      Boolean      @default(false)
+  hasTwitterCard    Boolean      @default(false)
+  responseTimeMs    Int          @default(0)
+  depth             Int          @default(0)
+  optimizationScore Int?         @default(0)
+  rawHtmlSample     String?
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+
+  issues            CrawlIssue[]
+  metrics           PageMetric[]
+  recommendations   SeoRecommendation[]
+  optimizationTasks OptimizationTask[]
+  optimizationChanges OptimizationChange[]
+}
+
+model CrawlIssue {
+  id            String     @id @default(uuid())
+  projectId     String
+  project       Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  crawlJobId    String?
+  crawlJob      CrawlJob?  @relation(fields: [crawlJobId], references: [id], onDelete: SetNull)
+  pageId        String?
+  page          CrawlPage? @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  category      String     // Technical SEO, On-Page SEO, Content, Indexability, Performance, Internal Linking, Structured Data, Images, URLs
+  title         String
+  severity      String     // CRITICAL, HIGH, MEDIUM, LOW, NOTICE
+  whyItMatters  String
+  evidence      String?
+  solution      String
+  estimatedImpact String   // HIGH, MEDIUM, LOW
+  difficulty    String     // EASY, MEDIUM, HARD
+  isResolved    Boolean    @default(false)
+  createdAt     DateTime   @default(now())
+}
+
+model PageMetric {
+  id            String    @id @default(uuid())
+  pageId        String
+  page          CrawlPage @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  loadTimeMs    Int       @default(0)
+  pageSizeBytes Int       @default(0)
+  coreWebVitals String?   // JSON object with LCP, FID, CLS when available
+  createdAt     DateTime  @default(now())
+}
+
+model Keyword {
+  id              String           @id @default(uuid())
+  projectId       String
+  project         Project          @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  term            String
+  searchIntent    String           @default("Informational") // Informational, Navigational, Commercial, Transactional, Local
+  currentPosition Float?
+  previousPosition Float?
+  bestPosition    Float?
+  searchVolume    Int?
+  difficulty      Int?
+  ctr             Float?
+  impressions     Int?             @default(0)
+  clicks          Int?             @default(0)
+  rankingUrl      String?
+  trend           String?          @default("STABLE") // UP, DOWN, STABLE
+  isOpportunity   Boolean          @default(false)
+  opportunityNote String?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  rankings        KeywordRanking[]
+}
+
+model KeywordRanking {
+  id        String   @id @default(uuid())
+  keywordId String
+  keyword   Keyword  @relation(fields: [keywordId], references: [id], onDelete: Cascade)
+  position  Float
+  date      DateTime @default(now())
+}
+
+model SearchConsoleConnection {
+  id           String    @id @default(uuid())
+  projectId    String
+  project      Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  siteUrl      String
+  isConnected  Boolean   @default(false)
+  lastSyncedAt DateTime?
+  accountEmail String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+}
+
+model SearchConsoleData {
+  id          String   @id @default(uuid())
+  projectId   String
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  query       String
+  page        String
+  clicks      Int      @default(0)
+  impressions Int      @default(0)
+  ctr         Float    @default(0.0)
+  position    Float    @default(0.0)
+  date        DateTime @default(now())
+}
+
+model Competitor {
+  id              String           @id @default(uuid())
+  projectId       String
+  project         Project          @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  name            String
+  domain          String
+  seoScore        Int?             @default(0)
+  searchVisibility Float?          @default(0.0)
+  commonKeywords  Int?             @default(0)
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  pages           CompetitorPage[]
+}
+
+model CompetitorPage {
+  id           String     @id @default(uuid())
+  competitorId String
+  competitor   Competitor @relation(fields: [competitorId], references: [id], onDelete: Cascade)
+  url          String
+  title        String?
+  topic        String?
+  createdAt    DateTime   @default(now())
+}
+
+model ContentOpportunity {
+  id                  String   @id @default(uuid())
+  projectId           String
+  project             Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  topic               String
+  searchIntent        String   // Informational, Commercial, etc.
+  reason              String
+  potentialValue      String   // HIGH, MEDIUM, LOW
+  recommendedPageType String   // Blog, Service Page, Landing Page, Guide
+  suggestedOutline    String?  // JSON outline array
+  status              String   @default("OPEN") // OPEN, IN_PROGRESS, COMPLETED
+  createdAt           DateTime @default(now())
+}
+
+model SeoRecommendation {
+  id             String     @id @default(uuid())
+  projectId      String
+  project        Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  pageId         String?
+  page           CrawlPage? @relation(fields: [pageId], references: [id], onDelete: SetNull)
+  agentType      String     // TECHNICAL, CONTENT, KEYWORD, LINKING, LOCAL, QA
+  title          String
+  problem        String
+  searchIntent   String?
+  recommendedAction String
+  suggestedContent String?
+  suggestedMeta  String?    // JSON object with suggested title/desc
+  priority       String     // HIGH, MEDIUM, LOW
+  expectedImpact String     // HIGH_POTENTIAL, MEDIUM_POTENTIAL, LOW_POTENTIAL
+  confidence     Float      @default(0.85)
+  status         String     @default("PENDING") // PENDING, APPROVED, REJECTED, APPLIED
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+}
+
+model OptimizationTask {
+  id          String     @id @default(uuid())
+  projectId   String
+  project     Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  pageId      String?
+  page        CrawlPage? @relation(fields: [pageId], references: [id], onDelete: SetNull)
+  title       String
+  description String
+  taskType    String     // META_TITLE, META_DESCRIPTION, ALT_TEXT, INTERNAL_LINK, SCHEMA, CONTENT
+  status      String     @default("PENDING") // PENDING, READY, IN_PROGRESS, APPLIED, FAILED
+  beforeValue String?
+  afterValue  String?
+  appliedAt   DateTime?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+}
+
+model OptimizationChange {
+  id             String     @id @default(uuid())
+  projectId      String
+  project        Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  pageId         String?
+  page           CrawlPage? @relation(fields: [pageId], references: [id], onDelete: SetNull)
+  changeType     String     // TITLE, META_DESCRIPTION, ALT_TEXT, SCHEMA, INTERNAL_LINK
+  originalValue  String?
+  newValue       String
+  reason         String
+  affectedUrl    String
+  integrationUsed String    @default("AUTONOMOUS_ENGINE")
+  status         String     @default("APPLIED") // APPLIED, ROLLED_BACK
+  appliedAt      DateTime   @default(now())
+  rolledBackAt   DateTime?
+}
+
+model Integration {
+  id          String    @id @default(uuid())
+  projectId   String
+  project     Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  type        String    // SEARCH_CONSOLE, GOOGLE_ANALYTICS, WORDPRESS, GITHUB, SHOPIFY, WEBFLOW
+  name        String
+  isConnected Boolean   @default(false)
+  config      String?   // JSON object with masked credentials / settings
+  lastSyncedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Backlink {
+  id           String    @id @default(uuid())
+  projectId    String
+  project      Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  referringPage String
+  targetPage   String
+  anchorText   String?
+  isFollow     Boolean   @default(true)
+  domainAuthority Int?
+  discoveredAt DateTime  @default(now())
+  lastSeenAt   DateTime  @default(now())
+}
+
+model Alert {
+  id          String   @id @default(uuid())
+  projectId   String
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  type        String   // RANKING_DROP, CRITICAL_ISSUE, NON_INDEXABLE, BROKEN_PAGE, CRAWL_COMPLETED
+  title       String
+  message     String
+  severity    String   // CRITICAL, WARNING, INFO
+  isRead      Boolean  @default(false)
+  createdAt   DateTime @default(now())
+}
+
+model Report {
+  id          String   @id @default(uuid())
+  projectId   String
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  title       String
+  type        String   @default("EXECUTIVE_AUDIT") // EXECUTIVE_AUDIT, TECHNICAL_AUDIT, KEYWORD_REPORT
+  summary     String?
+  data        String?  // JSON payload of full snapshot
+  createdAt   DateTime @default(now())
+}
+
+model Subscription {
+  id          String   @id @default(uuid())
+  userId      String   @unique
+  plan        String   @default("FREE") // FREE, STARTER, PROFESSIONAL, AGENCY, ENTERPRISE
+  status      String   @default("ACTIVE")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  projectId String?
+  project   Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  action    String
+  details   String?
+  ipAddress String?
+  createdAt DateTime @default(now())
+}
+
