@@ -16,25 +16,71 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: false, error: 'Project not found' }, { status: 404 });
     }
 
-    // Crawl customer's live homepage
-    const fetchRes = await safeFetch(project.url, {
-      headers: {
-        'User-Agent': 'ApexSEO-Verifier/1.0',
-        Accept: 'text/html',
-      },
+    // 1. First check if a live browser beacon was already received
+    const beaconIntegration = await prisma.integration.findFirst({
+      where: { projectId: project.id, type: 'EMBED_TAG', isConnected: true },
     });
 
-    if (!fetchRes.ok) {
+    if (beaconIntegration) {
+      await prisma.autopilotConfig.upsert({
+        where: { projectId: project.id },
+        create: { projectId: project.id, enabled: true, mode: 'AUTONOMOUS' },
+        update: { enabled: true, mode: 'AUTONOMOUS' },
+      });
+
       return NextResponse.json({
-        success: false,
-        error: `Could not reach ${project.url} (HTTP ${fetchRes.status})`,
+        success: true,
+        installed: true,
+        message: 'Tag verified! Active browser telemetry beacon received from your website.',
       });
     }
 
-    const html = await fetchRes.text();
-    const hasTag = html.includes('engine.js') || html.includes(`data-site="${project.id}"`) || html.includes(`data-site='${project.id}'`);
+    // 2. Crawl customer's live site (test both canonical URL and www/non-www variant)
+    const urlsToTest = [project.url];
+    try {
+      const u = new URL(project.url);
+      if (u.hostname.startsWith('www.')) {
+        urlsToTest.push(`${u.protocol}//${u.hostname.replace('www.', '')}${u.pathname}`);
+      } else {
+        urlsToTest.push(`${u.protocol}//www.${u.hostname}${u.pathname}`);
+      }
+    } catch {}
 
-    if (hasTag) {
+    let found = false;
+    let checkedUrl = project.url;
+    let crawlError: string | null = null;
+
+    for (const testUrl of urlsToTest) {
+      try {
+        const fetchRes = await safeFetch(testUrl, {
+          headers: {
+            'User-Agent': 'ApexSEO-Verifier/1.0',
+            Accept: 'text/html',
+            'Cache-Control': 'no-cache',
+            Pragma: 'no-cache',
+          },
+          redirect: 'follow',
+        });
+
+        if (fetchRes.ok) {
+          checkedUrl = testUrl;
+          const html = await fetchRes.text();
+          if (
+            html.includes('engine.js') ||
+            html.includes(`data-site="${project.id}"`) ||
+            html.includes(`data-site='${project.id}'`) ||
+            html.includes(project.id)
+          ) {
+            found = true;
+            break;
+          }
+        }
+      } catch (e: any) {
+        crawlError = e.message;
+      }
+    }
+
+    if (found) {
       // Mark EMBED_TAG integration as active
       const existing = await prisma.integration.findFirst({
         where: { projectId: project.id, type: 'EMBED_TAG' },
@@ -58,30 +104,24 @@ export async function POST(req: Request) {
         });
       }
 
-      // Automatically enable Autopilot config on project
       await prisma.autopilotConfig.upsert({
         where: { projectId: project.id },
-        create: {
-          projectId: project.id,
-          enabled: true,
-          mode: 'AUTONOMOUS',
-        },
-        update: {
-          enabled: true,
-          mode: 'AUTONOMOUS',
-        },
+        create: { projectId: project.id, enabled: true, mode: 'AUTONOMOUS' },
+        update: { enabled: true, mode: 'AUTONOMOUS' },
       });
 
       return NextResponse.json({
         success: true,
         installed: true,
-        message: 'Tag successfully detected! Autonomous Autopilot is now actively optimizing your website.',
+        message: 'Tag successfully detected in live HTML! Autonomous Autopilot is now actively optimizing your website.',
       });
     } else {
       return NextResponse.json({
         success: true,
         installed: false,
-        message: 'Tag not yet detected in homepage HTML. Please verify that the <script> snippet is placed inside <head> or <body>.',
+        checkedUrl,
+        error: crawlError,
+        message: `Tag not yet detected in live HTML at ${checkedUrl}. If you just edited your index.html or theme, make sure the changes have been deployed/published to production.`,
       });
     }
   } catch (error: any) {
