@@ -37,7 +37,13 @@ export default function ActivatePage() {
       .then((r) => r.json())
       .then((data) => {
         if (data.projects && data.projects.length > 0) {
-          setProject(data.projects[0]);
+          const savedId = typeof window !== 'undefined' ? localStorage.getItem('activeProjectId') : null;
+          const matched = savedId ? data.projects.find((p: any) => p.id === savedId) : null;
+          const chosen = matched || data.projects[data.projects.length - 1];
+          setProject(chosen);
+          if (chosen && typeof window !== 'undefined') {
+            localStorage.setItem('activeProjectId', chosen.id);
+          }
         }
       });
   }, []);
@@ -399,3 +405,4 @@ export default function ActivatePage() {
     </div>
   );
 }
+
