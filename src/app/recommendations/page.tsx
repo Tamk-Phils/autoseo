@@ -13,24 +13,48 @@ import {
   AlertCircle,
   Layers,
   History,
+  Boxes,
+  Globe,
+  GitPullRequest,
+  Zap,
 } from 'lucide-react';
 import Link from 'next/link';
 
 export default function RecommendationsPage() {
   const [recommendations, setRecommendations] = useState<any[]>([]);
+  const [integrations, setIntegrations] = useState<any[]>([]);
+  const [targetIntegration, setTargetIntegration] = useState<string>('AUTONOMOUS_ENGINE');
   const [loading, setLoading] = useState(true);
   const [project, setProject] = useState<any>(null);
   const [message, setMessage] = useState<string | null>(null);
+  const [applyingId, setApplyingId] = useState<string | null>(null);
 
   const fetchRecs = async () => {
     try {
       const pRes = await fetch('/api/projects');
       const pData = await pRes.json();
       if (pData.projects && pData.projects.length > 0) {
-        setProject(pData.projects[0]);
-        const res = await fetch(`/api/recommendations?projectId=${pData.projects[0].id}`);
+        const curr = pData.projects[0];
+        setProject(curr);
+        
+        const res = await fetch(`/api/recommendations?projectId=${curr.id}`);
         const data = await res.json();
         setRecommendations(data.recommendations || []);
+
+        // Load active integrations
+        const intRes = await fetch(`/api/integrations?projectId=${curr.id}`);
+        const intData = await intRes.json();
+        if (intData.integrations) {
+          const active = intData.integrations.filter((i: any) => i.isConnected);
+          setIntegrations(active);
+          if (active.some((i: any) => i.type === 'WORDPRESS')) {
+            setTargetIntegration('WORDPRESS');
+          } else if (active.some((i: any) => i.type === 'GITHUB')) {
+            setTargetIntegration('GITHUB');
+          } else if (active.some((i: any) => i.type === 'CLOUDFLARE_EDGE')) {
+            setTargetIntegration('CLOUDFLARE_EDGE');
+          }
+        }
       }
     } catch (e) {
       console.error(e);
@@ -62,24 +86,33 @@ export default function RecommendationsPage() {
   };
 
   const handleApply = async (id: string) => {
+    setApplyingId(id);
     try {
       const res = await fetch('/api/recommendations/apply', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id }),
+        body: JSON.stringify({ id, targetIntegration }),
       });
       const data = await res.json();
       if (data.success) {
-        setMessage('Optimization executed safely! Recorded to change log with rollback support.');
+        setMessage(data.message || 'Optimization executed safely! Recorded to change log with rollback support.');
         setRecommendations((prev) =>
           prev.map((r) => (r.id === id ? { ...r, status: 'APPLIED' } : r))
         );
-        setTimeout(() => setMessage(null), 4000);
+        setTimeout(() => setMessage(null), 6000);
+      } else {
+        alert(data.error || 'Failed to apply recommendation');
       }
-    } catch (e) {
-      console.error(e);
+    } catch (e: any) {
+      alert(`Error executing optimization: ${e.message}`);
+    } finally {
+      setApplyingId(null);
     }
   };
+
+  const wpActive = integrations.some((i) => i.type === 'WORDPRESS');
+  const ghActive = integrations.some((i) => i.type === 'GITHUB');
+  const cfActive = integrations.some((i) => i.type === 'CLOUDFLARE_EDGE');
 
   return (
     <div className="app-layout">
@@ -95,13 +128,63 @@ export default function RecommendationsPage() {
                 Autonomous AI Recommendations Queue
               </h1>
               <p className="page-subtitle">
-                Synthesized by specialized agents (Technical, Content, Internal Linking, QA). Review, approve, or execute safe SEO fixes.
+                Synthesized by specialized agents. Review, approve, or execute live SEO fixes directly to your website.
               </p>
             </div>
-            <Link href="/changes" className="btn btn-secondary btn-sm">
-              <History size={14} />
-              View Change History
-            </Link>
+            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+              <Link href="/integrations" className="btn btn-secondary btn-sm">
+                <Boxes size={14} />
+                Manage Integrations ({integrations.length})
+              </Link>
+              <Link href="/changes" className="btn btn-secondary btn-sm">
+                <History size={14} />
+                Change History & Rollback
+              </Link>
+            </div>
+          </div>
+
+          {/* Publishing Destination Bar */}
+          <div
+            className="card"
+            style={{
+              marginBottom: '1.25rem',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              flexWrap: 'wrap',
+              gap: '1rem',
+              padding: '0.85rem 1.25rem',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+              <Boxes size={18} color="var(--accent-cyan)" />
+              <span style={{ fontSize: '0.88rem', fontWeight: 600, color: '#fff' }}>
+                Publishing Destination:
+              </span>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', flexWrap: 'wrap' }}>
+              <select
+                className="form-control"
+                style={{ width: 'auto', padding: '0.35rem 0.75rem', fontSize: '0.85rem' }}
+                value={targetIntegration}
+                onChange={(e) => setTargetIntegration(e.target.value)}
+              >
+                <option value="AUTONOMOUS_ENGINE">In-App Engine (Database + Rollback Cache)</option>
+                {wpActive && <option value="WORDPRESS">WordPress REST API (Live On-Page)</option>}
+                {ghActive && <option value="GITHUB">GitHub Automated Pull Request</option>}
+                {cfActive && <option value="CLOUDFLARE_EDGE">Cloudflare Edge Worker (Zero-Latency Rewriter)</option>}
+              </select>
+
+              {!wpActive && !ghActive && !cfActive && (
+                <Link
+                  href="/integrations"
+                  style={{ fontSize: '0.8rem', color: 'var(--accent-cyan)', textDecoration: 'underline' }}
+                >
+                  + Connect WordPress or GitHub
+                </Link>
+              )}
+            </div>
           </div>
 
           {message && (
@@ -158,45 +241,58 @@ export default function RecommendationsPage() {
                               : rec.status === 'APPROVED'
                               ? 'badge-low'
                               : rec.status === 'REJECTED'
-                              ? 'badge-critical'
+                              ? 'badge-high'
                               : 'badge-medium'
                           }`}
                         >
-                          STATUS: {rec.status}
+                          {rec.status}
                         </span>
                       </div>
-                      <h3 style={{ fontSize: '1.2rem', fontWeight: 700, color: '#fff' }}>{rec.title}</h3>
+                      <h3 style={{ fontSize: '1.15rem', fontWeight: 700, color: '#fff', marginTop: '0.25rem' }}>
+                        {rec.title}
+                      </h3>
+                      {rec.page?.url && (
+                        <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', marginTop: '0.2rem' }}>
+                          Target URL: <code>{rec.page.url}</code>
+                        </div>
+                      )}
                     </div>
-
-                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textAlign: 'right' }}>
-                      Potential Impact: <strong style={{ color: 'var(--color-success)' }}>{rec.expectedImpact}</strong>
-                    </div>
+                    {rec.riskLevel && (
+                      <span className="badge badge-low" style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                        <ShieldCheck size={12} />
+                        Risk: {rec.riskLevel}
+                      </span>
+                    )}
                   </div>
 
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', background: 'var(--bg-input)', padding: '1rem', borderRadius: 'var(--radius-md)', marginBottom: '1.25rem' }}>
-                    <div>
-                      <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600, marginBottom: '0.25rem' }}>
+                  <div className="grid-2" style={{ marginBottom: '1rem' }}>
+                    <div style={{ background: 'var(--bg-input)', padding: '0.85rem', borderRadius: 'var(--radius-md)' }}>
+                      <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', textTransform: 'uppercase', marginBottom: '0.25rem', fontWeight: 600 }}>
                         Identified Problem
                       </div>
-                      <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{rec.problem}</p>
+                      <div style={{ fontSize: '0.88rem', color: 'var(--color-critical)' }}>
+                        {rec.problem}
+                      </div>
                     </div>
 
-                    <div>
-                      <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600, marginBottom: '0.25rem' }}>
-                        Recommended Action
+                    <div style={{ background: 'var(--bg-input)', padding: '0.85rem', borderRadius: 'var(--radius-md)' }}>
+                      <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', textTransform: 'uppercase', marginBottom: '0.25rem', fontWeight: 600 }}>
+                        Recommended Solution
                       </div>
-                      <p style={{ fontSize: '0.85rem', color: '#fff' }}>{rec.recommendedAction}</p>
+                      <div style={{ fontSize: '0.88rem', color: 'var(--color-success)' }}>
+                        {rec.recommendedAction}
+                      </div>
                     </div>
                   </div>
 
                   {rec.suggestedContent && (
-                    <div style={{ marginBottom: '1.25rem' }}>
-                      <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600, marginBottom: '0.35rem' }}>
-                        Proposed Content / Payload:
+                    <div style={{ marginBottom: '1rem' }}>
+                      <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', textTransform: 'uppercase', marginBottom: '0.35rem', fontWeight: 600 }}>
+                        Proposed Content / Schema Code
                       </div>
                       <pre
                         style={{
-                          background: 'var(--bg-dark)',
+                          background: '#090d16',
                           border: '1px solid var(--border-color)',
                           padding: '0.75rem',
                           borderRadius: 'var(--radius-md)',
@@ -213,7 +309,7 @@ export default function RecommendationsPage() {
                   )}
 
                   {/* Actions */}
-                  <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', borderTop: '1px solid var(--border-color)', paddingTop: '1rem' }}>
+                  <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', borderTop: '1px solid var(--border-color)', paddingTop: '1rem', alignItems: 'center' }}>
                     {rec.status === 'PENDING' && (
                       <>
                         <button
@@ -236,9 +332,18 @@ export default function RecommendationsPage() {
                           type="button"
                           className="btn btn-primary btn-sm"
                           onClick={() => handleApply(rec.id)}
+                          disabled={applyingId === rec.id}
                         >
                           <Play size={14} />
-                          Apply Optimization Now
+                          {applyingId === rec.id
+                            ? 'Publishing...'
+                            : targetIntegration === 'WORDPRESS'
+                            ? 'Push to WordPress Now'
+                            : targetIntegration === 'GITHUB'
+                            ? 'Open GitHub PR Now'
+                            : targetIntegration === 'CLOUDFLARE_EDGE'
+                            ? 'Deploy to Edge Now'
+                            : 'Apply Optimization Now'}
                         </button>
                       </>
                     )}
@@ -248,9 +353,16 @@ export default function RecommendationsPage() {
                         type="button"
                         className="btn btn-primary btn-sm"
                         onClick={() => handleApply(rec.id)}
+                        disabled={applyingId === rec.id}
                       >
                         <Play size={14} />
-                        Execute Approved Fix
+                        {applyingId === rec.id
+                          ? 'Publishing...'
+                          : targetIntegration === 'WORDPRESS'
+                          ? 'Execute to WordPress'
+                          : targetIntegration === 'GITHUB'
+                          ? 'Open GitHub PR'
+                          : 'Execute Approved Fix'}
                       </button>
                     )}
 
@@ -270,4 +382,3 @@ export default function RecommendationsPage() {
     </div>
   );
 }
-

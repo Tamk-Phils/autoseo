@@ -19,6 +19,7 @@ import {
   History,
   Radio,
   FileSpreadsheet,
+  Boxes,
 } from 'lucide-react';
 
 export default function Sidebar() {
@@ -38,6 +39,7 @@ export default function Sidebar() {
     { label: 'SEO Autopilot', href: '/autopilot', icon: Bot },
     { label: 'Change History', href: '/changes', icon: History },
     { label: 'Audit Reports', href: '/reports', icon: FileCheck2 },
+    { label: 'Integrations', href: '/integrations', icon: Boxes },
     { label: 'Settings', href: '/settings', icon: Settings },
   ];
 
