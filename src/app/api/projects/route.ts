@@ -2,11 +2,19 @@ import { NextResponse } from 'next/server';
 import prisma from '@/lib/db';
 import { validateUrlForSsrf } from '@/lib/ssrf';
 import { ensureDefaultUser } from '@/lib/seed';
+import { getCurrentUser } from '@/lib/auth';
 
 export async function GET() {
   try {
-    await ensureDefaultUser();
+    const currentUser = await getCurrentUser();
+    let whereClause = {};
+
+    if (currentUser) {
+      whereClause = { userId: currentUser.id };
+    }
+
     const projects = await prisma.project.findMany({
+      where: whereClause,
       include: {
         _count: {
           select: { pages: true, issues: true, keywords: true, recommendations: true },
@@ -14,7 +22,8 @@ export async function GET() {
       },
       orderBy: { createdAt: 'desc' },
     });
-    return NextResponse.json({ success: true, projects });
+
+    return NextResponse.json({ success: true, projects, user: currentUser });
   } catch (error: any) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }
@@ -38,11 +47,14 @@ export async function POST(req: Request) {
     const parsed = new URL(url);
     const domain = parsed.hostname;
 
-    let user = await prisma.user.findFirst();
-    if (!user) {
-      user = await prisma.user.create({
-        data: { email: 'admin@apexseo.engine', name: 'Site Administrator' },
-      });
+    const currentUser = await getCurrentUser();
+    let targetUserId: string;
+
+    if (currentUser) {
+      targetUserId = currentUser.id;
+    } else {
+      const defaultUser = await ensureDefaultUser();
+      targetUserId = defaultUser.id;
     }
 
     const project = await prisma.project.create({
@@ -51,8 +63,8 @@ export async function POST(req: Request) {
         domain,
         url: parsed.origin,
         industry: industry || 'Technology',
-        optimizationMode: optimizationMode || 'ASSISTED',
-        userId: user.id,
+        optimizationMode: optimizationMode || 'AUTONOMOUS',
+        userId: targetUserId,
       },
     });
 
@@ -60,8 +72,18 @@ export async function POST(req: Request) {
     await prisma.autopilotConfig.create({
       data: {
         projectId: project.id,
-        enabled: optimizationMode === 'AUTONOMOUS',
-        mode: optimizationMode || 'ASSISTED',
+        enabled: true,
+        mode: optimizationMode || 'AUTONOMOUS',
+      },
+    });
+
+    // Create audit log
+    await prisma.auditLog.create({
+      data: {
+        projectId: project.id,
+        userId: targetUserId,
+        action: 'PROJECT_INITIALIZED',
+        details: `Connected website: ${domain}`,
       },
     });
 
@@ -70,4 +92,3 @@ export async function POST(req: Request) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }
 }
-

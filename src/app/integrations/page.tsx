@@ -57,7 +57,8 @@ export default function IntegrationsPage() {
       .then((r) => r.json())
       .then((data) => {
         if (data.projects && data.projects.length > 0) {
-          const p = data.projects[0];
+          const savedId = typeof window !== 'undefined' ? (new URLSearchParams(window.location.search).get('projectId') || localStorage.getItem('activeProjectId')) : null;
+          const p = (savedId && data.projects.find((item: any) => item.id === savedId)) || data.projects[0];
           setProject(p);
           if (p.url) {
             setWpUrl(p.url);

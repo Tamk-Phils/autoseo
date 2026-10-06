@@ -25,7 +25,8 @@ export default function OpportunitiesPage() {
       .then((r) => r.json())
       .then(async (data) => {
         if (data.projects && data.projects.length > 0) {
-          const current = data.projects[0];
+          const savedId = typeof window !== 'undefined' ? (new URLSearchParams(window.location.search).get('projectId') || localStorage.getItem('activeProjectId')) : null;
+          const current = (savedId && data.projects.find((p: any) => p.id === savedId)) || data.projects[0];
           setProject(current);
 
           const [issuesRes, kwRes] = await Promise.all([

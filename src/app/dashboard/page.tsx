@@ -1,8 +1,10 @@
 import prisma from '@/lib/db';
 import { getDefaultProject } from '@/lib/seed';
+import { getCurrentUser } from '@/lib/auth';
 import Sidebar from '@/components/Sidebar';
 import TopHeader from '@/components/TopHeader';
 import ScoreGauge from '@/components/ScoreGauge';
+import LiveActivityFeed from '@/components/LiveActivityFeed';
 import Link from 'next/link';
 import {
   AlertCircle,
@@ -18,8 +20,30 @@ import {
 
 export const dynamic = 'force-dynamic';
 
-export default async function DashboardPage() {
-  const project = await getDefaultProject();
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams?: { projectId?: string };
+}) {
+  const user = await getCurrentUser();
+  let project = null;
+
+  if (searchParams?.projectId) {
+    project = await prisma.project.findUnique({
+      where: { id: searchParams.projectId },
+    });
+  }
+
+  if (!project && user) {
+    project = await prisma.project.findFirst({
+      where: { userId: user.id },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  if (!project) {
+    project = await getDefaultProject();
+  }
 
   if (!project) {
     return (
@@ -165,52 +189,7 @@ export default async function DashboardPage() {
               structuredData={project.structuredDataScore ?? 0}
             />
 
-            <div className="card" style={{ display: 'flex', flexDirection: 'column' }}>
-              <div className="card-header">
-                <h3 className="card-title">
-                  <Bot size={18} color="var(--accent-cyan)" />
-                  Autonomous Engine Activity
-                </h3>
-                <span className="badge badge-success">Running</span>
-              </div>
-
-              <p style={{ fontSize: '0.88rem', color: 'var(--text-secondary)', marginBottom: '1.25rem' }}>
-                The engine continuously evaluates crawled HTML, monitors search intent keywords, and queues verified optimizations.
-              </p>
-
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem', flex: 1 }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem', background: 'var(--bg-input)', borderRadius: 'var(--radius-md)' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
-                    <ShieldCheck size={18} color="var(--color-success)" />
-                    <span style={{ fontSize: '0.88rem', fontWeight: 600, color: '#fff' }}>Title & Meta Tag Updates</span>
-                  </div>
-                  <span className="badge badge-low">Autonomous</span>
-                </div>
-
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem', background: 'var(--bg-input)', borderRadius: 'var(--radius-md)' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
-                    <ShieldCheck size={18} color="var(--color-success)" />
-                    <span style={{ fontSize: '0.88rem', fontWeight: 600, color: '#fff' }}>Schema.org JSON-LD Injection</span>
-                  </div>
-                  <span className="badge badge-low">Autonomous</span>
-                </div>
-
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem', background: 'var(--bg-input)', borderRadius: 'var(--radius-md)' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
-                    <AlertCircle size={18} color="var(--color-warning)" />
-                    <span style={{ fontSize: '0.88rem', fontWeight: 600, color: '#fff' }}>Robots.txt & Canonical Redirects</span>
-                  </div>
-                  <span className="badge badge-medium">Manual Approval Required</span>
-                </div>
-              </div>
-
-              <div style={{ marginTop: '1.25rem', display: 'flex', justifyContent: 'flex-end' }}>
-                <Link href="/autopilot" className="btn btn-secondary btn-sm">
-                  Configure Autopilot Guardrails
-                  <ArrowRight size={14} />
-                </Link>
-              </div>
-            </div>
+            <LiveActivityFeed projectId={project.id} />
           </div>
 
           {/* Audit Issues & AI Recommendations Split */}

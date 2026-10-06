@@ -42,9 +42,13 @@ export default function LiveCrawlPage() {
       .then((r) => r.json())
       .then((data) => {
         if (data.projects && data.projects.length > 0) {
-          const current = data.projects[0];
+          const savedId = typeof window !== 'undefined' ? (new URLSearchParams(window.location.search).get('projectId') || localStorage.getItem('activeProjectId')) : null;
+          const current = (savedId && data.projects.find((p: any) => p.id === savedId)) || data.projects[0];
           setProject(current);
           setCrawlUrl(current.url);
+          if (current && typeof window !== 'undefined') {
+            localStorage.setItem('activeProjectId', current.id);
+          }
         }
       });
   }, []);

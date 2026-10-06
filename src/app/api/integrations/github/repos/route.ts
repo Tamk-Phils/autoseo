@@ -75,3 +75,4 @@ export async function GET() {
     hasEnvToken: Boolean(process.env.GITHUB_TOKEN),
   });
 }
+
