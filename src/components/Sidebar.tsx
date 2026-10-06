@@ -20,6 +20,7 @@ import {
   Radio,
   FileSpreadsheet,
   Boxes,
+  Zap,
 } from 'lucide-react';
 
 export default function Sidebar() {
@@ -37,6 +38,7 @@ export default function Sidebar() {
     { label: 'Competitors', href: '/competitors', icon: Users2 },
     { label: 'Search Console', href: '/search-console', icon: BarChart3 },
     { label: 'SEO Autopilot', href: '/autopilot', icon: Bot },
+    { label: 'Zero-Code Tag', href: '/activate', icon: Zap },
     { label: 'Change History', href: '/changes', icon: History },
     { label: 'Audit Reports', href: '/reports', icon: FileCheck2 },
     { label: 'Integrations', href: '/integrations', icon: Boxes },

@@ -102,3 +102,14 @@ function isPrivateOrRestrictedIp(ip: string): boolean {
   return false;
 }
 
+/**
+ * Performs a fetch request only after verifying the destination against SSRF rules.
+ */
+export async function safeFetch(targetUrl: string, init?: RequestInit): Promise<Response> {
+  const validation = await validateUrlForSsrf(targetUrl);
+  if (!validation.valid) {
+    throw new Error(validation.error || 'Blocked by SSRF protection');
+  }
+  return fetch(targetUrl, init);
+}
+
