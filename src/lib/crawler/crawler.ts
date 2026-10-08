@@ -14,6 +14,7 @@ export interface CrawlOptions {
   startUrl: string;
   maxPages?: number;
   maxDepth?: number;
+  userAgent?: string;
   timeoutMs?: number;
   onProgress?: (log: CrawlLogEntry, progressPercent: number) => void;
 }
@@ -38,12 +39,14 @@ export class AutonomousCrawler {
   private logs: CrawlLogEntry[] = [];
   private maxPages: number;
   private maxDepth: number;
+  private userAgent: string;
   private timeoutMs: number;
   private onProgress?: (log: CrawlLogEntry, progressPercent: number) => void;
 
   constructor(options: CrawlOptions) {
     this.maxPages = options.maxPages || 30;
     this.maxDepth = options.maxDepth || 3;
+    this.userAgent = options.userAgent || 'ApexSEO-Bot/1.0 (+https://apexseo.engine/bot)';
     this.timeoutMs = options.timeoutMs || 8000;
     this.onProgress = options.onProgress;
   }
@@ -83,7 +86,7 @@ export class AutonomousCrawler {
     try {
       const robotsUrl = `${this.baseOrigin}/robots.txt`;
       const robotsRes = await fetch(robotsUrl, {
-        headers: { 'User-Agent': 'ApexSEO-Bot/1.0 (+https://apexseo.engine/bot)' },
+        headers: { 'User-Agent': this.userAgent },
         signal: AbortSignal.timeout(4000),
       });
       if (robotsRes.ok) {
@@ -116,7 +119,7 @@ export class AutonomousCrawler {
     for (const smUrl of candidateSitemaps) {
       try {
         const smRes = await fetch(smUrl, {
-          headers: { 'User-Agent': 'ApexSEO-Bot/1.0' },
+          headers: { 'User-Agent': this.userAgent },
           signal: AbortSignal.timeout(4000),
         });
         if (smRes.ok) {
@@ -167,7 +170,7 @@ export class AutonomousCrawler {
         const startTime = Date.now();
         const response = await fetch(normalizedUrl, {
           headers: {
-            'User-Agent': 'ApexSEO-Autonomous-Engine/1.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)',
+            'User-Agent': this.userAgent,
             'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
           },
           redirect: 'follow',

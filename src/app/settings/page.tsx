@@ -21,6 +21,9 @@ export default function SettingsPage() {
   const [languages, setLanguages] = useState('en, fr');
   const [userAgent, setUserAgent] = useState('ApexSEO-Bot/1.0 (+https://apexseo.engine/bot)');
   const [saved, setSaved] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     fetch('/api/projects')
@@ -31,13 +34,36 @@ export default function SettingsPage() {
           const current = (savedId && data.projects.find((p: any) => p.id === savedId)) || data.projects[0];
           setProject(current);
           setCountry(current.country || 'US');
+          setMaxPages(String(current.crawlMaxPages || 30));
+          setCrawlDepth(String(current.crawlMaxDepth || 3));
+          setLanguages(current.targetLanguages ? current.targetLanguages.replace(/[\[\]"]+/g, '') : 'en, fr');
+          setUserAgent(current.crawlerUserAgent || userAgent);
         }
-      });
+      })
+      .catch(() => setError('Unable to load project settings.'))
+      .finally(() => setLoading(false));
   }, []);
 
-  const handleSave = () => {
-    setSaved(true);
-    setTimeout(() => setSaved(false), 3000);
+  const handleSave = async () => {
+    if (!project) return;
+    setSaving(true);
+    setError(null);
+    try {
+      const res = await fetch('/api/projects', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ projectId: project.id, maxPages, crawlDepth, userAgent, country, languages }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) throw new Error(data.error || 'Unable to save settings');
+      setProject(data.project);
+      setSaved(true);
+      setTimeout(() => setSaved(false), 3000);
+    } catch (err: any) {
+      setError(err.message || 'Unable to save settings');
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -57,9 +83,9 @@ export default function SettingsPage() {
                 Manage crawler execution parameters, localized target markets, and security boundaries.
               </p>
             </div>
-            <button type="button" className="btn btn-primary btn-sm" onClick={handleSave}>
-              <Save size={14} />
-              Save Configuration
+            <button type="button" className="btn btn-primary btn-sm" onClick={handleSave} disabled={saving || loading || !project}>
+              {saving ? <Save size={14} className="animate-spin" /> : <Save size={14} />}
+              {saving ? 'Saving...' : 'Save Configuration'}
             </button>
           </div>
 
@@ -82,6 +108,14 @@ export default function SettingsPage() {
               <span>Project settings successfully persisted!</span>
             </div>
           )}
+          {error && <div className="alert alert-danger" style={{ marginBottom: '1.5rem' }}>{error}</div>}
+
+          {loading ? (
+            <div className="card" style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}>
+              <Cpu size={22} className="animate-spin" /> Loading project settings...
+            </div>
+          ) : (
+          <>
 
           <div className="grid-2">
             {/* Crawler Settings */}
@@ -165,6 +199,8 @@ export default function SettingsPage() {
               </div>
             </div>
           </div>
+          </>
+          )}
         </main>
       </div>
     </div>

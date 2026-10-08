@@ -1,14 +1,17 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/db';
+import { getCurrentUser } from '@/lib/auth';
 
 export async function GET(req: Request) {
   try {
+    const currentUser = await getCurrentUser();
+    if (!currentUser) return NextResponse.json({ success: false, error: 'Authentication required' }, { status: 401 });
     const { searchParams } = new URL(req.url);
     const projectId = searchParams.get('projectId');
 
     const project = projectId
-      ? await prisma.project.findUnique({ where: { id: projectId }, include: { autopilotConfig: true } })
-      : await prisma.project.findFirst({ include: { autopilotConfig: true } });
+      ? await prisma.project.findFirst({ where: { id: projectId, userId: currentUser.id }, include: { autopilotConfig: true } })
+      : await prisma.project.findFirst({ where: { userId: currentUser.id }, include: { autopilotConfig: true } });
 
     if (!project) {
       return NextResponse.json({ success: false, error: 'Project not found' }, { status: 404 });
@@ -33,12 +36,14 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   try {
+    const currentUser = await getCurrentUser();
+    if (!currentUser) return NextResponse.json({ success: false, error: 'Authentication required' }, { status: 401 });
     const body = await req.json();
     const { projectId, config: newConfig } = body;
 
     let project = projectId
-      ? await prisma.project.findUnique({ where: { id: projectId } })
-      : await prisma.project.findFirst();
+      ? await prisma.project.findFirst({ where: { id: projectId, userId: currentUser.id } })
+      : await prisma.project.findFirst({ where: { userId: currentUser.id } });
 
     if (!project) {
       return NextResponse.json({ success: false, error: 'Project not found' }, { status: 404 });

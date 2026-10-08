@@ -25,6 +25,9 @@ export default function AutopilotPage() {
   const [allowRewriteContent, setAllowRewriteContent] = useState(false);
   const [allowPublishPages, setAllowPublishPages] = useState(false);
   const [savedMessage, setSavedMessage] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     fetch('/api/autopilot')
@@ -45,10 +48,14 @@ export default function AutopilotPage() {
           setAllowRewriteContent(data.config.allowRewriteContent);
           setAllowPublishPages(data.config.allowPublishPages);
         }
-      });
+      })
+      .catch(() => setError('Unable to load autopilot policies.'))
+      .finally(() => setLoading(false));
   }, []);
 
   const handleSave = async () => {
+    setSaving(true);
+    setError(null);
     try {
       const res = await fetch('/api/autopilot', {
         method: 'POST',
@@ -74,8 +81,11 @@ export default function AutopilotPage() {
         setSavedMessage(true);
         setTimeout(() => setSavedMessage(false), 3000);
       }
-    } catch (e) {
-      console.error(e);
+      else setError(data.error || 'Unable to save autopilot policies.');
+    } catch (e: any) {
+      setError(e.message || 'Unable to save autopilot policies.');
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -96,9 +106,9 @@ export default function AutopilotPage() {
                 Configure autonomous execution parameters, safety permissions, and approval requirements for AI optimizations.
               </p>
             </div>
-            <button type="button" className="btn btn-primary btn-sm" onClick={handleSave}>
-              <Save size={14} />
-              Save Policies
+            <button type="button" className="btn btn-primary btn-sm" onClick={handleSave} disabled={saving || loading || !project}>
+              <Save size={14} className={saving ? 'animate-spin' : ''} />
+              {saving ? 'Saving...' : 'Save Policies'}
             </button>
           </div>
 
@@ -121,6 +131,7 @@ export default function AutopilotPage() {
               <span>Autopilot safety policies successfully updated!</span>
             </div>
           )}
+          {error && <div className="alert alert-danger" style={{ marginBottom: '1.5rem' }}>{error}</div>}
 
           {/* Autopilot Mode Selector */}
           <div className="card" style={{ marginBottom: '1.75rem' }}>

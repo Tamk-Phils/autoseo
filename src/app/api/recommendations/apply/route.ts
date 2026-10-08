@@ -2,9 +2,13 @@ import { NextResponse } from 'next/server';
 import prisma from '@/lib/db';
 import { pushWordPressSEOChange } from '@/lib/integrations/wordpress';
 import { createGitHubSEOChangePR } from '@/lib/integrations/github';
+import { getCurrentUser } from '@/lib/auth';
 
 export async function POST(req: Request) {
   try {
+    const currentUser = await getCurrentUser();
+    if (!currentUser) return NextResponse.json({ success: false, error: 'Authentication required' }, { status: 401 });
+
     const body = await req.json();
     const { id, targetIntegration } = body;
 
@@ -19,6 +23,14 @@ export async function POST(req: Request) {
 
     if (!rec) {
       return NextResponse.json({ success: false, error: 'Recommendation not found' }, { status: 404 });
+    }
+
+    if (rec.project.userId !== currentUser.id) {
+      return NextResponse.json({ success: false, error: 'Recommendation not found' }, { status: 404 });
+    }
+
+    if (rec.status !== 'PENDING' && rec.status !== 'APPROVED') {
+      return NextResponse.json({ success: false, error: 'Recommendation is no longer actionable' }, { status: 409 });
     }
 
     // Determine target URL and change type

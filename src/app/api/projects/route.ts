@@ -84,3 +84,38 @@ export async function POST(req: Request) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }
 }
+
+export async function PATCH(req: Request) {
+  try {
+    const currentUser = await getCurrentUser();
+    if (!currentUser) {
+      return NextResponse.json({ success: false, error: 'Authentication required' }, { status: 401 });
+    }
+
+    const body = await req.json();
+    const { projectId, maxPages, crawlDepth, userAgent, country, languages } = body;
+    if (!projectId) {
+      return NextResponse.json({ success: false, error: 'Project ID is required' }, { status: 400 });
+    }
+
+    const project = await prisma.project.findFirst({ where: { id: projectId, userId: currentUser.id } });
+    if (!project) {
+      return NextResponse.json({ success: false, error: 'Project not found' }, { status: 404 });
+    }
+
+    const updated = await prisma.project.update({
+      where: { id: project.id },
+      data: {
+        crawlMaxPages: Math.min(500, Math.max(1, Number(maxPages) || project.crawlMaxPages)),
+        crawlMaxDepth: Math.min(10, Math.max(1, Number(crawlDepth) || project.crawlMaxDepth)),
+        crawlerUserAgent: typeof userAgent === 'string' && userAgent.trim() ? userAgent.trim() : project.crawlerUserAgent,
+        country: typeof country === 'string' ? country : project.country,
+        targetLanguages: typeof languages === 'string' ? languages : project.targetLanguages,
+      },
+    });
+
+    return NextResponse.json({ success: true, project: updated });
+  } catch (error: any) {
+    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+  }
+}

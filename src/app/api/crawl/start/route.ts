@@ -32,6 +32,9 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: false, error: 'No project found to crawl' }, { status: 404 });
     }
 
+    const autopilotConfig = await prisma.autopilotConfig.findUnique({ where: { projectId: project.id } });
+    const effectiveMaxPages = Math.min(500, Math.max(1, Number(maxPages) || project.crawlMaxPages));
+
     const normalizedPeriodDays = Math.min(365, Math.max(1, Number(periodDays) || 14));
     const periodStart = new Date();
     const periodEnd = new Date(periodStart);
@@ -45,7 +48,7 @@ export async function POST(req: Request) {
         periodStart,
         periodEnd,
         startedAt: new Date(),
-        maxPages: Number(maxPages),
+        maxPages: effectiveMaxPages,
       },
     });
 
@@ -68,8 +71,9 @@ export async function POST(req: Request) {
       try {
         const crawler = new AutonomousCrawler({
           startUrl: project.url,
-          maxPages: Number(maxPages),
-          maxDepth: 3,
+          maxPages: effectiveMaxPages,
+          maxDepth: project.crawlMaxDepth,
+          userAgent: project.crawlerUserAgent,
           onProgress: (log) => {
             if (!globalActiveCrawlLogs[crawlJob.id]) {
               globalActiveCrawlLogs[crawlJob.id] = [];
@@ -180,12 +184,14 @@ export async function POST(req: Request) {
         aiProposals.push(...linkProposals);
 
         // Pass each through QA Agent before persisting
-        for (const prop of aiProposals.slice(0, 10)) {
+        for (const prop of aiProposals.slice(0, 100)) {
           const qaResult = runQaAgent(prop);
           if (qaResult.isSafe) {
-            await prisma.seoRecommendation.create({
+            const affectedPage = savedPages.find((page) => page.url === prop.pageUrl);
+            const recommendation = await prisma.seoRecommendation.create({
               data: {
                 projectId: project.id,
+                pageId: affectedPage?.id,
                 agentType: prop.taskType,
                 title: prop.title,
                 problem: prop.problem,
@@ -198,6 +204,40 @@ export async function POST(req: Request) {
                 status: 'PENDING',
               },
             });
+
+            const canApply = autopilotConfig?.enabled && autopilotConfig.mode === 'AUTONOMOUS';
+            const permissionByType = {
+              META_TITLE: autopilotConfig?.allowTitleUpdate,
+              META_DESCRIPTION: autopilotConfig?.allowMetaDescUpdate,
+              SCHEMA: autopilotConfig?.allowSchemaUpdate,
+            } as Record<string, boolean | undefined>;
+            if (canApply && permissionByType[prop.taskType]) {
+              const affectedUrl = affectedPage?.url || prop.pageUrl || project.url;
+              await prisma.optimizationChange.create({
+                data: {
+                  projectId: project.id,
+                  pageId: affectedPage?.id,
+                  changeType: prop.taskType,
+                  originalValue: prop.beforeValue || prop.problem,
+                  newValue: prop.afterValue,
+                  reason: prop.title,
+                  affectedUrl,
+                  integrationUsed: 'AUTONOMOUS_ENGINE',
+                  status: 'APPLIED',
+                },
+              });
+              await prisma.seoRecommendation.update({
+                where: { id: recommendation.id },
+                data: { status: 'APPLIED' },
+              });
+              await prisma.auditLog.create({
+                data: {
+                  projectId: project.id,
+                  action: 'OPTIMIZATION_APPLIED',
+                  details: `Autonomously applied ${prop.taskType} to ${affectedUrl}: ${prop.title}`,
+                },
+              });
+            }
           }
         }
 

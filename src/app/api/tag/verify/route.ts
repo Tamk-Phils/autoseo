@@ -1,9 +1,12 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/db';
 import { safeFetch } from '@/lib/ssrf';
+import { getCurrentUser } from '@/lib/auth';
 
 export async function POST(req: Request) {
   try {
+    const currentUser = await getCurrentUser();
+    if (!currentUser) return NextResponse.json({ success: false, error: 'Authentication required' }, { status: 401 });
     const body = await req.json();
     const { projectId } = body;
 
@@ -12,7 +15,7 @@ export async function POST(req: Request) {
     }
 
     const project = await prisma.project.findUnique({ where: { id: projectId } });
-    if (!project) {
+    if (!project || project.userId !== currentUser.id) {
       return NextResponse.json({ success: false, error: 'Project not found' }, { status: 404 });
     }
 

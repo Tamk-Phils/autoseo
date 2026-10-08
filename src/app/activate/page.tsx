@@ -31,6 +31,7 @@ export default function ActivatePage() {
   const [selectedPlan, setSelectedPlan] = useState<'STARTER' | 'AUTOPILOT' | 'SCALE'>('AUTOPILOT');
   const [paying, setPaying] = useState(false);
   const [planActivated, setPlanActivated] = useState(false);
+  const [pageLoading, setPageLoading] = useState(true);
 
   useEffect(() => {
     fetch('/api/projects')
@@ -45,7 +46,8 @@ export default function ActivatePage() {
             localStorage.setItem('activeProjectId', chosen.id);
           }
         }
-      });
+      })
+      .finally(() => setPageLoading(false));
   }, []);
 
   const originUrl = typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000';
@@ -120,6 +122,13 @@ export default function ActivatePage() {
         <TopHeader currentProject={project} />
 
         <main className="page-container">
+          {pageLoading && (
+            <div className="card" style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}>
+              <RefreshCw size={22} className="animate-spin" /> Loading activation workspace...
+            </div>
+          )}
+          {!pageLoading && (
+          <>
           <div className="page-header">
             <div>
               <h1 className="page-title" style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
@@ -401,6 +410,8 @@ export default function ActivatePage() {
               </div>
             </div>
           </div>
+          </>
+          )}
         </main>
       </div>
     </div>

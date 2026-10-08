@@ -3,9 +3,12 @@ import prisma from '@/lib/db';
 import { testWordPressConnection } from '@/lib/integrations/wordpress';
 import { testGitHubConnection } from '@/lib/integrations/github';
 import { generateCloudflareWorkerScript } from '@/lib/integrations/cloudflare';
+import { getCurrentUser } from '@/lib/auth';
 
 export async function GET(req: Request) {
   try {
+    const currentUser = await getCurrentUser();
+    if (!currentUser) return NextResponse.json({ success: false, error: 'Authentication required' }, { status: 401 });
     const { searchParams } = new URL(req.url);
     const projectId = searchParams.get('projectId');
 
@@ -13,6 +16,7 @@ export async function GET(req: Request) {
     if (projectId) {
       whereClause.projectId = projectId;
     }
+    whereClause.project = { userId: currentUser.id };
 
     const integrations = await prisma.integration.findMany({
       where: whereClause,
@@ -48,6 +52,8 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   try {
+    const currentUser = await getCurrentUser();
+    if (!currentUser) return NextResponse.json({ success: false, error: 'Authentication required' }, { status: 401 });
     const body = await req.json();
     const { projectId, type, name, config, testOnly } = body;
 
@@ -106,6 +112,9 @@ export async function POST(req: Request) {
     // 3. Handle Cloudflare Edge Worker
     if (type === 'CLOUDFLARE_EDGE') {
       const project = await prisma.project.findUnique({ where: { id: projectId } });
+      if (!project || project.userId !== currentUser.id) {
+        return NextResponse.json({ success: false, error: 'Project not found' }, { status: 404 });
+      }
       const host = req.headers.get('host') || 'localhost:3000';
       const protocol = host.includes('localhost') ? 'http' : 'https';
       const engineUrl = `${protocol}://${host}`;
@@ -177,6 +186,8 @@ export async function POST(req: Request) {
 
 export async function DELETE(req: Request) {
   try {
+    const currentUser = await getCurrentUser();
+    if (!currentUser) return NextResponse.json({ success: false, error: 'Authentication required' }, { status: 401 });
     const { searchParams } = new URL(req.url);
     const id = searchParams.get('id');
 
@@ -184,8 +195,13 @@ export async function DELETE(req: Request) {
       return NextResponse.json({ success: false, error: 'Integration ID required' }, { status: 400 });
     }
 
-    const item = await prisma.integration.delete({
-      where: { id },
+    const item = await prisma.integration.findUnique({ where: { id }, include: { project: true } });
+    if (!item || item.project.userId !== currentUser.id) {
+      return NextResponse.json({ success: false, error: 'Integration not found' }, { status: 404 });
+    }
+
+    await prisma.integration.delete({
+      where: { id: item.id },
     });
 
     return NextResponse.json({ success: true, message: `Disconnected ${item.type} integration.` });

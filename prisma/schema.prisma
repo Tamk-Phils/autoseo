@@ -38,6 +38,9 @@ model Project {
   country                  String?                   @default("US")
   targetLocations          String?                   // JSON array of locations
   targetLanguages          String?                   // JSON array, e.g. ["en", "fr"]
+  crawlMaxPages            Int                       @default(30)
+  crawlMaxDepth            Int                       @default(3)
+  crawlerUserAgent         String                    @default("ApexSEO-Bot/1.0 (+https://apexseo.engine/bot)")
   optimizationMode         String                    @default("ASSISTED") // ANALYZE_ONLY, ASSISTED, AUTONOMOUS
   seoScore                 Int?                      @default(0)
   technicalScore           Int?                      @default(0)
