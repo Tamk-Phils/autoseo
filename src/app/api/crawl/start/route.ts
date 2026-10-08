@@ -10,6 +10,7 @@ import {
   runInternalLinkingAgent,
   runQaAgent,
 } from '@/lib/ai/agents';
+import { submitToIndexNow } from '@/lib/indexing/indexnow';
 
 // In-memory progress tracker for live streaming console
 export const globalActiveCrawlLogs: Record<string, CrawlLogEntry[]> = {};
@@ -372,6 +373,27 @@ export async function POST(req: Request) {
                 },
               });
             }
+          }
+        }
+
+        // Autonomous IndexNow Push: If autonomous mode is active, automatically ping search engines
+        const isAutonomous = autopilotConfig?.enabled && autopilotConfig.mode === 'AUTONOMOUS';
+        if (isAutonomous && crawlResult.pages.length > 0) {
+          try {
+            const urlsToIndex = crawlResult.pages.map((p) => p.url).slice(0, 100);
+            await submitToIndexNow({
+              host: project.domain,
+              urls: urlsToIndex,
+            });
+            await prisma.auditLog.create({
+              data: {
+                projectId: project.id,
+                action: 'INDEXNOW_DISPATCHED',
+                details: `Autonomously dispatched ${urlsToIndex.length} crawled URLs to IndexNow (Bing / Yandex / Seznam / Naver) for priority indexing.`,
+              },
+            });
+          } catch (idxErr) {
+            console.error('Autonomous IndexNow ping error:', idxErr);
           }
         }
 
