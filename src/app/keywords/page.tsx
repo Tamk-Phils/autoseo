@@ -13,6 +13,7 @@ import {
   Search,
   ExternalLink,
   X,
+  RefreshCw,
 } from 'lucide-react';
 
 export default function KeywordsPage() {
@@ -27,7 +28,10 @@ export default function KeywordsPage() {
 
   const fetchKeywords = async () => {
     try {
-      const res = await fetch('/api/keywords');
+      const savedId = typeof window !== 'undefined'
+        ? new URLSearchParams(window.location.search).get('projectId') || localStorage.getItem('activeProjectId')
+        : null;
+      const res = await fetch(`/api/keywords${savedId ? `?projectId=${encodeURIComponent(savedId)}` : ''}`);
       const data = await res.json();
       if (data.keywords) {
         setKeywords(data.keywords);
@@ -137,6 +141,10 @@ export default function KeywordsPage() {
               </button>
             </div>
           ) : (
+            <>
+            <div style={{ marginBottom: '1rem', padding: '0.85rem 1rem', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)', color: 'var(--text-secondary)', fontSize: '0.82rem' }}>
+              Site and competitor candidates are shown immediately. Position, trend, volume, difficulty, and CTR become verified after Search Console or another SEO data provider is connected.
+            </div>
             <div className="table-container">
               <table className="data-table">
                 <thead>
@@ -171,34 +179,34 @@ export default function KeywordsPage() {
                           color: k.currentPosition && k.currentPosition <= 10 ? 'var(--color-success)' : '#fff',
                         }}
                       >
-                        #{k.currentPosition?.toFixed(1) ?? '—'}
+                        {k.currentPosition != null ? `#${k.currentPosition.toFixed(1)}` : 'Not tracked'}
                       </span>
                     </td>
                     <td>
                       {k.trend === 'UP' ? (
                         <span style={{ display: 'flex', alignItems: 'center', gap: '0.2rem', color: 'var(--color-success)', fontSize: '0.8rem', fontWeight: 600 }}>
-                          <TrendingUp size={14} /> +2.3
+                          <TrendingUp size={14} /> Rising
                         </span>
                       ) : k.trend === 'DOWN' ? (
                         <span style={{ display: 'flex', alignItems: 'center', gap: '0.2rem', color: 'var(--color-danger)', fontSize: '0.8rem', fontWeight: 600 }}>
-                          <TrendingDown size={14} /> -1.1
+                          <TrendingDown size={14} /> Falling
                         </span>
                       ) : (
                         <span style={{ display: 'flex', alignItems: 'center', gap: '0.2rem', color: 'var(--text-muted)', fontSize: '0.8rem' }}>
-                          <Minus size={14} /> 0.0
+                          <Minus size={14} /> Awaiting data
                         </span>
                       )}
                     </td>
-                    <td>{k.searchVolume ? k.searchVolume.toLocaleString() : '—'}</td>
+                    <td>{k.searchVolume != null ? k.searchVolume.toLocaleString() : 'Not available'}</td>
                     <td>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                        <span>{k.difficulty || 45}</span>
+                        <span>{k.difficulty != null ? k.difficulty : 'Not available'}</span>
                         <div style={{ width: '40px', height: '4px', background: 'var(--bg-surface)', borderRadius: '2px' }}>
-                          <div style={{ width: `${k.difficulty || 45}%`, height: '100%', background: '#38bdf8' }} />
+                          <div style={{ width: `${k.difficulty || 0}%`, height: '100%', background: '#38bdf8' }} />
                         </div>
                       </div>
                     </td>
-                    <td>{k.ctr ? `${k.ctr}%` : '—'}</td>
+                    <td>{k.ctr != null ? `${k.ctr}%` : 'Not available'}</td>
                     <td>
                       {k.isOpportunity ? (
                         <div style={{ background: 'rgba(249, 115, 22, 0.1)', border: '1px solid rgba(249, 115, 22, 0.3)', padding: '0.35rem 0.6rem', borderRadius: '4px', fontSize: '0.75rem', color: '#f97316', maxWidth: '280px' }}>
@@ -213,6 +221,7 @@ export default function KeywordsPage() {
               </tbody>
             </table>
           </div>
+            </>
           )}
 
           {/* Add Keyword Modal */}

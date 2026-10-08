@@ -19,6 +19,9 @@ export default function SearchConsolePage() {
   const [isConnected, setIsConnected] = useState(false);
   const [connecting, setConnecting] = useState(false);
   const [queries, setQueries] = useState<any[]>([]);
+  const [csv, setCsv] = useState('');
+  const [importing, setImporting] = useState(false);
+  const [message, setMessage] = useState<string | null>(null);
 
   useEffect(() => {
     fetch('/api/projects')
@@ -28,16 +31,34 @@ export default function SearchConsolePage() {
           const savedId = typeof window !== 'undefined' ? (new URLSearchParams(window.location.search).get('projectId') || localStorage.getItem('activeProjectId')) : null;
           const current = (savedId && data.projects.find((p: any) => p.id === savedId)) || data.projects[0];
           setProject(current);
+          fetch(`/api/search-console/import?projectId=${encodeURIComponent(current.id)}`)
+            .then((response) => response.json())
+            .then((connection) => setIsConnected(Boolean(connection.connected)))
+            .catch(() => {});
         }
       });
   }, []);
 
-  const handleConnect = () => {
-    setConnecting(true);
-    setTimeout(() => {
+  const handleImport = async () => {
+    if (!project || !csv.trim()) return;
+    setImporting(true);
+    setMessage(null);
+    try {
+      const res = await fetch('/api/search-console/import', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ projectId: project.id, csv }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) throw new Error(data.error || 'Import failed');
       setIsConnected(true);
-      setConnecting(false);
-    }, 1200);
+      setMessage(`Imported ${data.imported} verified Search Console queries.`);
+      setCsv('');
+    } catch (error: any) {
+      setMessage(error.message || 'Import failed');
+    } finally {
+      setImporting(false);
+    }
   };
 
   return (
@@ -63,8 +84,8 @@ export default function SearchConsolePage() {
               <button
                 type="button"
                 className="btn btn-primary btn-sm"
-                onClick={handleConnect}
-                disabled={connecting}
+                onClick={() => document.getElementById('search-console-csv')?.click()}
+                disabled={connecting || importing}
               >
                 {connecting ? 'Authenticating OAuth...' : 'Connect Search Console'}
               </button>
@@ -101,17 +122,20 @@ export default function SearchConsolePage() {
               <button
                 type="button"
                 className="btn btn-primary"
-                onClick={handleConnect}
-                disabled={connecting}
+                onClick={() => document.getElementById('search-console-csv')?.click()}
+                disabled={connecting || importing}
                 style={{ padding: '0.75rem 1.6rem' }}
               >
-                {connecting ? 'Connecting...' : 'Connect Google Search Console Property'}
+                {importing ? 'Importing...' : 'Import Search Console CSV'}
                 <ArrowRight size={16} />
               </button>
 
               <div style={{ marginTop: '2rem', fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-                * Strict No-Fabrication Policy: Search Console queries and clicks appear only upon authentic OAuth synchronization.
+                Export the Queries report from Google Search Console and import it here. Metrics appear only from that verified export.
               </div>
+              <input id="search-console-csv" type="file" accept=".csv,text/csv" hidden onChange={async (event) => { const file = event.target.files?.[0]; if (file) setCsv(await file.text()); }} />
+              {csv && <button type="button" className="btn btn-primary" onClick={handleImport} disabled={importing}>{importing ? 'Importing...' : 'Import Selected CSV'}</button>}
+              {message && <p style={{ marginTop: '1rem', color: 'var(--text-secondary)' }}>{message}</p>}
             </div>
           ) : (
             /* Connected State */
@@ -122,10 +146,10 @@ export default function SearchConsolePage() {
                   Google Search Console Connected
                 </h3>
                 <p style={{ color: 'var(--text-secondary)', maxWidth: '500px', margin: '0 auto 1.5rem', fontSize: '0.9rem' }}>
-                  Property synchronization active for <strong style={{ color: '#fff' }}>{project?.domain || 'website'}</strong>. Search Console queries and daily impressions will automatically sync on the next Google data pipeline refresh.
+                  Property synchronization active for <strong style={{ color: '#fff' }}>{project?.domain || 'website'}</strong>. Imported data is stored as a verified snapshot.
                 </p>
                 <div style={{ display: 'inline-flex', padding: '0.4rem 0.85rem', background: 'var(--bg-input)', borderRadius: 'var(--radius-md)', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                  Awaiting initial 24h search performance sync from Googlebot
+                  Search Console provides position, clicks, impressions, and CTR. Search volume and keyword difficulty require a separate SEO provider.
                 </div>
               </div>
             </div>

@@ -50,6 +50,7 @@ async function discoverSearchKeywords(projectId: string, pages: Array<{ title?: 
       data: discovered.map((term) => ({
         projectId,
         term,
+        source: 'SITE_CONTENT',
         searchIntent: 'Discovered suggestion',
         trend: 'STABLE',
         rankingUrl: null,
@@ -68,6 +69,44 @@ async function discoverSearchKeywords(projectId: string, pages: Array<{ title?: 
   }
 
   return discovered.length;
+}
+
+async function seedKeywordCandidates(projectId: string, domain: string) {
+  const pages = await prisma.crawlPage.findMany({
+    where: { projectId },
+    select: { title: true, h1: true, path: true },
+    take: 100,
+  });
+  const words = new Set<string>();
+  const sourceText = [domain, ...pages.flatMap((page) => [page.title, page.h1, page.path])].join(' ');
+  for (const word of sourceText.replace(/%20/g, ' ').replace(/[-_/]+/g, ' ').split(/\s+/)) {
+    const normalized = word.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
+    if (normalized.length >= 3 && !['https', 'www', 'com', 'online'].includes(normalized)) words.add(normalized);
+  }
+
+  const candidates = new Set<string>([
+    domain.replace(/^www\./, ''),
+    ...Array.from(words).map((word) => `${word} ${domain.replace(/^www\./, '')}`),
+    ...Array.from(words).map((word) => `best ${word}`),
+    ...Array.from(words).map((word) => `${word} near me`),
+  ]);
+  const existing = await prisma.keyword.findMany({ where: { projectId }, select: { term: true } });
+  const existingTerms = new Set(existing.map((keyword) => keyword.term.toLowerCase()));
+  const terms = Array.from(candidates).filter((term) => !existingTerms.has(term.toLowerCase())).slice(0, 100);
+
+  if (terms.length > 0) {
+    await prisma.keyword.createMany({
+      data: terms.map((term) => ({
+        projectId,
+        term,
+        source: 'SITE_CONTENT',
+        searchIntent: 'Site-derived candidate',
+        trend: 'STABLE',
+        opportunityNote: 'Candidate seeded from live site content. Connect Search Console for verified trend, volume, and position data.',
+      })),
+    });
+  }
+  return terms.length;
 }
 
 export async function POST(req: Request) {
@@ -89,6 +128,26 @@ export async function POST(req: Request) {
 
     if (!project) {
       return NextResponse.json({ success: false, error: 'No project found to crawl' }, { status: 404 });
+    }
+
+    await prisma.crawlJob.updateMany({
+      where: {
+        projectId: project.id,
+        status: 'RUNNING',
+        createdAt: { lt: new Date(Date.now() - 30 * 60 * 1000) },
+      },
+      data: { status: 'FAILED', completedAt: new Date(), errorMessage: 'Worker did not complete within the expected time.' },
+    });
+
+    const seededKeywordCount = await seedKeywordCandidates(project.id, project.domain);
+    if (seededKeywordCount > 0) {
+      await prisma.auditLog.create({
+        data: {
+          projectId: project.id,
+          action: 'KEYWORD_CANDIDATES_SEEDED',
+          details: `Seeded ${seededKeywordCount} site-derived keyword candidates while the crawl worker starts.`,
+        },
+      });
     }
 
     const autopilotConfig = await prisma.autopilotConfig.findUnique({ where: { projectId: project.id } });
