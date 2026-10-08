@@ -333,7 +333,7 @@ export default {
           </div>
 
           {/* Quick Status Cards */}
-          <div className="grid-3" style={{ marginBottom: '1.75rem' }}>
+          <div className="grid-responsive-3" style={{ marginBottom: '1.75rem' }}>
             <div className={`card ${wpConnected ? 'card-success-glow' : ''}`}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
@@ -411,7 +411,7 @@ export default {
           </div>
 
           {/* Tab Navigation */}
-          <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>
+          <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem', flexWrap: 'wrap' }}>
             <button
               className={`btn btn-sm ${activeTab === 'wordpress' ? 'btn-primary' : 'btn-secondary'}`}
               onClick={() => setActiveTab('wordpress')}
@@ -435,7 +435,7 @@ export default {
           {/* TAB 1: WORDPRESS */}
           {activeTab === 'wordpress' && (
             <div className="card">
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '0.75rem' }}>
                 <div>
                   <h3 style={{ fontSize: '1.15rem', fontWeight: 600, color: '#fff' }}>
                     WordPress REST API Publisher
@@ -475,7 +475,7 @@ export default {
                 </div>
               )}
 
-              <div className="grid-2">
+              <div className="grid-responsive-2">
                 <div>
                   <div className="form-group">
                     <label className="form-label">WordPress Site URL</label>
@@ -513,7 +513,7 @@ export default {
                     </small>
                   </div>
 
-                  <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1.25rem' }}>
+                  <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1.25rem', flexWrap: 'wrap' }}>
                     <button
                       type="button"
                       className="btn btn-secondary btn-sm"

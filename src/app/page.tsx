@@ -18,6 +18,8 @@ import {
   Layers,
   Zap,
   RefreshCw,
+  Menu,
+  X,
 } from 'lucide-react';
 
 export default function LandingPage() {
@@ -25,6 +27,7 @@ export default function LandingPage() {
   const [url, setUrl] = useState('');
   const [scanning, setScanning] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const handleInstantScan = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -75,21 +78,7 @@ export default function LandingPage() {
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: 'var(--bg-dark)' }}>
       {/* Navigation */}
-      <header
-        style={{
-          height: '72px',
-          borderBottom: '1px solid var(--border-color)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          padding: '0 3rem',
-          backgroundColor: 'rgba(7, 13, 25, 0.85)',
-          backdropFilter: 'blur(10px)',
-          position: 'sticky',
-          top: 0,
-          zIndex: 40,
-        }}
-      >
+      <header className="landing-header">
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
           <Globe2 size={26} color="var(--accent-cyan)" />
           <span style={{ fontSize: '1.25rem', fontWeight: 800, color: '#fff', letterSpacing: '-0.03em' }}>
@@ -97,7 +86,8 @@ export default function LandingPage() {
           </span>
         </div>
 
-        <nav style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
+        {/* Desktop Nav */}
+        <nav className="landing-nav">
           <a href="#how-it-works" style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', fontWeight: 500 }}>
             How It Works
           </a>
@@ -114,10 +104,65 @@ export default function LandingPage() {
             Full Audit
           </Link>
         </nav>
+
+        {/* Mobile Nav Toggle */}
+        <button
+          type="button"
+          className="landing-nav-mobile-toggle"
+          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          aria-label="Toggle navigation menu"
+        >
+          {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
+        </button>
       </header>
 
+      {/* Mobile Drawer Menu */}
+      {mobileMenuOpen && (
+        <div className="landing-mobile-menu">
+          <a
+            href="#how-it-works"
+            onClick={() => setMobileMenuOpen(false)}
+            style={{ color: 'var(--text-primary)', fontSize: '0.95rem', fontWeight: 600, padding: '0.5rem 0' }}
+          >
+            How It Works
+          </a>
+          <a
+            href="#architecture"
+            onClick={() => setMobileMenuOpen(false)}
+            style={{ color: 'var(--text-primary)', fontSize: '0.95rem', fontWeight: 600, padding: '0.5rem 0' }}
+          >
+            Architecture
+          </a>
+          <Link
+            href="/activate"
+            onClick={() => setMobileMenuOpen(false)}
+            style={{ color: 'var(--color-success)', fontSize: '0.95rem', fontWeight: 600, padding: '0.5rem 0' }}
+          >
+            ⚡ Zero-Code Autopilot
+          </Link>
+          <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.5rem', flexWrap: 'wrap' }}>
+            <Link
+              href="/dashboard"
+              className="btn btn-secondary"
+              onClick={() => setMobileMenuOpen(false)}
+              style={{ flex: '1 1 auto', justifyContent: 'center' }}
+            >
+              Live Platform
+            </Link>
+            <Link
+              href="/onboarding"
+              className="btn btn-primary"
+              onClick={() => setMobileMenuOpen(false)}
+              style={{ flex: '1 1 auto', justifyContent: 'center' }}
+            >
+              Full Audit
+            </Link>
+          </div>
+        </div>
+      )}
+
       {/* Hero Section */}
-      <section style={{ padding: '5.5rem 2rem 4rem', textAlign: 'center', maxWidth: '980px', margin: '0 auto' }}>
+      <section className="landing-hero">
         <div
           style={{
             display: 'inline-flex',
@@ -131,22 +176,14 @@ export default function LandingPage() {
             fontSize: '0.85rem',
             fontWeight: 600,
             marginBottom: '1.5rem',
+            maxWidth: '100%',
           }}
         >
-          <Sparkles size={14} />
-          Autonomous Zero-Intervention SEO Engine
+          <Sparkles size={14} style={{ flexShrink: 0 }} />
+          <span>Autonomous Zero-Intervention SEO Engine</span>
         </div>
 
-        <h1
-          style={{
-            fontSize: '3.6rem',
-            fontWeight: 800,
-            color: '#fff',
-            letterSpacing: '-0.04em',
-            lineHeight: 1.15,
-            marginBottom: '1.25rem',
-          }}
-        >
+        <h1 className="landing-hero-title">
           Upload Your Website URL.
           <br />
           <span style={{ background: 'linear-gradient(90deg, var(--accent-cyan), var(--color-success))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
@@ -154,32 +191,12 @@ export default function LandingPage() {
           </span>
         </h1>
 
-        <p
-          style={{
-            fontSize: '1.2rem',
-            color: 'var(--text-secondary)',
-            lineHeight: 1.6,
-            maxWidth: '720px',
-            margin: '0 auto 2.5rem',
-          }}
-        >
+        <p className="landing-hero-subtitle">
           No coding or source code required. Paste your domain, activate autonomous driving with a 1-line tag, and our engine dynamically optimizes your meta tags, structured schema, and search engine pings 24/7.
         </p>
 
         {/* Instant Scan Form */}
-        <form
-          onSubmit={handleInstantScan}
-          style={{
-            maxWidth: '680px',
-            margin: '0 auto 1.5rem',
-            display: 'flex',
-            background: 'rgba(15, 23, 42, 0.8)',
-            border: '2px solid rgba(56, 189, 248, 0.4)',
-            borderRadius: 'var(--radius-lg)',
-            padding: '0.45rem',
-            boxShadow: '0 8px 32px rgba(0, 240, 255, 0.15)',
-          }}
-        >
+        <form onSubmit={handleInstantScan} className="landing-scan-form">
           <input
             type="text"
             value={url}
@@ -194,6 +211,7 @@ export default function LandingPage() {
               color: '#fff',
               fontSize: '1rem',
               outline: 'none',
+              minWidth: 0,
             }}
           />
           <button
@@ -217,12 +235,12 @@ export default function LandingPage() {
         </form>
 
         {error && (
-          <div style={{ color: 'var(--color-critical)', fontSize: '0.88rem', marginBottom: '1.5rem' }}>
+          <div style={{ color: 'var(--color-danger)', fontSize: '0.88rem', marginBottom: '1.5rem' }}>
             {error}
           </div>
         )}
 
-        <div style={{ display: 'flex', justifyContent: 'center', gap: '2rem', color: 'var(--text-muted)', fontSize: '0.85rem', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', justifyContent: 'center', gap: '1.5rem', color: 'var(--text-muted)', fontSize: '0.85rem', flexWrap: 'wrap', marginTop: '1rem' }}>
           <span>✓ Zero Coding Knowledge Required</span>
           <span>✓ Instant IndexNow Search Engine Pings</span>
           <span>✓ Works on Shopify, Webflow, WordPress, Custom</span>
@@ -231,10 +249,10 @@ export default function LandingPage() {
       </section>
 
       {/* Core Workflow Representation */}
-      <section id="how-it-works" style={{ padding: '4rem 2rem', backgroundColor: 'var(--bg-card)', borderTop: '1px solid var(--border-color)', borderBottom: '1px solid var(--border-color)' }}>
-        <div style={{ maxWidth: '1140px', margin: '0 auto' }}>
-          <div style={{ textAlign: 'center', marginBottom: '3.5rem' }}>
-            <h2 style={{ fontSize: '2rem', fontWeight: 700, color: '#fff', marginBottom: '0.5rem' }}>
+      <section id="how-it-works" style={{ padding: 'clamp(2.5rem, 5vw, 4rem) clamp(1rem, 3vw, 2rem)', backgroundColor: 'var(--bg-card)', borderTop: '1px solid var(--border-color)', borderBottom: '1px solid var(--border-color)' }}>
+        <div style={{ maxWidth: '1140px', margin: '0 auto', width: '100%' }}>
+          <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
+            <h2 style={{ fontSize: 'clamp(1.5rem, 3vw, 2rem)', fontWeight: 700, color: '#fff', marginBottom: '0.5rem' }}>
               How Zero-Intervention Autopilot Works
             </h2>
             <p style={{ color: 'var(--text-secondary)' }}>
@@ -242,21 +260,14 @@ export default function LandingPage() {
             </p>
           </div>
 
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(4, 1fr)',
-              gap: '1.5rem',
-              position: 'relative',
-            }}
-          >
+          <div className="grid-4">
             <div className="card" style={{ background: 'var(--bg-dark)' }}>
               <div style={{ width: '40px', height: '40px', borderRadius: '8px', background: 'rgba(56, 189, 248, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1rem', color: 'var(--accent-cyan)' }}>
                 <Search size={20} />
               </div>
               <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Step 01</div>
               <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: '#fff', margin: '0.25rem 0 0.5rem' }}>Submit Domain</h3>
-              <p style={{ fontSize: '0.88rem', color: 'var(--text-secondary)' }}>
+              <p style={{ fontSize: '0.88rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
                 Enter your website URL. Our crawler inspects meta tags, headings, schema, and page speeds immediately.
               </p>
             </div>
@@ -267,7 +278,7 @@ export default function LandingPage() {
               </div>
               <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Step 02</div>
               <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: '#fff', margin: '0.25rem 0 0.5rem' }}>1-Line Tag Embed</h3>
-              <p style={{ fontSize: '0.88rem', color: 'var(--text-secondary)' }}>
+              <p style={{ fontSize: '0.88rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
                 Paste 1 line of script tag into your site once (like Google Analytics). No code changes or git repos required.
               </p>
             </div>
@@ -278,7 +289,7 @@ export default function LandingPage() {
               </div>
               <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Step 03</div>
               <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: '#fff', margin: '0.25rem 0 0.5rem' }}>Dynamic Overrides</h3>
-              <p style={{ fontSize: '0.88rem', color: 'var(--text-secondary)' }}>
+              <p style={{ fontSize: '0.88rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
                 Our engine automatically pushes titles, meta descriptions, and rich JSON-LD schemas into your live pages.
               </p>
             </div>
@@ -289,7 +300,7 @@ export default function LandingPage() {
               </div>
               <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Step 04</div>
               <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: '#fff', margin: '0.25rem 0 0.5rem' }}>Fast-Track Indexing</h3>
-              <p style={{ fontSize: '0.88rem', color: 'var(--text-secondary)' }}>
+              <p style={{ fontSize: '0.88rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
                 Direct IndexNow protocol pings trigger search engine bots to re-crawl and rank your optimized pages in hours.
               </p>
             </div>
@@ -298,9 +309,9 @@ export default function LandingPage() {
       </section>
 
       {/* Feature Capabilities Grid */}
-      <section id="architecture" style={{ padding: '5rem 2rem', maxWidth: '1140px', margin: '0 auto' }}>
-        <div style={{ textAlign: 'center', marginBottom: '3.5rem' }}>
-          <h2 style={{ fontSize: '2rem', fontWeight: 700, color: '#fff', marginBottom: '0.5rem' }}>
+      <section id="architecture" style={{ padding: 'clamp(2.5rem, 5vw, 5rem) clamp(1rem, 3vw, 2rem)', maxWidth: '1140px', margin: '0 auto', width: '100%', boxSizing: 'border-box' }}>
+        <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
+          <h2 style={{ fontSize: 'clamp(1.5rem, 3vw, 2rem)', fontWeight: 700, color: '#fff', marginBottom: '0.5rem' }}>
             Built for Massive SEO Scale & Speed
           </h2>
           <p style={{ color: 'var(--text-secondary)' }}>
@@ -342,9 +353,9 @@ export default function LandingPage() {
       </section>
 
       {/* Footer */}
-      <footer style={{ marginTop: 'auto', borderTop: '1px solid var(--border-color)', padding: '2rem 3rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+      <footer className="landing-footer">
         <div>ApexSEO Engine © 2026. Production Autonomous SEO Infrastructure.</div>
-        <div style={{ display: 'flex', gap: '1.5rem' }}>
+        <div style={{ display: 'flex', gap: '1.25rem', flexWrap: 'wrap', justifyContent: 'center' }}>
           <Link href="/activate" style={{ color: 'var(--color-success)' }}>Zero-Code Activation</Link>
           <Link href="/dashboard" style={{ color: 'var(--accent-cyan)' }}>Enter App</Link>
           <Link href="/onboarding" style={{ color: 'var(--accent-cyan)' }}>Start Crawl</Link>

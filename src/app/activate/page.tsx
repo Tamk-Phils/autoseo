@@ -130,7 +130,7 @@ export default function ActivatePage() {
                 Paste the 1-line embed snippet once. The engine will automatically optimize your pages, inject schema, and push your site to rank fastest.
               </p>
             </div>
-            <div style={{ display: 'flex', gap: '0.5rem' }}>
+            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
               <button
                 type="button"
                 className="btn btn-secondary btn-sm"
@@ -173,7 +173,7 @@ export default function ActivatePage() {
             }}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', marginBottom: '1.25rem' }}>
-              <div>
+              <div style={{ flex: '1 1 280px' }}>
                 <span className="badge badge-success" style={{ marginBottom: '0.35rem' }}>
                   {planActivated ? 'ACTIVE SUBSCRIPTION' : 'AUTOPILOT MEMBERSHIP'}
                 </span>
@@ -199,7 +199,7 @@ export default function ActivatePage() {
             </div>
 
             {!planActivated && (
-              <div className="grid-3">
+              <div className="grid-responsive-3">
                 <div
                   onClick={() => setSelectedPlan('STARTER')}
                   style={{
@@ -291,7 +291,7 @@ export default function ActivatePage() {
                 </p>
               </div>
 
-              <div style={{ display: 'flex', gap: '0.5rem' }}>
+              <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
                 <a
                   href={`mailto:?subject=${mailtoSubject}&body=${mailtoBody}`}
                   className="btn btn-secondary btn-sm"
@@ -321,6 +321,7 @@ export default function ActivatePage() {
                 justifyContent: 'space-between',
                 marginBottom: '1.5rem',
                 wordBreak: 'break-all',
+                overflowX: 'auto',
               }}
             >
               <code>{embedSnippet}</code>
@@ -385,7 +386,7 @@ export default function ActivatePage() {
             <h4 style={{ fontSize: '0.95rem', fontWeight: 600, color: '#fff', marginBottom: '1rem' }}>
               Where to paste the 1-line tag (Takes 30 seconds):
             </h4>
-            <div className="grid-3" style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', lineHeight: '1.6' }}>
+            <div className="grid-responsive-3" style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', lineHeight: '1.6' }}>
               <div style={{ background: 'var(--bg-input)', padding: '1rem', borderRadius: 'var(--radius-md)' }}>
                 <strong style={{ color: '#fff', display: 'block', marginBottom: '0.25rem' }}>🛍️ Shopify</strong>
                 Go to <strong>Online Store &gt; Themes &gt; Edit Code</strong>, open <code>theme.liquid</code>, and paste right above <code>&lt;/head&gt;</code>.

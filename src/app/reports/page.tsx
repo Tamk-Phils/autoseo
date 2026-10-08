@@ -79,7 +79,7 @@ export default function ReportsPage() {
               </p>
             </div>
             {project && (
-              <div style={{ display: 'flex', gap: '0.75rem' }}>
+              <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
                 <button type="button" className="btn btn-secondary btn-sm" onClick={handleExportCsv} disabled={issues.length === 0}>
                   <Download size={14} />
                   Export CSV
@@ -107,20 +107,20 @@ export default function ReportsPage() {
             </div>
           ) : (
             /* Printable Report Document Card */
-            <div className="card" style={{ maxWidth: '900px', margin: '0 auto', padding: '2.5rem' }}>
+            <div className="card" style={{ maxWidth: '900px', margin: '0 auto', padding: 'clamp(1rem, 3vw, 2.5rem)' }}>
               {/* Header / Brand */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: '2px solid var(--border-color)', paddingBottom: '1.5rem', marginBottom: '2rem' }}>
-                <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: '2px solid var(--border-color)', paddingBottom: '1.5rem', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
+                <div style={{ flex: '1 1 280px' }}>
                   <span className="badge badge-low" style={{ marginBottom: '0.5rem' }}>ApexSEO Autonomous Engine</span>
-                  <h2 style={{ fontSize: '1.8rem', fontWeight: 800, color: '#fff' }}>
+                  <h2 style={{ fontSize: 'clamp(1.2rem, 3vw, 1.8rem)', fontWeight: 800, color: '#fff' }}>
                     Technical SEO Audit & Performance Summary
                   </h2>
-                  <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginTop: '0.25rem' }}>
+                  <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginTop: '0.25rem', wordBreak: 'break-all' }}>
                     Target Domain: <strong style={{ color: 'var(--accent-cyan)' }}>{project.domain}</strong>
                   </div>
                 </div>
 
-                <div style={{ textAlign: 'right', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                <div style={{ textAlign: 'left', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
                   <div>Generated: {new Date().toLocaleDateString()}</div>
                   <div>Audit Engine: v1.0.0 Autonomous</div>
                 </div>
@@ -207,7 +207,7 @@ export default function ReportsPage() {
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                     {issues.map((iss, idx) => (
                       <div key={idx} style={{ background: 'var(--bg-input)', padding: '0.85rem 1rem', borderRadius: 'var(--radius-md)' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
                           <strong style={{ color: '#fff' }}>{iss.title}</strong>
                           <span className={`badge badge-${iss.severity.toLowerCase()}`}>{iss.severity}</span>
                         </div>

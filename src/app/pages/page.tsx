@@ -280,16 +280,16 @@ export default function PagesAnalyzerPage() {
                           </div>
                         </div>
 
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0.75rem' }}>
+                        <div className="grid-responsive-2" style={{ gap: '0.75rem' }}>
                           <div style={{ background: 'var(--bg-dark)', padding: '0.6rem', borderRadius: '4px' }}>
                             <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Canonical Status</div>
-                            <div style={{ fontSize: '0.8rem', color: 'var(--color-success)', fontFamily: 'var(--font-mono)' }}>
+                            <div style={{ fontSize: '0.8rem', color: 'var(--color-success)', fontFamily: 'var(--font-mono)', wordBreak: 'break-all' }}>
                               {optimizationResult.canonicalFix}
                             </div>
                           </div>
                           <div style={{ background: 'var(--bg-dark)', padding: '0.6rem', borderRadius: '4px' }}>
                             <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Schema Recommendation</div>
-                            <div style={{ fontSize: '0.8rem', color: '#fff' }}>
+                            <div style={{ fontSize: '0.8rem', color: '#fff', wordBreak: 'break-word' }}>
                               {optimizationResult.schemaRecommendation}
                             </div>
                           </div>
@@ -297,7 +297,7 @@ export default function PagesAnalyzerPage() {
                       </div>
                     )}
 
-                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', flexWrap: 'wrap' }}>
                       <button type="button" className="btn btn-secondary" onClick={() => setSelectedPage(null)}>
                         Close
                       </button>

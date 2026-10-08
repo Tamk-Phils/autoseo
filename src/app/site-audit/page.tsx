@@ -110,7 +110,7 @@ export default function SiteAuditPage() {
           </div>
 
           {/* Severity Badges Filter */}
-          <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.75rem', alignItems: 'center' }}>
+          <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
             <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginRight: '0.5rem' }}>Filter Severity:</span>
             {severities.map((sev) => (
               <button
@@ -172,16 +172,16 @@ export default function SiteAuditPage() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
               {filteredIssues.map((iss) => (
                 <div key={iss.id} className="card">
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.75rem' }}>
                     <div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', marginBottom: '0.35rem' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', marginBottom: '0.35rem', flexWrap: 'wrap' }}>
                         <span className={`badge badge-${iss.severity.toLowerCase()}`}>{iss.severity}</span>
                         <span className="badge badge-low">{iss.category}</span>
                       </div>
                       <h3 style={{ fontSize: '1.15rem', fontWeight: 700, color: '#fff' }}>{iss.title}</h3>
                     </div>
 
-                    <div style={{ display: 'flex', gap: '0.5rem', fontSize: '0.75rem' }}>
+                    <div style={{ display: 'flex', gap: '0.5rem', fontSize: '0.75rem', flexWrap: 'wrap' }}>
                       <div style={{ background: 'var(--bg-input)', padding: '0.3rem 0.6rem', borderRadius: '4px', border: '1px solid var(--border-color)' }}>
                         Impact: <strong style={{ color: 'var(--color-success)' }}>{iss.estimatedImpact}</strong>
                       </div>
@@ -191,7 +191,7 @@ export default function SiteAuditPage() {
                     </div>
                   </div>
 
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem', background: 'var(--bg-input)', padding: '1rem', borderRadius: 'var(--radius-md)', marginBottom: '1rem' }}>
+                  <div className="grid-responsive-3" style={{ background: 'var(--bg-input)', padding: '1rem', borderRadius: 'var(--radius-md)', marginBottom: '1rem' }}>
                     <div>
                       <div style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '0.35rem' }}>
                         Why It Matters
@@ -203,7 +203,7 @@ export default function SiteAuditPage() {
                       <div style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '0.35rem' }}>
                         Evidence
                       </div>
-                      <p style={{ fontSize: '0.85rem', color: '#fff', fontFamily: 'var(--font-mono)' }}>{iss.evidence || 'Detected during page HTML parse'}</p>
+                      <p style={{ fontSize: '0.85rem', color: '#fff', fontFamily: 'var(--font-mono)', wordBreak: 'break-all' }}>{iss.evidence || 'Detected during page HTML parse'}</p>
                     </div>
 
                     <div>
@@ -214,7 +214,7 @@ export default function SiteAuditPage() {
                     </div>
                   </div>
 
-                  <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
+                  <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', flexWrap: 'wrap' }}>
                     <Link href="/recommendations" className="btn btn-secondary btn-sm">
                       Generate AI Fix
                     </Link>

@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Play, Globe, ShieldCheck, Plus, User, LogOut, LogIn, UserPlus } from 'lucide-react';
+import { Play, Globe, ShieldCheck, Plus, User, LogOut, LogIn, UserPlus, Menu } from 'lucide-react';
 
 interface TopHeaderProps {
   currentProject?: {
@@ -85,105 +85,107 @@ export default function TopHeader({ currentProject }: TopHeaderProps) {
   const mode = selectedProj?.optimizationMode || 'AUTONOMOUS';
 
   return (
-    <header className="top-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.85rem 1.5rem', borderBottom: '1px solid var(--border-color)', background: 'var(--bg-card)' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+    <header className="top-header">
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', minWidth: 0 }}>
+        {/* Mobile Sidebar Hamburger Toggle */}
+        <button
+          type="button"
+          className="mobile-toggle-btn"
+          onClick={() => window.dispatchEvent(new Event('toggle-sidebar'))}
+          aria-label="Open Navigation Menu"
+        >
+          <Menu size={18} />
+        </button>
+
         {/* Interactive Project Switcher Dropdown */}
-        <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-          <div
-            className="project-picker"
-            style={{
-              padding: '0.4rem 0.75rem',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem',
-              background: 'var(--bg-input)',
-              border: '1px solid var(--border-color)',
-              borderRadius: 'var(--radius-md)',
-            }}
-          >
-            <Globe size={16} color="var(--accent-cyan)" />
-            {projects.length > 1 ? (
-              <select
-                value={activeId}
-                onChange={(e) => handleSwitchProject(e.target.value)}
-                style={{
-                  background: 'transparent',
-                  border: 'none',
-                  color: '#fff',
-                  fontWeight: 600,
-                  fontSize: '0.88rem',
-                  outline: 'none',
-                  cursor: 'pointer',
-                  paddingRight: '0.5rem',
-                }}
-              >
-                {projects.map((p) => (
-                  <option key={p.id} value={p.id} style={{ background: '#0b1120', color: '#fff' }}>
-                    {p.name || p.domain} ({p.domain})
-                  </option>
-                ))}
-              </select>
-            ) : (
-              <span style={{ fontWeight: 600, fontSize: '0.88rem' }}>{name}</span>
-            )}
-          </div>
+        <div className="project-picker" style={{ maxWidth: 'clamp(110px, 35vw, 220px)', minWidth: 0 }}>
+          <Globe size={15} color="var(--accent-cyan)" style={{ flexShrink: 0 }} />
+          {projects.length > 1 ? (
+            <select
+              value={activeId}
+              onChange={(e) => handleSwitchProject(e.target.value)}
+              style={{
+                background: 'transparent',
+                border: 'none',
+                color: '#fff',
+                fontWeight: 600,
+                fontSize: '0.82rem',
+                outline: 'none',
+                cursor: 'pointer',
+                width: '100%',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {projects.map((p) => (
+                <option key={p.id} value={p.id} style={{ background: '#0b1120', color: '#fff' }}>
+                  {p.name || p.domain}
+                </option>
+              ))}
+            </select>
+          ) : (
+            <span style={{ fontWeight: 600, fontSize: '0.82rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '100%' }}>
+              {name}
+            </span>
+          )}
         </div>
 
-        <span className="badge badge-low" style={{ textTransform: 'capitalize' }}>
+        <span className="badge badge-low hide-mobile" style={{ textTransform: 'capitalize', flexShrink: 0 }}>
           <ShieldCheck size={12} />
-          Mode: {mode.toLowerCase()}
+          {mode.toLowerCase()}
         </span>
       </div>
 
-      <div className="header-actions" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-        <Link href="/onboarding" className="btn btn-secondary btn-sm">
+      <div className="header-actions">
+        <Link href="/onboarding" className="btn btn-secondary btn-sm" title="Add Website">
           <Plus size={14} />
-          Add Website
+          <span className="hide-mobile">Add Website</span>
         </Link>
-        <Link href="/live-crawl" className="btn btn-primary btn-sm">
+        <Link href="/live-crawl" className="btn btn-primary btn-sm" title="Run Live Crawl">
           <Play size={14} />
-          Run Live Crawl
+          <span className="hide-mobile">Run Crawl</span>
         </Link>
 
         {/* User Account State */}
         {user ? (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', marginLeft: '0.5rem', paddingLeft: '0.75rem', borderLeft: '1px solid var(--border-color)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', paddingLeft: '0.35rem' }}>
             <div
               style={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: '0.45rem',
-                padding: '0.35rem 0.65rem',
+                gap: '0.4rem',
+                padding: '0.3rem 0.55rem',
                 background: 'rgba(56, 189, 248, 0.08)',
                 borderRadius: 'var(--radius-md)',
-                fontSize: '0.82rem',
+                fontSize: '0.8rem',
                 color: 'var(--accent-cyan)',
               }}
               title={user.email}
             >
-              <User size={14} />
-              <span style={{ maxWidth: '140px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 500 }}>
+              <User size={13} />
+              <span className="hide-mobile" style={{ maxWidth: '120px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 500 }}>
                 {user.name || user.email.split('@')[0]}
               </span>
             </div>
             <button
               onClick={handleLogout}
               className="btn btn-secondary btn-sm"
-              style={{ padding: '0.35rem 0.6rem', color: 'var(--text-muted)' }}
+              style={{ padding: '0.35rem 0.55rem', color: 'var(--text-muted)' }}
               title="Sign Out"
             >
-              <LogOut size={14} />
+              <LogOut size={13} />
             </button>
           </div>
         ) : (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginLeft: '0.5rem', paddingLeft: '0.75rem', borderLeft: '1px solid var(--border-color)' }}>
-            <Link href="/login" className="btn btn-secondary btn-sm" style={{ padding: '0.35rem 0.65rem' }}>
-              <LogIn size={13} style={{ marginRight: '4px' }} />
-              Sign In
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+            <Link href="/login" className="btn btn-secondary btn-sm" style={{ padding: '0.35rem 0.6rem' }}>
+              <LogIn size={13} />
+              <span className="hide-mobile">Sign In</span>
             </Link>
-            <Link href="/signup" className="btn btn-primary btn-sm" style={{ padding: '0.35rem 0.65rem' }}>
-              <UserPlus size={13} style={{ marginRight: '4px' }} />
-              Register
+            <Link href="/signup" className="btn btn-primary btn-sm" style={{ padding: '0.35rem 0.6rem' }}>
+              <UserPlus size={13} />
+              <span className="hide-mobile">Register</span>
             </Link>
           </div>
         )}

@@ -35,7 +35,7 @@ export default function ScoreGauge({
         <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Algorithmic Audit Engine</span>
       </div>
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: '2rem', flex: 1, padding: '0.5rem 0' }}>
+      <div className="score-gauge-flex">
         {/* Circular Gauge */}
         <div style={{ position: 'relative', width: '130px', height: '130px', flexShrink: 0 }}>
           <svg width="130" height="130" viewBox="0 0 100 100" style={{ transform: 'rotate(-90deg)' }}>
@@ -79,7 +79,7 @@ export default function ScoreGauge({
         </div>
 
         {/* Breakdown details */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0.75rem', width: '100%' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '0.65rem', width: '100%', minWidth: 0 }}>
           <div style={{ background: 'var(--bg-input)', padding: '0.6rem 0.8rem', borderRadius: 'var(--radius-md)' }}>
             <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Technical SEO</div>
             <div style={{ fontSize: '1rem', fontWeight: 700, color: '#fff' }}>{technical} <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>/ 25</span></div>

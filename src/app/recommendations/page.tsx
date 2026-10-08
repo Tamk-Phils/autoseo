@@ -131,7 +131,7 @@ export default function RecommendationsPage() {
                 Synthesized by specialized agents. Review, approve, or execute live SEO fixes directly to your website.
               </p>
             </div>
-            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
               <Link href="/integrations" className="btn btn-secondary btn-sm">
                 <Boxes size={14} />
                 Manage Integrations ({integrations.length})
@@ -224,9 +224,9 @@ export default function RecommendationsPage() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
               {recommendations.map((rec) => (
                 <div key={rec.id} className="card">
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
-                    <div>
-                      <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.4rem', alignItems: 'center' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.75rem' }}>
+                    <div style={{ flex: '1 1 280px', minWidth: 0 }}>
+                      <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.4rem', alignItems: 'center', flexWrap: 'wrap' }}>
                         <span className="badge badge-low">{rec.agentType} AGENT</span>
                         <span className={`badge badge-${rec.priority === 'HIGH' ? 'high' : 'medium'}`}>
                           {rec.priority} PRIORITY
@@ -248,29 +248,29 @@ export default function RecommendationsPage() {
                           {rec.status}
                         </span>
                       </div>
-                      <h3 style={{ fontSize: '1.15rem', fontWeight: 700, color: '#fff', marginTop: '0.25rem' }}>
+                      <h3 style={{ fontSize: '1.15rem', fontWeight: 700, color: '#fff', marginTop: '0.25rem', wordBreak: 'break-word' }}>
                         {rec.title}
                       </h3>
                       {rec.page?.url && (
-                        <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', marginTop: '0.2rem' }}>
+                        <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', marginTop: '0.2rem', wordBreak: 'break-all' }}>
                           Target URL: <code>{rec.page.url}</code>
                         </div>
                       )}
                     </div>
                     {rec.riskLevel && (
-                      <span className="badge badge-low" style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                      <span className="badge badge-low" style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', flexShrink: 0 }}>
                         <ShieldCheck size={12} />
                         Risk: {rec.riskLevel}
                       </span>
                     )}
                   </div>
 
-                  <div className="grid-2" style={{ marginBottom: '1rem' }}>
+                  <div className="grid-responsive-2" style={{ marginBottom: '1rem' }}>
                     <div style={{ background: 'var(--bg-input)', padding: '0.85rem', borderRadius: 'var(--radius-md)' }}>
                       <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', textTransform: 'uppercase', marginBottom: '0.25rem', fontWeight: 600 }}>
                         Identified Problem
                       </div>
-                      <div style={{ fontSize: '0.88rem', color: 'var(--color-critical)' }}>
+                      <div style={{ fontSize: '0.88rem', color: 'var(--color-critical)', wordBreak: 'break-word' }}>
                         {rec.problem}
                       </div>
                     </div>
@@ -279,7 +279,7 @@ export default function RecommendationsPage() {
                       <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', textTransform: 'uppercase', marginBottom: '0.25rem', fontWeight: 600 }}>
                         Recommended Solution
                       </div>
-                      <div style={{ fontSize: '0.88rem', color: 'var(--color-success)' }}>
+                      <div style={{ fontSize: '0.88rem', color: 'var(--color-success)', wordBreak: 'break-word' }}>
                         {rec.recommendedAction}
                       </div>
                     </div>
@@ -309,7 +309,7 @@ export default function RecommendationsPage() {
                   )}
 
                   {/* Actions */}
-                  <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', borderTop: '1px solid var(--border-color)', paddingTop: '1rem', alignItems: 'center' }}>
+                  <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', borderTop: '1px solid var(--border-color)', paddingTop: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
                     {rec.status === 'PENDING' && (
                       <>
                         <button

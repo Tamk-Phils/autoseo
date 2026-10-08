@@ -165,8 +165,8 @@ export default function LiveCrawlPage() {
 
           {/* Crawl Control Bar */}
           <div className="card" style={{ marginBottom: '1.5rem' }}>
-            <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-end' }}>
-              <div style={{ flex: 1 }}>
+            <div className="crawl-control-bar">
+              <div style={{ flex: 1, minWidth: 0 }}>
                 <label className="form-label">Crawl Target URL</label>
                 <input
                   type="url"
@@ -178,7 +178,7 @@ export default function LiveCrawlPage() {
                 />
               </div>
 
-              <div style={{ width: '150px' }}>
+              <div style={{ minWidth: '130px' }}>
                 <label className="form-label">Max Pages</label>
                 <select
                   className="form-control"
@@ -287,15 +287,17 @@ export default function LiveCrawlPage() {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
+                flexWrap: 'wrap',
+                gap: '0.75rem',
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                <span className="badge badge-low">Analyzing Page</span>
-                <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.85rem', color: '#fff' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap', minWidth: 0, flex: 1 }}>
+                <span className="badge badge-low" style={{ flexShrink: 0 }}>Analyzing Page</span>
+                <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.85rem', color: '#fff', wordBreak: 'break-all' }}>
                   {currentAnalyzing}
                 </span>
               </div>
-              <div style={{ display: 'flex', gap: '1rem', fontSize: '0.8rem' }}>
+              <div style={{ display: 'flex', gap: '0.75rem', fontSize: '0.8rem', flexWrap: 'wrap' }}>
                 <span style={{ color: 'var(--color-success)' }}>Title ✓</span>
                 <span style={{ color: 'var(--color-success)' }}>H1 ✓</span>
                 <span style={{ color: 'var(--color-warning)' }}>Meta ⚠</span>

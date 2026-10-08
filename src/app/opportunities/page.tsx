@@ -160,17 +160,17 @@ export default function OpportunitiesPage() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
               {opportunities.map((opp) => (
                 <div key={opp.id} className="card" style={{ borderLeft: '4px solid #f97316' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem' }}>
-                    <div>
-                      <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem', flexWrap: 'wrap', gap: '0.75rem' }}>
+                    <div style={{ flex: 1, minWidth: 'min(100%, 260px)' }}>
+                      <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem', flexWrap: 'wrap' }}>
                         <span className="badge badge-high">{opp.impact}</span>
                         <span className="badge badge-success">{opp.confidence}</span>
                         <span className="badge badge-low">{opp.effort}</span>
                       </div>
-                      <h3 style={{ fontSize: '1.2rem', fontWeight: 700, color: '#fff' }}>{opp.title}</h3>
+                      <h3 style={{ fontSize: '1.2rem', fontWeight: 700, color: '#fff', wordBreak: 'break-word' }}>{opp.title}</h3>
                     </div>
 
-                    <div style={{ textAlign: 'right' }}>
+                    <div style={{ textAlign: 'right', flexShrink: 0 }}>
                       <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Opportunity Score</div>
                       <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#f97316' }}>{opp.impactScore}</div>
                     </div>
@@ -180,7 +180,7 @@ export default function OpportunitiesPage() {
                     {opp.description}
                   </p>
 
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--border-color)', paddingTop: '1rem' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--border-color)', paddingTop: '1rem', flexWrap: 'wrap', gap: '0.75rem' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.82rem', color: 'var(--color-success)', fontWeight: 600 }}>
                       <TrendingUp size={16} />
                       <span>Estimated Impact: {opp.estimatedGain}</span>
