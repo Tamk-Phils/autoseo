@@ -1,20 +1,17 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/db';
 import { validateUrlForSsrf } from '@/lib/ssrf';
-import { ensureDefaultUser } from '@/lib/seed';
 import { getCurrentUser } from '@/lib/auth';
 
 export async function GET() {
   try {
     const currentUser = await getCurrentUser();
-    let whereClause = {};
-
-    if (currentUser) {
-      whereClause = { userId: currentUser.id };
+    if (!currentUser) {
+      return NextResponse.json({ success: false, error: 'Authentication required' }, { status: 401 });
     }
 
     const projects = await prisma.project.findMany({
-      where: whereClause,
+      where: { userId: currentUser.id },
       include: {
         _count: {
           select: { pages: true, issues: true, keywords: true, recommendations: true },
@@ -48,13 +45,8 @@ export async function POST(req: Request) {
     const domain = parsed.hostname;
 
     const currentUser = await getCurrentUser();
-    let targetUserId: string;
-
-    if (currentUser) {
-      targetUserId = currentUser.id;
-    } else {
-      const defaultUser = await ensureDefaultUser();
-      targetUserId = defaultUser.id;
+    if (!currentUser) {
+      return NextResponse.json({ success: false, error: 'Authentication required' }, { status: 401 });
     }
 
     const project = await prisma.project.create({
@@ -64,7 +56,7 @@ export async function POST(req: Request) {
         url: parsed.origin,
         industry: industry || 'Technology',
         optimizationMode: optimizationMode || 'AUTONOMOUS',
-        userId: targetUserId,
+        userId: currentUser.id,
       },
     });
 
@@ -81,7 +73,7 @@ export async function POST(req: Request) {
     await prisma.auditLog.create({
       data: {
         projectId: project.id,
-        userId: targetUserId,
+        userId: currentUser.id,
         action: 'PROJECT_INITIALIZED',
         details: `Connected website: ${domain}`,
       },

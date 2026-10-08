@@ -22,6 +22,7 @@ export default function OnboardingPage() {
   const [url, setUrl] = useState('');
   const [projectName, setProjectName] = useState('');
   const [mode, setMode] = useState<'ANALYZE_ONLY' | 'ASSISTED' | 'AUTONOMOUS'>('ASSISTED');
+  const [periodDays, setPeriodDays] = useState('14');
   const [selectedIntegrations, setSelectedIntegrations] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -59,14 +60,20 @@ export default function OnboardingPage() {
         return;
       }
 
-      // Automatically trigger initial crawl
-      await fetch('/api/crawl/start', {
+      const crawlRes = await fetch('/api/crawl/start', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ projectId: data.project.id, maxPages: 25 }),
+        body: JSON.stringify({ projectId: data.project.id, maxPages: 25, periodDays: Number(periodDays) }),
       });
 
-      router.push('/live-crawl');
+      const crawlData = await crawlRes.json();
+      if (!crawlRes.ok || !crawlData.success) {
+        setError(crawlData.error || 'Website connected, but the SEO run could not start');
+        setLoading(false);
+        return;
+      }
+
+      router.push(`/live-crawl?jobId=${crawlData.crawlJobId}&projectId=${data.project.id}`);
     } catch (err: any) {
       setError(err.message || 'An unexpected error occurred');
       setLoading(false);
@@ -211,6 +218,16 @@ export default function OnboardingPage() {
                   value={projectName}
                   onChange={(e) => setProjectName(e.target.value)}
                 />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">SEO Run Period</label>
+                <select className="form-control" value={periodDays} onChange={(e) => setPeriodDays(e.target.value)}>
+                  <option value="7">7 days</option>
+                  <option value="14">14 days</option>
+                  <option value="30">30 days</option>
+                  <option value="90">90 days</option>
+                </select>
               </div>
 
               <div style={{ marginTop: '2rem', display: 'flex', justifyContent: 'flex-end' }}>

@@ -29,9 +29,11 @@ export default async function DashboardPage({
   let project = null;
 
   if (searchParams?.projectId) {
-    project = await prisma.project.findUnique({
-      where: { id: searchParams.projectId },
-    });
+    if (user) {
+      project = await prisma.project.findFirst({
+        where: { id: searchParams.projectId, userId: user.id },
+      });
+    }
   }
 
   if (!project && user) {
@@ -41,7 +43,7 @@ export default async function DashboardPage({
     });
   }
 
-  if (!project) {
+  if (!project && !user) {
     project = await getDefaultProject();
   }
 

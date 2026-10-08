@@ -32,7 +32,7 @@ export default function SignupPage() {
         return;
       }
 
-      window.location.href = '/dashboard';
+      window.location.href = '/onboarding';
     } catch (err: any) {
       setError(err.message || 'An unexpected error occurred');
       setLoading(false);

@@ -99,6 +99,8 @@ model CrawlJob {
   projectId      String
   project        Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
   status         String       @default("QUEUED") // QUEUED, RUNNING, COMPLETED, FAILED
+  periodStart    DateTime?
+  periodEnd      DateTime?
   pagesDiscovered Int         @default(0)
   pagesCrawled   Int          @default(0)
   maxPages       Int          @default(50)

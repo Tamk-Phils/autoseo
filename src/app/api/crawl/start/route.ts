@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/db';
+import { getCurrentUser } from '@/lib/auth';
 import { AutonomousCrawler, CrawlLogEntry } from '@/lib/crawler/crawler';
 import { analyzeCrawledPages } from '@/lib/crawler/analyzer';
 import { calculateOptimizationScore } from '@/lib/crawler/scorer';
@@ -16,21 +17,33 @@ export const globalActiveCrawlLogs: Record<string, CrawlLogEntry[]> = {};
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    let { projectId, maxPages = 20 } = body;
+    const { projectId, maxPages = 20, periodDays = 14 } = body;
+    const currentUser = await getCurrentUser();
+
+    if (!currentUser) {
+      return NextResponse.json({ success: false, error: 'Authentication required' }, { status: 401 });
+    }
 
     let project = projectId
-      ? await prisma.project.findUnique({ where: { id: projectId } })
-      : await prisma.project.findFirst();
+      ? await prisma.project.findFirst({ where: { id: projectId, userId: currentUser.id } })
+      : await prisma.project.findFirst({ where: { userId: currentUser.id }, orderBy: { createdAt: 'desc' } });
 
     if (!project) {
       return NextResponse.json({ success: false, error: 'No project found to crawl' }, { status: 404 });
     }
+
+    const normalizedPeriodDays = Math.min(365, Math.max(1, Number(periodDays) || 14));
+    const periodStart = new Date();
+    const periodEnd = new Date(periodStart);
+    periodEnd.setDate(periodEnd.getDate() + normalizedPeriodDays);
 
     // Create Crawl Job
     const crawlJob = await prisma.crawlJob.create({
       data: {
         projectId: project.id,
         status: 'RUNNING',
+        periodStart,
+        periodEnd,
         startedAt: new Date(),
         maxPages: Number(maxPages),
       },
@@ -66,10 +79,6 @@ export async function POST(req: Request) {
         });
 
         const crawlResult = await crawler.crawl(project.url);
-
-        // Clear previous pages and issues for fresh crawl
-        await prisma.crawlPage.deleteMany({ where: { projectId: project.id } });
-        await prisma.crawlIssue.deleteMany({ where: { projectId: project.id } });
 
         // Save pages
         const savedPages = [];

@@ -34,10 +34,17 @@ export default function LiveCrawlPage() {
   const [pagesCount, setPagesCount] = useState(0);
   const [progress, setProgress] = useState(0);
   const [project, setProject] = useState<any>(null);
+  const [jobId, setJobId] = useState<string | null>(null);
   const consoleEndRef = useRef<HTMLDivElement>(null);
 
   // Load project defaults
   useEffect(() => {
+    const requestedJobId = typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('jobId') : null;
+    setJobId(requestedJobId);
+    if (requestedJobId) {
+      setIsRunning(true);
+    }
+
     fetch('/api/projects')
       .then((r) => r.json())
       .then((data) => {
@@ -59,7 +66,8 @@ export default function LiveCrawlPage() {
     if (isRunning) {
       interval = setInterval(async () => {
         try {
-          const res = await fetch('/api/crawl/status');
+          const statusUrl = jobId ? `/api/crawl/status?jobId=${encodeURIComponent(jobId)}` : '/api/crawl/status';
+          const res = await fetch(statusUrl);
           const data = await res.json();
           if (data.success && data.logs) {
             setLogs(data.logs);
@@ -92,7 +100,7 @@ export default function LiveCrawlPage() {
       }, 1000);
     }
     return () => clearInterval(interval);
-  }, [isRunning, maxPages]);
+  }, [isRunning, maxPages, jobId]);
 
   // Auto-scroll console
   useEffect(() => {
@@ -124,7 +132,7 @@ export default function LiveCrawlPage() {
         }
       }
 
-      await fetch('/api/crawl/start', {
+      const crawlRes = await fetch('/api/crawl/start', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -132,6 +140,11 @@ export default function LiveCrawlPage() {
           maxPages: Number(maxPages),
         }),
       });
+      const crawlData = await crawlRes.json();
+      if (!crawlRes.ok || !crawlData.success) {
+        throw new Error(crawlData.error || 'Failed to start crawl');
+      }
+      setJobId(crawlData.crawlJobId);
     } catch (err) {
       console.error(err);
       setIsRunning(false);

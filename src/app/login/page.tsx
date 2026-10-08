@@ -31,7 +31,7 @@ export default function LoginPage() {
         return;
       }
 
-      window.location.href = '/dashboard';
+      window.location.href = '/onboarding';
     } catch (err: any) {
       setError(err.message || 'An unexpected error occurred');
       setLoading(false);
