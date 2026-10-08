@@ -802,6 +802,143 @@ pre, code {
 }
 
 /* ==========================================================================
+   Landing Page Layout & SaaS Hero Styling
+   ========================================================================== */
+
+.landing-header-wrapper {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  width: 100%;
+  background-color: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.landing-header {
+  max-width: 1240px;
+  margin: 0 auto;
+  width: 100%;
+  padding: 1rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  box-sizing: border-box;
+}
+
+.landing-nav {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.landing-nav a {
+  transition: color 0.15s ease;
+}
+
+.landing-nav a:hover {
+  color: var(--accent-primary) !important;
+}
+
+.landing-nav-mobile-toggle {
+  display: none;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--text-primary);
+  padding: 0.4rem;
+  border-radius: var(--radius-sm);
+}
+
+@media (max-width: 860px) {
+  .landing-nav {
+    display: none !important;
+  }
+  .landing-nav-mobile-toggle {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+.landing-mobile-menu {
+  display: flex;
+  flex-direction: column;
+  padding: 1rem 1.5rem 1.5rem;
+  background-color: #ffffff;
+  border-bottom: 1px solid var(--border-color);
+  gap: 0.85rem;
+}
+
+.landing-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 4.5rem 1.5rem 3rem;
+  max-width: 980px;
+  margin: 0 auto;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.landing-hero-title {
+  font-size: clamp(2.3rem, 5vw, 3.8rem);
+  font-weight: 850;
+  letter-spacing: -0.035em;
+  line-height: 1.15;
+  margin-bottom: 1.25rem;
+  color: var(--text-primary);
+}
+
+.landing-hero-subtitle {
+  font-size: clamp(1rem, 1.8vw, 1.2rem);
+  color: var(--text-secondary);
+  max-width: 720px;
+  margin: 0 auto 2.25rem;
+  line-height: 1.6;
+}
+
+.landing-scan-form {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  max-width: 640px;
+  background: #ffffff;
+  border: 1.5px solid var(--border-color);
+  border-radius: var(--radius-full);
+  padding: 0.35rem 0.45rem 0.35rem 1.25rem;
+  box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.08), 0 8px 10px -6px rgba(15, 23, 42, 0.04);
+  transition: all 0.2s ease;
+  margin: 0 auto 1.5rem;
+  box-sizing: border-box;
+}
+
+.landing-scan-form:focus-within {
+  border-color: var(--accent-primary);
+  box-shadow: 0 12px 30px -5px rgba(37, 99, 235, 0.18), 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+.landing-footer {
+  margin-top: auto;
+  padding: 2.5rem 1.5rem;
+  border-top: 1px solid var(--border-color);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  max-width: 1240px;
+  margin: 0 auto;
+  width: 100%;
+  box-sizing: border-box;
+  font-size: 0.88rem;
+  color: var(--text-muted);
+}
+
+/* ==========================================================================
    Cool Animations & Motion Keyframes
    ========================================================================== */
 

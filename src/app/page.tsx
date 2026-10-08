@@ -77,99 +77,101 @@ export default function LandingPage() {
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: 'var(--bg-dark)' }}>
-      {/* Navigation */}
-      <header className="landing-header">
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
-          <Globe2 size={26} color="var(--accent-cyan)" />
-          <span style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.03em' }}>
-            Apex<span style={{ color: 'var(--accent-cyan)' }}>SEO</span>
-          </span>
-        </div>
+      {/* Navigation Bar */}
+      <div className="landing-header-wrapper">
+        <header className="landing-header">
+          <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+            <Globe2 size={26} color="var(--accent-cyan)" />
+            <span style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.03em' }}>
+              Apex<span style={{ color: 'var(--accent-cyan)' }}>SEO</span>
+            </span>
+          </Link>
 
-        {/* Desktop Nav */}
-        <nav className="landing-nav">
-          <Link href="/how-to-use" style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', fontWeight: 600 }}>
-            How to Use
-          </Link>
-          <a href="#how-it-works" style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', fontWeight: 500 }}>
-            How It Works
-          </a>
-          <a href="#architecture" style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', fontWeight: 500 }}>
-            Architecture
-          </a>
-          <Link href="/activate" style={{ color: 'var(--color-success)', fontSize: '0.9rem', fontWeight: 600 }}>
-            ⚡ Zero-Code Autopilot
-          </Link>
-          <Link href="/dashboard" className="btn btn-secondary btn-sm">
-            View Live Platform
-          </Link>
-          <Link href="/onboarding" className="btn btn-primary btn-sm">
-            Full Audit
-          </Link>
-        </nav>
-
-        {/* Mobile Nav Toggle */}
-        <button
-          type="button"
-          className="landing-nav-mobile-toggle"
-          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          aria-label="Toggle navigation menu"
-        >
-          {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
-        </button>
-      </header>
-
-      {/* Mobile Drawer Menu */}
-      {mobileMenuOpen && (
-        <div className="landing-mobile-menu">
-          <Link
-            href="/how-to-use"
-            onClick={() => setMobileMenuOpen(false)}
-            style={{ color: 'var(--accent-primary)', fontSize: '0.95rem', fontWeight: 700, padding: '0.5rem 0' }}
-          >
-            📖 How to Use Guide
-          </Link>
-          <a
-            href="#how-it-works"
-            onClick={() => setMobileMenuOpen(false)}
-            style={{ color: 'var(--text-primary)', fontSize: '0.95rem', fontWeight: 600, padding: '0.5rem 0' }}
-          >
-            How It Works
-          </a>
-          <a
-            href="#architecture"
-            onClick={() => setMobileMenuOpen(false)}
-            style={{ color: 'var(--text-primary)', fontSize: '0.95rem', fontWeight: 600, padding: '0.5rem 0' }}
-          >
-            Architecture
-          </a>
-          <Link
-            href="/activate"
-            onClick={() => setMobileMenuOpen(false)}
-            style={{ color: 'var(--color-success)', fontSize: '0.95rem', fontWeight: 600, padding: '0.5rem 0' }}
-          >
-            ⚡ Zero-Code Autopilot
-          </Link>
-          <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.5rem', flexWrap: 'wrap' }}>
-            <Link
-              href="/dashboard"
-              className="btn btn-secondary"
-              onClick={() => setMobileMenuOpen(false)}
-              style={{ flex: '1 1 auto', justifyContent: 'center' }}
-            >
+          {/* Desktop Nav */}
+          <nav className="landing-nav">
+            <Link href="/how-to-use" style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', fontWeight: 600 }}>
+              How to Use
+            </Link>
+            <a href="#how-it-works" style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', fontWeight: 500 }}>
+              How It Works
+            </a>
+            <a href="#architecture" style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', fontWeight: 500 }}>
+              Architecture
+            </a>
+            <Link href="/activate" style={{ color: 'var(--color-success)', fontSize: '0.9rem', fontWeight: 600 }}>
+              ⚡ Zero-Code Autopilot
+            </Link>
+            <Link href="/dashboard" className="btn btn-secondary btn-sm">
               Live Platform
             </Link>
-            <Link
-              href="/onboarding"
-              className="btn btn-primary"
-              onClick={() => setMobileMenuOpen(false)}
-              style={{ flex: '1 1 auto', justifyContent: 'center' }}
-            >
+            <Link href="/onboarding" className="btn btn-primary btn-sm">
               Full Audit
             </Link>
+          </nav>
+
+          {/* Mobile Nav Toggle */}
+          <button
+            type="button"
+            className="landing-nav-mobile-toggle"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            aria-label="Toggle navigation menu"
+          >
+            {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
+          </button>
+        </header>
+
+        {/* Mobile Drawer Menu */}
+        {mobileMenuOpen && (
+          <div className="landing-mobile-menu">
+            <Link
+              href="/how-to-use"
+              onClick={() => setMobileMenuOpen(false)}
+              style={{ color: 'var(--accent-primary)', fontSize: '0.95rem', fontWeight: 700, padding: '0.5rem 0' }}
+            >
+              📖 How to Use Guide
+            </Link>
+            <a
+              href="#how-it-works"
+              onClick={() => setMobileMenuOpen(false)}
+              style={{ color: 'var(--text-primary)', fontSize: '0.95rem', fontWeight: 600, padding: '0.5rem 0' }}
+            >
+              How It Works
+            </a>
+            <a
+              href="#architecture"
+              onClick={() => setMobileMenuOpen(false)}
+              style={{ color: 'var(--text-primary)', fontSize: '0.95rem', fontWeight: 600, padding: '0.5rem 0' }}
+            >
+              Architecture
+            </a>
+            <Link
+              href="/activate"
+              onClick={() => setMobileMenuOpen(false)}
+              style={{ color: 'var(--color-success)', fontSize: '0.95rem', fontWeight: 600, padding: '0.5rem 0' }}
+            >
+              ⚡ Zero-Code Autopilot
+            </Link>
+            <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.5rem', flexWrap: 'wrap' }}>
+              <Link
+                href="/dashboard"
+                className="btn btn-secondary"
+                onClick={() => setMobileMenuOpen(false)}
+                style={{ flex: '1 1 auto', justifyContent: 'center' }}
+              >
+                Live Platform
+              </Link>
+              <Link
+                href="/onboarding"
+                className="btn btn-primary"
+                onClick={() => setMobileMenuOpen(false)}
+                style={{ flex: '1 1 auto', justifyContent: 'center' }}
+              >
+                Full Audit
+              </Link>
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
       {/* Hero Section */}
       <section className="landing-hero">
