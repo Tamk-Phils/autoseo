@@ -41,6 +41,18 @@ export async function POST(req: Request) {
           },
         });
       }
+
+      const autopilotConfig = await prisma.autopilotConfig.findUnique({ where: { projectId: project.id } });
+      if (!autopilotConfig) {
+        await prisma.autopilotConfig.create({ data: { projectId: project.id, enabled: true, mode: 'AUTONOMOUS' } });
+      }
+
+      const baseUrl = new URL(req.url);
+      await fetch(`${baseUrl.origin}/api/crawl/start`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ projectId: project.id, source: 'TAG_HEARTBEAT', maxPages: project.crawlMaxPages }),
+      }).catch(() => {});
     }
 
     return NextResponse.json(

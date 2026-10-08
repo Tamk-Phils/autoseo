@@ -14,6 +14,7 @@ import {
   FileCode,
   Layers,
   ChevronLeft,
+  RefreshCw,
 } from 'lucide-react';
 
 export default function OnboardingPage() {
@@ -21,7 +22,7 @@ export default function OnboardingPage() {
   const [step, setStep] = useState(1);
   const [url, setUrl] = useState('');
   const [projectName, setProjectName] = useState('');
-  const [mode, setMode] = useState<'ANALYZE_ONLY' | 'ASSISTED' | 'AUTONOMOUS'>('ASSISTED');
+  const [mode, setMode] = useState<'ANALYZE_ONLY' | 'ASSISTED' | 'AUTONOMOUS'>('AUTONOMOUS');
   const [periodDays, setPeriodDays] = useState('14');
   const [selectedIntegrations, setSelectedIntegrations] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
@@ -412,7 +413,7 @@ export default function OnboardingPage() {
                   disabled={loading}
                   onClick={handleFinish}
                 >
-                  {loading ? 'Initializing Engine...' : 'Start Website Crawl'}
+                  {loading ? <><RefreshCw size={16} className="animate-spin" /> Initializing Engine...</> : 'Start Website Crawl'}
                   <ArrowRight size={16} />
                 </button>
               </div>

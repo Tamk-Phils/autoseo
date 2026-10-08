@@ -214,7 +214,7 @@ export default function LiveCrawlPage() {
                 style={{ padding: '0.65rem 1.4rem' }}
               >
                 <Play size={16} />
-                {isRunning ? 'Crawling...' : 'Start Live Crawl'}
+                {isRunning ? <><Play size={16} className="animate-spin" /> Crawling...</> : 'Start Live Crawl'}
               </button>
             </div>
 

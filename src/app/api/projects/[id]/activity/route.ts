@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/db';
 import { getCurrentUser } from '@/lib/auth';
+import { globalActiveCrawlLogs } from '@/app/api/crawl/start/route';
 
 export async function GET(
   req: Request,
@@ -91,6 +92,21 @@ export async function GET(
         timestamp: job.createdAt,
         status: job.status,
       });
+    }
+
+    const activeJob = project.crawlJobs.find((job) => job.status === 'RUNNING');
+    if (activeJob) {
+      for (const log of globalActiveCrawlLogs[activeJob.id] || []) {
+        events.push({
+          id: `crawl-log-${activeJob.id}-${log.timestamp}-${log.message}`,
+          title: log.type === 'PAGE' ? 'Autonomous engine analyzing page' : 'Autonomous engine activity',
+          description: log.message,
+          category: log.type === 'ERROR' ? 'SYSTEM' : 'CRAWL',
+          icon: log.type === 'PAGE' ? 'Search' : 'Activity',
+          timestamp: log.timestamp,
+          status: 'RUNNING',
+        });
+      }
     }
 
     // 4. Tag / Integration status

@@ -26,6 +26,7 @@ export default function CompetitorsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newDomain, setNewDomain] = useState('');
   const [newName, setNewName] = useState('');
+  const [adding, setAdding] = useState(false);
 
   const fetchCompetitors = async () => {
     try {
@@ -56,6 +57,7 @@ export default function CompetitorsPage() {
     e.preventDefault();
     if (!newDomain.trim()) return;
 
+    setAdding(true);
     try {
       const res = await fetch('/api/competitors', {
         method: 'POST',
@@ -75,6 +77,8 @@ export default function CompetitorsPage() {
       }
     } catch (e) {
       console.error(e);
+    } finally {
+      setAdding(false);
     }
   };
 
@@ -255,8 +259,8 @@ export default function CompetitorsPage() {
                     <button type="button" className="btn btn-secondary" onClick={() => setIsModalOpen(false)}>
                       Cancel
                     </button>
-                    <button type="submit" className="btn btn-primary">
-                      Track Competitor
+                    <button type="submit" className="btn btn-primary" disabled={adding}>
+                      <Plus size={14} className={adding ? 'animate-spin' : ''} /> {adding ? 'Tracking...' : 'Track Competitor'}
                     </button>
                   </div>
                 </form>

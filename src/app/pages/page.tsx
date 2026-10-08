@@ -24,6 +24,7 @@ export default function PagesAnalyzerPage() {
   const [optimizationResult, setOptimizationResult] = useState<any | null>(null);
   const [project, setProject] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [queueing, setQueueing] = useState(false);
 
   useEffect(() => {
     fetch('/api/projects')
@@ -81,6 +82,7 @@ export default function PagesAnalyzerPage() {
 
   const handleQueueOptimization = async () => {
     if (!selectedPage || !optimizationResult) return;
+    setQueueing(true);
     try {
       await fetch('/api/recommendations', {
         method: 'POST',
@@ -102,6 +104,8 @@ export default function PagesAnalyzerPage() {
       setSelectedPage(null);
     } catch {
       alert('Failed to queue recommendation.');
+    } finally {
+      setQueueing(false);
     }
   };
 
@@ -133,7 +137,7 @@ export default function PagesAnalyzerPage() {
 
           {loading ? (
             <div className="card" style={{ textAlign: 'center', padding: '3rem 1rem', color: 'var(--text-muted)' }}>
-              Loading crawled pages...
+              <Search size={18} className="animate-spin" /> Loading crawled pages...
             </div>
           ) : pages.length === 0 ? (
             <div className="card" style={{ textAlign: 'center', padding: '3.5rem 1rem' }}>
@@ -305,8 +309,9 @@ export default function PagesAnalyzerPage() {
                         type="button"
                         className="btn btn-primary"
                         onClick={handleQueueOptimization}
+                        disabled={queueing}
                       >
-                        Queue Recommendation
+                        {queueing ? 'Queueing...' : 'Queue Recommendation'}
                       </button>
                     </div>
                   </div>

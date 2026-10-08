@@ -14,25 +14,91 @@ import {
 // In-memory progress tracker for live streaming console
 export const globalActiveCrawlLogs: Record<string, CrawlLogEntry[]> = {};
 
+async function discoverSearchKeywords(projectId: string, pages: Array<{ title?: string | null; h1?: string | null; path: string }>) {
+  const seeds = Array.from(new Set(
+    pages
+      .flatMap((page) => [page.title, page.h1, page.path.replace(/[-_/]+/g, ' ')])
+      .filter((value): value is string => Boolean(value && value.trim()))
+      .map((value) => value.replace(/[^a-zA-Z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim())
+      .filter((value) => value.length >= 3)
+  )).slice(0, 30);
+
+  const suggestions = new Set<string>();
+  for (const seed of seeds) {
+    try {
+      const response = await fetch(`https://suggestqueries.google.com/complete/search?client=firefox&q=${encodeURIComponent(seed)}`, {
+        headers: { Accept: 'application/json', 'User-Agent': 'ApexSEO-KeywordResearch/1.0' },
+        signal: AbortSignal.timeout(3000),
+      });
+      if (!response.ok) continue;
+      const payload = await response.json();
+      for (const suggestion of Array.isArray(payload?.[1]) ? payload[1] : []) {
+        if (typeof suggestion === 'string' && suggestion.length >= 3) suggestions.add(suggestion.trim());
+      }
+    } catch {
+      // Public suggestion services are best-effort; the crawl must still complete.
+    }
+    if (suggestions.size >= 200) break;
+  }
+
+  const existing = await prisma.keyword.findMany({ where: { projectId }, select: { term: true } });
+  const existingTerms = new Set(existing.map((keyword) => keyword.term.toLowerCase()));
+  const discovered = Array.from(suggestions).filter((term) => !existingTerms.has(term.toLowerCase())).slice(0, 200);
+
+  if (discovered.length > 0) {
+    await prisma.keyword.createMany({
+      data: discovered.map((term) => ({
+        projectId,
+        term,
+        searchIntent: 'Discovered suggestion',
+        trend: 'STABLE',
+        rankingUrl: null,
+        searchVolume: null,
+        difficulty: null,
+        currentPosition: null,
+        previousPosition: null,
+        bestPosition: null,
+        ctr: null,
+        clicks: 0,
+        impressions: 0,
+        isOpportunity: false,
+        opportunityNote: 'Discovered from live public search suggestions; connect Search Console for verified volume and rankings.',
+      })),
+    });
+  }
+
+  return discovered.length;
+}
+
 export async function POST(req: Request) {
   try {
     const body = await req.json();
     const { projectId, maxPages = 20, periodDays = 14 } = body;
     const currentUser = await getCurrentUser();
+    const isTagHeartbeat = body.source === 'TAG_HEARTBEAT';
 
-    if (!currentUser) {
+    if (!currentUser && !isTagHeartbeat) {
       return NextResponse.json({ success: false, error: 'Authentication required' }, { status: 401 });
     }
 
     let project = projectId
-      ? await prisma.project.findFirst({ where: { id: projectId, userId: currentUser.id } })
-      : await prisma.project.findFirst({ where: { userId: currentUser.id }, orderBy: { createdAt: 'desc' } });
+      ? await prisma.project.findFirst({ where: { id: projectId, ...(currentUser ? { userId: currentUser.id } : {}) } })
+      : currentUser
+      ? await prisma.project.findFirst({ where: { userId: currentUser.id }, orderBy: { createdAt: 'desc' } })
+      : null;
 
     if (!project) {
       return NextResponse.json({ success: false, error: 'No project found to crawl' }, { status: 404 });
     }
 
     const autopilotConfig = await prisma.autopilotConfig.findUnique({ where: { projectId: project.id } });
+    if (isTagHeartbeat) {
+      const embedTag = await prisma.integration.findFirst({ where: { projectId: project.id, type: 'EMBED_TAG', isConnected: true } });
+      const recentRun = project.lastCrawlAt && Date.now() - project.lastCrawlAt.getTime() < 24 * 60 * 60 * 1000;
+      if (!embedTag || !autopilotConfig?.enabled || autopilotConfig.mode !== 'AUTONOMOUS' || recentRun || project.crawlStatus === 'RUNNING') {
+        return NextResponse.json({ success: true, skipped: true, message: 'Autonomous crawl is not due yet.' });
+      }
+    }
     const effectiveMaxPages = Math.min(500, Math.max(1, Number(maxPages) || project.crawlMaxPages));
 
     const normalizedPeriodDays = Math.min(365, Math.max(1, Number(periodDays) || 14));
@@ -182,6 +248,15 @@ export async function POST(req: Request) {
         }
         const linkProposals = runInternalLinkingAgent(crawlResult.pages);
         aiProposals.push(...linkProposals);
+
+        const discoveredKeywordCount = await discoverSearchKeywords(project.id, crawlResult.pages);
+        await prisma.auditLog.create({
+          data: {
+            projectId: project.id,
+            action: 'KEYWORD_DISCOVERY_COMPLETED',
+            details: `Discovered ${discoveredKeywordCount} live search suggestions from crawled content. Verified ranking metrics require Search Console or another connected data provider.`,
+          },
+        });
 
         // Pass each through QA Agent before persisting
         for (const prop of aiProposals.slice(0, 100)) {

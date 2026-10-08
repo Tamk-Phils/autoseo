@@ -30,7 +30,10 @@ export default function AutopilotPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch('/api/autopilot')
+    const savedId = typeof window !== 'undefined'
+      ? new URLSearchParams(window.location.search).get('projectId') || localStorage.getItem('activeProjectId')
+      : null;
+    fetch(`/api/autopilot${savedId ? `?projectId=${encodeURIComponent(savedId)}` : ''}`)
       .then((r) => r.json())
       .then((data) => {
         if (data.project) {

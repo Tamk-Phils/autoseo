@@ -28,6 +28,7 @@ export default function RecommendationsPage() {
   const [project, setProject] = useState<any>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [applyingId, setApplyingId] = useState<string | null>(null);
+  const [actingId, setActingId] = useState<string | null>(null);
 
   const fetchRecs = async () => {
     try {
@@ -68,6 +69,7 @@ export default function RecommendationsPage() {
   }, []);
 
   const handleAction = async (id: string, action: 'APPROVE' | 'REJECT') => {
+    setActingId(id);
     try {
       const res = await fetch('/api/recommendations', {
         method: 'POST',
@@ -82,6 +84,8 @@ export default function RecommendationsPage() {
       }
     } catch (e) {
       console.error(e);
+    } finally {
+      setActingId(null);
     }
   };
 
@@ -316,17 +320,19 @@ export default function RecommendationsPage() {
                           type="button"
                           className="btn btn-secondary btn-sm"
                           onClick={() => handleAction(rec.id, 'REJECT')}
+                          disabled={actingId === rec.id || applyingId === rec.id}
                         >
                           <XCircle size={14} />
-                          Reject
+                          {actingId === rec.id ? 'Saving...' : 'Reject'}
                         </button>
                         <button
                           type="button"
                           className="btn btn-secondary btn-sm"
                           onClick={() => handleAction(rec.id, 'APPROVE')}
+                          disabled={actingId === rec.id || applyingId === rec.id}
                         >
                           <CheckCircle2 size={14} color="var(--accent-cyan)" />
-                          Approve Fix
+                          {actingId === rec.id ? 'Saving...' : 'Approve Fix'}
                         </button>
                         <button
                           type="button"

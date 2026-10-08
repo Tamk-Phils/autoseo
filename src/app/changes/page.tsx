@@ -19,6 +19,7 @@ export default function ChangesPage() {
   const [project, setProject] = useState<any>(null);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [rollingBackId, setRollingBackId] = useState<string | null>(null);
 
   const fetchChanges = async () => {
     try {
@@ -45,6 +46,7 @@ export default function ChangesPage() {
   }, []);
 
   const handleRollback = async (changeId: string) => {
+    setRollingBackId(changeId);
     try {
       const res = await fetch('/api/changes/rollback', {
         method: 'POST',
@@ -61,6 +63,8 @@ export default function ChangesPage() {
       }
     } catch (e) {
       console.error(e);
+    } finally {
+      setRollingBackId(null);
     }
   };
 
@@ -112,7 +116,7 @@ export default function ChangesPage() {
 
           {loading ? (
             <div className="card" style={{ textAlign: 'center', padding: '3rem 1rem', color: 'var(--text-muted)' }}>
-              Loading change history...
+              <RotateCcw size={18} className="animate-spin" /> Loading change history...
             </div>
           ) : changes.length === 0 ? (
             <div className="card" style={{ textAlign: 'center', padding: '3.5rem 1rem' }}>
@@ -183,10 +187,11 @@ export default function ChangesPage() {
                         type="button"
                         className="btn btn-secondary btn-sm"
                         onClick={() => handleRollback(chg.id)}
+                        disabled={rollingBackId === chg.id}
                         style={{ color: '#f97316' }}
                       >
-                        <RotateCcw size={14} />
-                        Rollback Change
+                        <RotateCcw size={14} className={rollingBackId === chg.id ? 'animate-spin' : ''} />
+                        {rollingBackId === chg.id ? 'Rolling back...' : 'Rollback Change'}
                       </button>
                     ) : (
                       <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>

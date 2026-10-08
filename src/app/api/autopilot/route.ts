@@ -53,10 +53,12 @@ export async function POST(req: Request) {
       where: { projectId: project.id },
       create: {
         projectId: project.id,
+        enabled: newConfig.enabled ?? newConfig.mode !== 'OFF',
         ...newConfig,
       },
       update: {
         ...newConfig,
+        enabled: newConfig.enabled ?? newConfig.mode !== 'OFF',
       },
     });
 

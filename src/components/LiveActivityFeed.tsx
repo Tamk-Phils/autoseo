@@ -43,8 +43,8 @@ export default function LiveActivityFeed({ projectId }: { projectId: string }) {
 
   useEffect(() => {
     fetchActivity();
-    // Auto-refresh every 8 seconds for live feel
-    const interval = setInterval(fetchActivity, 8000);
+    // Keep the dashboard close to live while the crawler is running.
+    const interval = setInterval(fetchActivity, 2000);
     return () => clearInterval(interval);
   }, [projectId]);
 
