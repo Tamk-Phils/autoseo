@@ -1,0 +1,78 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1000" width="100%" height="100%" fill="none">
+  <defs>
+    <!-- Soft radiant gradients -->
+    <radialGradient id="topAura" cx="50%" cy="15%" r="55%">
+      <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.18" />
+      <stop offset="35%" stop-color="#2563eb" stop-opacity="0.08" />
+      <stop offset="70%" stop-color="#f8fafc" stop-opacity="0.02" />
+      <stop offset="100%" stop-color="#f8fafc" stop-opacity="0" />
+    </radialGradient>
+
+    <radialGradient id="leftAura" cx="15%" cy="35%" r="35%">
+      <stop offset="0%" stop-color="#6366f1" stop-opacity="0.10" />
+      <stop offset="100%" stop-color="#f8fafc" stop-opacity="0" />
+    </radialGradient>
+
+    <radialGradient id="rightAura" cx="85%" cy="40%" r="35%">
+      <stop offset="0%" stop-color="#10b981" stop-opacity="0.12" />
+      <stop offset="100%" stop-color="#f8fafc" stop-opacity="0" />
+    </radialGradient>
+
+    <!-- Precise micro-dot grid pattern -->
+    <pattern id="dotPattern" width="32" height="32" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1.2" fill="#94a3b8" fill-opacity="0.35" />
+    </pattern>
+
+    <!-- Subtle linear grid -->
+    <pattern id="linearGrid" width="64" height="64" patternUnits="userSpaceOnUse">
+      <path d="M 64 0 L 0 0 0 64" fill="none" stroke="#e2e8f0" stroke-width="0.75" stroke-opacity="0.45" />
+    </pattern>
+  </defs>
+
+  <!-- Base canvas -->
+  <rect width="1600" height="1000" fill="#f8fafc" />
+
+  <!-- Grid & Dot Texture -->
+  <rect width="1600" height="1000" fill="url(#linearGrid)" />
+  <rect width="1600" height="1000" fill="url(#dotPattern)" />
+
+  <!-- Ambient light glows -->
+  <rect width="1600" height="1000" fill="url(#topAura)" />
+  <rect width="1600" height="1000" fill="url(#leftAura)" />
+  <rect width="1600" height="1000" fill="url(#rightAura)" />
+
+  <!-- Delicate flowing background network nodes (Search crawlers, index telemetry) -->
+  <g opacity="0.65">
+    <!-- Connecting dashed curves -->
+    <path d="M 100 250 C 350 180, 500 320, 800 220 S 1200 120, 1500 260" stroke="#93c5fd" stroke-width="1.5" stroke-dasharray="4,6" fill="none" />
+    <path d="M 150 400 C 450 320, 700 480, 1000 360 S 1350 280, 1550 420" stroke="#a7f3d0" stroke-width="1.5" stroke-dasharray="6,6" fill="none" />
+    <path d="M 200 150 C 400 280, 750 180, 1100 260 S 1400 180, 1580 200" stroke="#c7d2fe" stroke-width="1" stroke-dasharray="3,5" fill="none" />
+
+    <!-- Soft glowing network points -->
+    <circle cx="350" cy="180" r="4" fill="#3b82f6" fill-opacity="0.7" />
+    <circle cx="350" cy="180" r="10" fill="#3b82f6" fill-opacity="0.15" />
+
+    <circle cx="800" cy="220" r="5" fill="#2563eb" fill-opacity="0.8" />
+    <circle cx="800" cy="220" r="14" fill="#2563eb" fill-opacity="0.18" />
+
+    <circle cx="1200" cy="120" r="4" fill="#10b981" fill-opacity="0.7" />
+    <circle cx="1200" cy="120" r="10" fill="#10b981" fill-opacity="0.15" />
+
+    <circle cx="450" cy="320" r="3.5" fill="#0284c7" fill-opacity="0.7" />
+    <circle cx="1000" cy="360" r="4.5" fill="#10b981" fill-opacity="0.8" />
+    <circle cx="1000" cy="360" r="12" fill="#10b981" fill-opacity="0.18" />
+
+    <circle cx="700" cy="480" r="3" fill="#6366f1" fill-opacity="0.6" />
+    <circle cx="1350" cy="280" r="4" fill="#38bdf8" fill-opacity="0.7" />
+  </g>
+
+  <!-- Bottom smooth blend to solid light background -->
+  <rect y="700" width="1600" height="300" fill="url(#bottomFade)" opacity="0.9" />
+  <defs>
+    <linearGradient id="bottomFade" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#f8fafc" stop-opacity="0" />
+      <stop offset="100%" stop-color="#f8fafc" stop-opacity="1" />
+    </linearGradient>
+  </defs>
+</svg>
+

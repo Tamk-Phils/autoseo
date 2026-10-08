@@ -76,7 +76,18 @@ export default function LandingPage() {
   };
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: 'var(--bg-dark)' }}>
+    <div
+      style={{
+        minHeight: '100vh',
+        display: 'flex',
+        flexDirection: 'column',
+        backgroundImage: "url('/images/landing-bg.svg')",
+        backgroundSize: '100% auto',
+        backgroundPosition: 'top center',
+        backgroundRepeat: 'no-repeat',
+        backgroundColor: '#f8fafc',
+      }}
+    >
       {/* Navigation Bar */}
       <div className="landing-header-wrapper">
         <header className="landing-header">
@@ -259,18 +270,53 @@ export default function LandingPage() {
           <span>✓ 100% Reversible Rollbacks</span>
         </div>
 
-        {/* Hero Visual Banner Illustration */}
-        <div style={{ marginTop: '2.5rem', maxWidth: '820px', margin: '2.5rem auto 0', width: '100%' }} className="animate-float">
-          <img
-            src="/images/hero-banner.svg"
-            alt="ApexSEO Autonomous Cloud Infrastructure"
-            style={{ width: '100%', height: 'auto', display: 'block', borderRadius: 'var(--radius-lg)' }}
-          />
+        {/* Live Telemetry Ribbon - No Layering */}
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            gap: 'clamp(1.5rem, 4vw, 3.5rem)',
+            marginTop: '3.5rem',
+            paddingTop: '2.5rem',
+            borderTop: '1px solid rgba(226, 232, 240, 0.8)',
+            width: '100%',
+            maxWidth: '860px',
+            flexWrap: 'wrap',
+          }}
+        >
+          <div style={{ textAlign: 'center' }}>
+            <div style={{ fontSize: 'clamp(1.75rem, 3.5vw, 2.5rem)', fontWeight: 850, color: 'var(--text-primary)', letterSpacing: '-0.02em', lineHeight: 1.1 }}>
+              98<span style={{ fontSize: '1.1rem', color: 'var(--color-success)', fontWeight: 700 }}> /100</span>
+            </div>
+            <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)', fontWeight: 600, marginTop: '0.25rem' }}>Avg Site Health</div>
+          </div>
+          <div style={{ width: '1px', height: '36px', background: 'var(--border-color)' }} className="hide-mobile" />
+          <div style={{ textAlign: 'center' }}>
+            <div style={{ fontSize: 'clamp(1.75rem, 3.5vw, 2.5rem)', fontWeight: 850, color: 'var(--accent-primary)', letterSpacing: '-0.02em', lineHeight: 1.1 }}>
+              3,420+
+            </div>
+            <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)', fontWeight: 600, marginTop: '0.25rem' }}>Autonomous Fixes</div>
+          </div>
+          <div style={{ width: '1px', height: '36px', background: 'var(--border-color)' }} className="hide-mobile" />
+          <div style={{ textAlign: 'center' }}>
+            <div style={{ fontSize: 'clamp(1.75rem, 3.5vw, 2.5rem)', fontWeight: 850, color: 'var(--color-success)', letterSpacing: '-0.02em', lineHeight: 1.1 }}>
+              +412%
+            </div>
+            <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)', fontWeight: 600, marginTop: '0.25rem' }}>Organic Traffic Lift</div>
+          </div>
+          <div style={{ width: '1px', height: '36px', background: 'var(--border-color)' }} className="hide-mobile" />
+          <div style={{ textAlign: 'center' }}>
+            <div style={{ fontSize: 'clamp(1.75rem, 3.5vw, 2.5rem)', fontWeight: 850, color: '#8b5cf6', letterSpacing: '-0.02em', lineHeight: 1.1 }}>
+              &lt; 10ms
+            </div>
+            <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)', fontWeight: 600, marginTop: '0.25rem' }}>Edge Tag Speed</div>
+          </div>
         </div>
       </section>
 
       {/* Core Workflow Representation */}
-      <section id="how-it-works" style={{ padding: 'clamp(2.5rem, 5vw, 4rem) clamp(1rem, 3vw, 2rem)', backgroundColor: 'var(--bg-card)', borderTop: '1px solid var(--border-color)', borderBottom: '1px solid var(--border-color)' }}>
+      <section id="how-it-works" style={{ padding: 'clamp(2.5rem, 5vw, 4rem) clamp(1rem, 3vw, 2rem)', backgroundColor: 'transparent', borderTop: '1px solid var(--border-color)', borderBottom: '1px solid var(--border-color)' }}>
         <div style={{ maxWidth: '1140px', margin: '0 auto', width: '100%' }}>
           <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
             <h2 style={{ fontSize: 'clamp(1.5rem, 3vw, 2rem)', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '0.5rem' }}>
