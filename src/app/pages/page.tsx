@@ -121,7 +121,7 @@ export default function PagesAnalyzerPage() {
               <h1 className="page-title">Page-Level SEO Analyzer</h1>
               <p className="page-subtitle">
                 {project ? (
-                  <>Real crawl records for <strong style={{ color: '#fff' }}>{project.domain}</strong> ({pages.length} pages indexed)</>
+                  <>Real crawl records for <strong style={{ color: 'var(--text-primary)' }}>{project.domain}</strong> ({pages.length} pages indexed)</>
                 ) : (
                   'Granular inspection of on-page HTML elements, metadata, internal links, headings, and schema.'
                 )}
@@ -142,7 +142,7 @@ export default function PagesAnalyzerPage() {
           ) : pages.length === 0 ? (
             <div className="card" style={{ textAlign: 'center', padding: '3.5rem 1rem' }}>
               <FileText size={36} color="var(--accent-cyan)" style={{ margin: '0 auto 1rem' }} />
-              <h3 style={{ fontSize: '1.2rem', fontWeight: 700, color: '#fff', marginBottom: '0.5rem' }}>
+              <h3 style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '0.5rem' }}>
                 No Crawled Pages Found
               </h3>
               <p style={{ color: 'var(--text-secondary)', maxWidth: '480px', margin: '0 auto 1.5rem', fontSize: '0.9rem' }}>
@@ -174,7 +174,7 @@ export default function PagesAnalyzerPage() {
                       <tr key={p.id}>
                         <td>
                           <div style={{ display: 'flex', flexDirection: 'column' }}>
-                            <span style={{ fontWeight: 600, color: '#fff' }}>{p.path}</span>
+                            <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{p.path}</span>
                             <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{p.url}</span>
                           </div>
                         </td>
@@ -231,7 +231,7 @@ export default function PagesAnalyzerPage() {
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.25rem' }}>
                   <div>
                     <span className="badge badge-low" style={{ marginBottom: '0.25rem' }}>Page Inspector</span>
-                    <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#fff' }}>
+                    <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--text-primary)' }}>
                       {selectedPage.path}
                     </h2>
                     <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{selectedPage.url}</span>
@@ -251,7 +251,7 @@ export default function PagesAnalyzerPage() {
                     <div className="grid-2" style={{ marginBottom: '1.25rem' }}>
                       <div style={{ background: 'var(--bg-input)', padding: '0.85rem', borderRadius: 'var(--radius-md)' }}>
                         <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Current Title</div>
-                        <div style={{ fontSize: '0.9rem', color: '#fff', fontWeight: 600 }}>{selectedPage.title || 'Missing'}</div>
+                        <div style={{ fontSize: '0.9rem', color: 'var(--text-primary)', fontWeight: 600 }}>{selectedPage.title || 'Missing'}</div>
                         <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
                           Length: {selectedPage.title?.length || 0} characters
                         </div>
@@ -259,7 +259,7 @@ export default function PagesAnalyzerPage() {
 
                       <div style={{ background: 'var(--bg-input)', padding: '0.85rem', borderRadius: 'var(--radius-md)' }}>
                         <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Current Meta Description</div>
-                        <div style={{ fontSize: '0.85rem', color: '#fff' }}>{selectedPage.metaDescription || 'Missing'}</div>
+                        <div style={{ fontSize: '0.85rem', color: 'var(--text-primary)' }}>{selectedPage.metaDescription || 'Missing'}</div>
                       </div>
                     </div>
 
@@ -272,14 +272,14 @@ export default function PagesAnalyzerPage() {
 
                         <div style={{ marginBottom: '0.85rem' }}>
                           <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600 }}>Recommended Title</div>
-                          <div style={{ fontSize: '0.9rem', color: '#fff', fontWeight: 600, background: 'var(--bg-dark)', padding: '0.5rem 0.75rem', borderRadius: '4px', marginTop: '0.25rem' }}>
+                          <div style={{ fontSize: '0.9rem', color: 'var(--text-primary)', fontWeight: 600, background: 'var(--bg-dark)', padding: '0.5rem 0.75rem', borderRadius: '4px', marginTop: '0.25rem' }}>
                             {optimizationResult.suggestedTitle}
                           </div>
                         </div>
 
                         <div style={{ marginBottom: '0.85rem' }}>
                           <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600 }}>Recommended Meta Description</div>
-                          <div style={{ fontSize: '0.85rem', color: '#fff', background: 'var(--bg-dark)', padding: '0.5rem 0.75rem', borderRadius: '4px', marginTop: '0.25rem' }}>
+                          <div style={{ fontSize: '0.85rem', color: 'var(--text-primary)', background: 'var(--bg-dark)', padding: '0.5rem 0.75rem', borderRadius: '4px', marginTop: '0.25rem' }}>
                             {optimizationResult.suggestedMetaDescription}
                           </div>
                         </div>
@@ -293,7 +293,7 @@ export default function PagesAnalyzerPage() {
                           </div>
                           <div style={{ background: 'var(--bg-dark)', padding: '0.6rem', borderRadius: '4px' }}>
                             <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Schema Recommendation</div>
-                            <div style={{ fontSize: '0.8rem', color: '#fff', wordBreak: 'break-word' }}>
+                            <div style={{ fontSize: '0.8rem', color: 'var(--text-primary)', wordBreak: 'break-word' }}>
                               {optimizationResult.schemaRecommendation}
                             </div>
                           </div>

@@ -338,7 +338,7 @@ export default {
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                   <Globe size={20} color={wpConnected ? 'var(--color-success)' : 'var(--text-secondary)'} />
-                  <strong style={{ fontSize: '1rem', color: '#fff' }}>WordPress CMS</strong>
+                  <strong style={{ fontSize: '1rem', color: 'var(--text-primary)' }}>WordPress CMS</strong>
                 </div>
                 {wpConnected ? (
                   <span className="badge badge-success">CONNECTED</span>
@@ -363,7 +363,7 @@ export default {
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                   <GitPullRequest size={20} color={ghConnected ? 'var(--color-success)' : 'var(--text-secondary)'} />
-                  <strong style={{ fontSize: '1rem', color: '#fff' }}>GitHub Repos</strong>
+                  <strong style={{ fontSize: '1rem', color: 'var(--text-primary)' }}>GitHub Repos</strong>
                 </div>
                 {ghConnected ? (
                   <span className="badge badge-success">CONNECTED</span>
@@ -388,7 +388,7 @@ export default {
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                   <Zap size={20} color={cfConnected ? 'var(--color-success)' : 'var(--text-secondary)'} />
-                  <strong style={{ fontSize: '1rem', color: '#fff' }}>Cloudflare Edge</strong>
+                  <strong style={{ fontSize: '1rem', color: 'var(--text-primary)' }}>Cloudflare Edge</strong>
                 </div>
                 {cfConnected ? (
                   <span className="badge badge-success">ACTIVE</span>
@@ -437,7 +437,7 @@ export default {
             <div className="card">
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '0.75rem' }}>
                 <div>
-                  <h3 style={{ fontSize: '1.15rem', fontWeight: 600, color: '#fff' }}>
+                  <h3 style={{ fontSize: '1.15rem', fontWeight: 600, color: 'var(--text-primary)' }}>
                     WordPress REST API Publisher
                   </h3>
                   <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
@@ -536,7 +536,7 @@ export default {
                 </div>
 
                 <div style={{ background: 'var(--bg-input)', padding: '1.25rem', borderRadius: 'var(--radius-md)' }}>
-                  <h4 style={{ fontSize: '0.92rem', color: '#fff', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                  <h4 style={{ fontSize: '0.92rem', color: 'var(--text-primary)', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                     <Info size={16} color="var(--accent-cyan)" /> How Application Passwords Work
                   </h4>
                   <ul style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', lineHeight: '1.6', paddingLeft: '1.2rem' }}>
@@ -557,7 +557,7 @@ export default {
             <div className="card">
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
                 <div>
-                  <h3 style={{ fontSize: '1.15rem', fontWeight: 600, color: '#fff', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <h3 style={{ fontSize: '1.15rem', fontWeight: 600, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                     <GitPullRequest color="var(--accent-cyan)" size={20} />
                     GitHub Automated Pull Requests
                   </h3>
@@ -592,7 +592,7 @@ export default {
                 }}
               >
                 <div>
-                  <div style={{ fontSize: '0.92rem', fontWeight: 600, color: '#fff', marginBottom: '0.2rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                  <div style={{ fontSize: '0.92rem', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '0.2rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                     <Sparkles size={16} color="var(--accent-cyan)" />
                     Need a token? Use the 1-Click Pre-configured Link
                   </div>
@@ -769,7 +769,7 @@ export default {
                         />
                       )}
                       <div>
-                        <div style={{ fontSize: '0.92rem', fontWeight: 600, color: '#fff' }}>
+                        <div style={{ fontSize: '0.92rem', fontWeight: 600, color: 'var(--text-primary)' }}>
                           {ghUser.name} <span style={{ color: 'var(--text-secondary)', fontSize: '0.82rem' }}>@{ghUser.login}</span>
                         </div>
                         <div style={{ fontSize: '0.78rem', color: 'var(--color-success)', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
@@ -780,7 +780,7 @@ export default {
                     </div>
                   ) : (
                     <div style={{ background: 'var(--bg-input)', padding: '1rem', borderRadius: 'var(--radius-md)' }}>
-                      <div style={{ fontSize: '0.88rem', fontWeight: 600, color: '#fff', marginBottom: '0.35rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                      <div style={{ fontSize: '0.88rem', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '0.35rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                         <Key size={15} color="var(--accent-cyan)" />
                         Fastest 2-Step Authentication:
                       </div>
@@ -792,7 +792,7 @@ export default {
                   )}
 
                   <div style={{ background: 'var(--bg-input)', padding: '1rem', borderRadius: 'var(--radius-md)' }}>
-                    <h4 style={{ fontSize: '0.88rem', color: '#fff', marginBottom: '0.4rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                    <h4 style={{ fontSize: '0.88rem', color: 'var(--text-primary)', marginBottom: '0.4rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                       <ShieldCheck size={16} color="var(--accent-cyan)" /> How Pull Requests Protect Your Code
                     </h4>
                     <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: '1.5', margin: 0 }}>
@@ -809,7 +809,7 @@ export default {
             <div className="card">
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
                 <div>
-                  <h3 style={{ fontSize: '1.15rem', fontWeight: 600, color: '#fff' }}>
+                  <h3 style={{ fontSize: '1.15rem', fontWeight: 600, color: 'var(--text-primary)' }}>
                     Zero-Code Edge Proxy (Cloudflare Worker)
                   </h3>
                   <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
@@ -853,7 +853,7 @@ export default {
               )}
 
               <div style={{ marginBottom: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#fff' }}>Cloudflare Worker Code</span>
+                <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-primary)' }}>Cloudflare Worker Code</span>
                 <button type="button" className="btn btn-secondary btn-sm" onClick={copyToClipboard}>
                   {copiedWorker ? <Check size={14} color="#10b981" /> : <Copy size={14} />}
                   {copiedWorker ? 'Copied to Clipboard!' : 'Copy Script'}
@@ -880,7 +880,7 @@ export default {
               </div>
 
               <div style={{ background: 'var(--bg-input)', padding: '1.25rem', borderRadius: 'var(--radius-md)' }}>
-                <h4 style={{ fontSize: '0.92rem', color: '#fff', marginBottom: '0.5rem' }}>
+                <h4 style={{ fontSize: '0.92rem', color: 'var(--text-primary)', marginBottom: '0.5rem' }}>
                   🚀 3-Minute Deployment Instructions
                 </h4>
                 <ol style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', lineHeight: '1.6', paddingLeft: '1.2rem' }}>

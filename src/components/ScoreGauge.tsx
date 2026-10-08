@@ -73,7 +73,7 @@ export default function ScoreGauge({
               justifyContent: 'center',
             }}
           >
-            <span style={{ fontSize: '2.2rem', fontWeight: 800, color: '#fff', lineHeight: 1 }}>{score}</span>
+            <span style={{ fontSize: '2.2rem', fontWeight: 800, color: 'var(--text-primary)', lineHeight: 1 }}>{score}</span>
             <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>/ 100</span>
           </div>
         </div>
@@ -82,27 +82,27 @@ export default function ScoreGauge({
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '0.65rem', width: '100%', minWidth: 0 }}>
           <div style={{ background: 'var(--bg-input)', padding: '0.6rem 0.8rem', borderRadius: 'var(--radius-md)' }}>
             <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Technical SEO</div>
-            <div style={{ fontSize: '1rem', fontWeight: 700, color: '#fff' }}>{technical} <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>/ 25</span></div>
+            <div style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-primary)' }}>{technical} <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>/ 25</span></div>
           </div>
           <div style={{ background: 'var(--bg-input)', padding: '0.6rem 0.8rem', borderRadius: 'var(--radius-md)' }}>
             <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Content & Headings</div>
-            <div style={{ fontSize: '1rem', fontWeight: 700, color: '#fff' }}>{content} <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>/ 25</span></div>
+            <div style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-primary)' }}>{content} <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>/ 25</span></div>
           </div>
           <div style={{ background: 'var(--bg-input)', padding: '0.6rem 0.8rem', borderRadius: 'var(--radius-md)' }}>
             <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Indexability</div>
-            <div style={{ fontSize: '1rem', fontWeight: 700, color: '#fff' }}>{indexability} <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>/ 15</span></div>
+            <div style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-primary)' }}>{indexability} <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>/ 15</span></div>
           </div>
           <div style={{ background: 'var(--bg-input)', padding: '0.6rem 0.8rem', borderRadius: 'var(--radius-md)' }}>
             <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Response Speed</div>
-            <div style={{ fontSize: '1rem', fontWeight: 700, color: '#fff' }}>{performance} <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>/ 10</span></div>
+            <div style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-primary)' }}>{performance} <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>/ 10</span></div>
           </div>
           <div style={{ background: 'var(--bg-input)', padding: '0.6rem 0.8rem', borderRadius: 'var(--radius-md)' }}>
             <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Internal Linking</div>
-            <div style={{ fontSize: '1rem', fontWeight: 700, color: '#fff' }}>{internalLink} <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>/ 10</span></div>
+            <div style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-primary)' }}>{internalLink} <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>/ 10</span></div>
           </div>
           <div style={{ background: 'var(--bg-input)', padding: '0.6rem 0.8rem', borderRadius: 'var(--radius-md)' }}>
             <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Structured Data</div>
-            <div style={{ fontSize: '1rem', fontWeight: 700, color: '#fff' }}>{structuredData} <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>/ 15</span></div>
+            <div style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-primary)' }}>{structuredData} <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>/ 15</span></div>
           </div>
         </div>
       </div>

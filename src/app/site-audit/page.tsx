@@ -72,7 +72,7 @@ export default function SiteAuditPage() {
               <h1 className="page-title">Technical & On-Page Site Audit</h1>
               <p className="page-subtitle">
                 {project ? (
-                  <>Real audit issues detected on <strong style={{ color: '#fff' }}>{project.domain}</strong></>
+                  <>Real audit issues detected on <strong style={{ color: 'var(--text-primary)' }}>{project.domain}</strong></>
                 ) : (
                   'Comprehensive audit diagnostics structured by impact, severity, and implementation difficulty.'
                 )}
@@ -141,7 +141,7 @@ export default function SiteAuditPage() {
           ) : !project ? (
             <div className="card" style={{ textAlign: 'center', padding: '3.5rem 1rem' }}>
               <Search size={36} color="var(--accent-cyan)" style={{ margin: '0 auto 1rem' }} />
-              <h3 style={{ fontSize: '1.2rem', fontWeight: 700, color: '#fff', marginBottom: '0.5rem' }}>
+              <h3 style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '0.5rem' }}>
                 No Website Configured
               </h3>
               <p style={{ color: 'var(--text-secondary)', maxWidth: '480px', margin: '0 auto 1.5rem', fontSize: '0.9rem' }}>
@@ -154,7 +154,7 @@ export default function SiteAuditPage() {
           ) : filteredIssues.length === 0 ? (
             <div className="card" style={{ textAlign: 'center', padding: '3.5rem 1rem' }}>
               <CheckCircle2 size={36} color="var(--color-success)" style={{ margin: '0 auto 1rem' }} />
-              <h3 style={{ fontSize: '1.2rem', fontWeight: 700, color: '#fff', marginBottom: '0.5rem' }}>
+              <h3 style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '0.5rem' }}>
                 No Audit Issues Found
               </h3>
               <p style={{ color: 'var(--text-secondary)', maxWidth: '480px', margin: '0 auto 1.5rem', fontSize: '0.9rem' }}>
@@ -178,7 +178,7 @@ export default function SiteAuditPage() {
                         <span className={`badge badge-${iss.severity.toLowerCase()}`}>{iss.severity}</span>
                         <span className="badge badge-low">{iss.category}</span>
                       </div>
-                      <h3 style={{ fontSize: '1.15rem', fontWeight: 700, color: '#fff' }}>{iss.title}</h3>
+                      <h3 style={{ fontSize: '1.15rem', fontWeight: 700, color: 'var(--text-primary)' }}>{iss.title}</h3>
                     </div>
 
                     <div style={{ display: 'flex', gap: '0.5rem', fontSize: '0.75rem', flexWrap: 'wrap' }}>
@@ -186,7 +186,7 @@ export default function SiteAuditPage() {
                         Impact: <strong style={{ color: 'var(--color-success)' }}>{iss.estimatedImpact}</strong>
                       </div>
                       <div style={{ background: 'var(--bg-input)', padding: '0.3rem 0.6rem', borderRadius: '4px', border: '1px solid var(--border-color)' }}>
-                        Difficulty: <strong style={{ color: '#fff' }}>{iss.difficulty}</strong>
+                        Difficulty: <strong style={{ color: 'var(--text-primary)' }}>{iss.difficulty}</strong>
                       </div>
                     </div>
                   </div>
@@ -203,7 +203,7 @@ export default function SiteAuditPage() {
                       <div style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '0.35rem' }}>
                         Evidence
                       </div>
-                      <p style={{ fontSize: '0.85rem', color: '#fff', fontFamily: 'var(--font-mono)', wordBreak: 'break-all' }}>{iss.evidence || 'Detected during page HTML parse'}</p>
+                      <p style={{ fontSize: '0.85rem', color: 'var(--text-primary)', fontFamily: 'var(--font-mono)', wordBreak: 'break-all' }}>{iss.evidence || 'Detected during page HTML parse'}</p>
                     </div>
 
                     <div>

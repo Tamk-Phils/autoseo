@@ -162,7 +162,7 @@ export default function RecommendationsPage() {
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
               <Boxes size={18} color="var(--accent-cyan)" />
-              <span style={{ fontSize: '0.88rem', fontWeight: 600, color: '#fff' }}>
+              <span style={{ fontSize: '0.88rem', fontWeight: 600, color: 'var(--text-primary)' }}>
                 Publishing Destination:
               </span>
             </div>
@@ -214,7 +214,7 @@ export default function RecommendationsPage() {
           {recommendations.length === 0 ? (
             <div className="card" style={{ textAlign: 'center', padding: '3rem 1rem' }}>
               <CheckCircle2 size={40} color="var(--color-success)" style={{ margin: '0 auto 1rem' }} />
-              <h3 style={{ fontSize: '1.2rem', fontWeight: 700, color: '#fff', marginBottom: '0.5rem' }}>
+              <h3 style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '0.5rem' }}>
                 All Recommendations Processed
               </h3>
               <p style={{ color: 'var(--text-secondary)', maxWidth: '480px', margin: '0 auto 1.5rem', fontSize: '0.9rem' }}>
@@ -252,7 +252,7 @@ export default function RecommendationsPage() {
                           {rec.status}
                         </span>
                       </div>
-                      <h3 style={{ fontSize: '1.15rem', fontWeight: 700, color: '#fff', marginTop: '0.25rem', wordBreak: 'break-word' }}>
+                      <h3 style={{ fontSize: '1.15rem', fontWeight: 700, color: 'var(--text-primary)', marginTop: '0.25rem', wordBreak: 'break-word' }}>
                         {rec.title}
                       </h3>
                       {rec.page?.url && (

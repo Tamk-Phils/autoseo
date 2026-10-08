@@ -129,7 +129,7 @@ export default function KeywordsPage() {
           {keywords.length === 0 ? (
             <div className="card" style={{ textAlign: 'center', padding: '3.5rem 1rem' }}>
               <KeyRound size={36} color="var(--accent-cyan)" style={{ margin: '0 auto 1rem' }} />
-              <h3 style={{ fontSize: '1.2rem', fontWeight: 700, color: '#fff', marginBottom: '0.5rem' }}>
+              <h3 style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '0.5rem' }}>
                 No Keywords Tracked Yet
               </h3>
               <p style={{ color: 'var(--text-secondary)', maxWidth: '480px', margin: '0 auto 1.5rem', fontSize: '0.9rem' }}>
@@ -164,7 +164,7 @@ export default function KeywordsPage() {
                   <tr key={k.id}>
                     <td>
                       <div style={{ display: 'flex', flexDirection: 'column' }}>
-                        <span style={{ fontWeight: 600, color: '#fff' }}>{k.term}</span>
+                        <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{k.term}</span>
                         <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{k.rankingUrl}</span>
                       </div>
                     </td>
@@ -229,7 +229,7 @@ export default function KeywordsPage() {
             <div className="modal-overlay" onClick={() => setIsModalOpen(false)}>
               <div className="modal-content" onClick={(e) => e.stopPropagation()}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
-                  <h2 style={{ fontSize: '1.2rem', fontWeight: 700, color: '#fff' }}>Add Target Keyword</h2>
+                  <h2 style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--text-primary)' }}>Add Target Keyword</h2>
                   <button type="button" onClick={() => setIsModalOpen(false)} style={{ color: 'var(--text-muted)' }}>
                     <X size={18} />
                   </button>

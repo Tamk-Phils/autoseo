@@ -58,7 +58,7 @@ export default async function DashboardPage({
               <div style={{ width: '56px', height: '56px', borderRadius: '50%', background: 'rgba(56, 189, 248, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.25rem', color: 'var(--accent-cyan)' }}>
                 <Search size={28} />
               </div>
-              <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#fff', marginBottom: '0.75rem' }}>
+              <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '0.75rem' }}>
                 No Websites Added Yet
               </h2>
               <p style={{ color: 'var(--text-secondary)', lineHeight: 1.6, marginBottom: '2rem', fontSize: '0.95rem' }}>
@@ -120,7 +120,7 @@ export default async function DashboardPage({
             <div>
               <h1 className="page-title">Executive SEO Overview</h1>
               <p className="page-subtitle">
-                Autonomous diagnostic status for <strong style={{ color: '#fff' }}>{project.domain}</strong> · Last crawled:{' '}
+                Autonomous diagnostic status for <strong style={{ color: 'var(--text-primary)' }}>{project.domain}</strong> · Last crawled:{' '}
                 {project.lastCrawlAt ? new Date(project.lastCrawlAt).toLocaleDateString() : 'Never'}
               </p>
             </div>
@@ -227,7 +227,7 @@ export default async function DashboardPage({
                       }}
                     >
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
-                        <span style={{ fontSize: '0.88rem', fontWeight: 600, color: '#fff' }}>{iss.title}</span>
+                        <span style={{ fontSize: '0.88rem', fontWeight: 600, color: 'var(--text-primary)' }}>{iss.title}</span>
                         <span className={`badge badge-${iss.severity.toLowerCase()}`}>{iss.severity}</span>
                       </div>
                       <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{iss.whyItMatters}</p>
@@ -266,7 +266,7 @@ export default async function DashboardPage({
                       }}
                     >
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
-                        <span style={{ fontSize: '0.88rem', fontWeight: 600, color: '#fff' }}>{rec.title}</span>
+                        <span style={{ fontSize: '0.88rem', fontWeight: 600, color: 'var(--text-primary)' }}>{rec.title}</span>
                         <span className="badge badge-low">{rec.agentType}</span>
                       </div>
                       <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>
@@ -312,7 +312,7 @@ export default async function DashboardPage({
                   <tbody>
                     {keywords.map((kw) => (
                       <tr key={kw.id}>
-                        <td style={{ fontWeight: 600, color: '#fff' }}>{kw.term}</td>
+                        <td style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{kw.term}</td>
                         <td>
                           <span className="badge badge-low">{kw.searchIntent}</span>
                         </td>
@@ -362,7 +362,7 @@ export default async function DashboardPage({
                           {new Date(chg.appliedAt).toLocaleDateString()}
                         </span>
                       </div>
-                      <div style={{ fontSize: '0.85rem', fontWeight: 600, color: '#fff' }}>{chg.reason}</div>
+                      <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-primary)' }}>{chg.reason}</div>
                       <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
                         Affected: {chg.affectedUrl}
                       </div>

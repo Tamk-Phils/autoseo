@@ -59,7 +59,7 @@ export default function ProjectsPage() {
                       <Globe size={20} />
                     </div>
                     <div>
-                      <h3 style={{ fontSize: '1.15rem', fontWeight: 700, color: '#fff' }}>{proj.name}</h3>
+                      <h3 style={{ fontSize: '1.15rem', fontWeight: 700, color: 'var(--text-primary)' }}>{proj.name}</h3>
                       <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{proj.domain}</span>
                     </div>
                   </div>
@@ -77,7 +77,7 @@ export default function ProjectsPage() {
 
                   <div style={{ background: 'var(--bg-input)', padding: '0.6rem', borderRadius: 'var(--radius-md)' }}>
                     <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Indexed Pages</div>
-                    <div style={{ fontSize: '1.2rem', fontWeight: 700, color: '#fff' }}>
+                    <div style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--text-primary)' }}>
                       {proj._count?.pages || 0}
                     </div>
                   </div>

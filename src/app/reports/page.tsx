@@ -95,7 +95,7 @@ export default function ReportsPage() {
           {!project ? (
             <div className="card" style={{ textAlign: 'center', padding: '3.5rem 1rem' }}>
               <FileCheck2 size={36} color="var(--accent-cyan)" style={{ margin: '0 auto 1rem' }} />
-              <h3 style={{ fontSize: '1.2rem', fontWeight: 700, color: '#fff', marginBottom: '0.5rem' }}>
+              <h3 style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '0.5rem' }}>
                 No Website Configured
               </h3>
               <p style={{ color: 'var(--text-secondary)', maxWidth: '480px', margin: '0 auto 1.5rem', fontSize: '0.9rem' }}>
@@ -112,7 +112,7 @@ export default function ReportsPage() {
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: '2px solid var(--border-color)', paddingBottom: '1.5rem', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
                 <div style={{ flex: '1 1 280px' }}>
                   <span className="badge badge-low" style={{ marginBottom: '0.5rem' }}>ApexSEO Autonomous Engine</span>
-                  <h2 style={{ fontSize: 'clamp(1.2rem, 3vw, 1.8rem)', fontWeight: 800, color: '#fff' }}>
+                  <h2 style={{ fontSize: 'clamp(1.2rem, 3vw, 1.8rem)', fontWeight: 800, color: 'var(--text-primary)' }}>
                     Technical SEO Audit & Performance Summary
                   </h2>
                   <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginTop: '0.25rem', wordBreak: 'break-all' }}>
@@ -128,7 +128,7 @@ export default function ReportsPage() {
 
               {/* Section 1: Executive Summary */}
               <div style={{ marginBottom: '2rem' }}>
-                <h3 style={{ fontSize: '1.2rem', fontWeight: 700, color: '#fff', marginBottom: '0.5rem' }}>
+                <h3 style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '0.5rem' }}>
                   1. Executive Summary
                 </h3>
                 <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', lineHeight: 1.6 }}>
@@ -139,7 +139,7 @@ export default function ReportsPage() {
 
               {/* Section 2: Score Breakdown Table */}
               <div style={{ marginBottom: '2rem' }}>
-                <h3 style={{ fontSize: '1.2rem', fontWeight: 700, color: '#fff', marginBottom: '0.75rem' }}>
+                <h3 style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '0.75rem' }}>
                   2. Algorithmic Optimization Dimensions
                 </h3>
                 <div className="table-container">
@@ -155,37 +155,37 @@ export default function ReportsPage() {
                     <tbody>
                       <tr>
                         <td style={{ fontWeight: 600 }}>Technical SEO</td>
-                        <td style={{ fontWeight: 700, color: '#fff' }}>{project.technicalScore || 0}</td>
+                        <td style={{ fontWeight: 700, color: 'var(--text-primary)' }}>{project.technicalScore || 0}</td>
                         <td>25</td>
                         <td><span className="badge badge-low">Verified</span></td>
                       </tr>
                       <tr>
                         <td style={{ fontWeight: 600 }}>Content & Headings</td>
-                        <td style={{ fontWeight: 700, color: '#fff' }}>{project.contentScore || 0}</td>
+                        <td style={{ fontWeight: 700, color: 'var(--text-primary)' }}>{project.contentScore || 0}</td>
                         <td>25</td>
                         <td><span className="badge badge-low">Verified</span></td>
                       </tr>
                       <tr>
                         <td style={{ fontWeight: 600 }}>Indexability</td>
-                        <td style={{ fontWeight: 700, color: '#fff' }}>{project.indexabilityScore || 0}</td>
+                        <td style={{ fontWeight: 700, color: 'var(--text-primary)' }}>{project.indexabilityScore || 0}</td>
                         <td>15</td>
                         <td><span className="badge badge-low">Verified</span></td>
                       </tr>
                       <tr>
                         <td style={{ fontWeight: 600 }}>Response Speed & Latency</td>
-                        <td style={{ fontWeight: 700, color: '#fff' }}>{project.performanceScore || 0}</td>
+                        <td style={{ fontWeight: 700, color: 'var(--text-primary)' }}>{project.performanceScore || 0}</td>
                         <td>10</td>
                         <td><span className="badge badge-low">Verified</span></td>
                       </tr>
                       <tr>
                         <td style={{ fontWeight: 600 }}>Internal Linking Distribution</td>
-                        <td style={{ fontWeight: 700, color: '#fff' }}>{project.internalLinkScore || 0}</td>
+                        <td style={{ fontWeight: 700, color: 'var(--text-primary)' }}>{project.internalLinkScore || 0}</td>
                         <td>10</td>
                         <td><span className="badge badge-low">Verified</span></td>
                       </tr>
                       <tr>
                         <td style={{ fontWeight: 600 }}>Structured Data (Schema.org)</td>
-                        <td style={{ fontWeight: 700, color: '#fff' }}>{project.structuredDataScore || 0}</td>
+                        <td style={{ fontWeight: 700, color: 'var(--text-primary)' }}>{project.structuredDataScore || 0}</td>
                         <td>15</td>
                         <td><span className="badge badge-low">Verified</span></td>
                       </tr>
@@ -196,7 +196,7 @@ export default function ReportsPage() {
 
               {/* Section 3: Detected Issues */}
               <div>
-                <h3 style={{ fontSize: '1.2rem', fontWeight: 700, color: '#fff', marginBottom: '0.75rem' }}>
+                <h3 style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '0.75rem' }}>
                   3. Priority Action Plan ({issues.length} Issues Detected)
                 </h3>
                 {issues.length === 0 ? (
@@ -208,7 +208,7 @@ export default function ReportsPage() {
                     {issues.map((iss, idx) => (
                       <div key={idx} style={{ background: 'var(--bg-input)', padding: '0.85rem 1rem', borderRadius: 'var(--radius-md)' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
-                          <strong style={{ color: '#fff' }}>{iss.title}</strong>
+                          <strong style={{ color: 'var(--text-primary)' }}>{iss.title}</strong>
                           <span className={`badge badge-${iss.severity.toLowerCase()}`}>{iss.severity}</span>
                         </div>
                         <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', marginTop: '0.2rem' }}>

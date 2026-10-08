@@ -83,7 +83,7 @@ export default function ChangesPage() {
               </h1>
               <p className="page-subtitle">
                 {project ? (
-                  <>Audit trail of applied optimizations for <strong style={{ color: '#fff' }}>{project.domain}</strong></>
+                  <>Audit trail of applied optimizations for <strong style={{ color: 'var(--text-primary)' }}>{project.domain}</strong></>
                 ) : (
                   'Complete audit trail of every automated and assisted change with Before/After verification and instant 1-click rollback.'
                 )}
@@ -121,7 +121,7 @@ export default function ChangesPage() {
           ) : changes.length === 0 ? (
             <div className="card" style={{ textAlign: 'center', padding: '3.5rem 1rem' }}>
               <History size={36} color="var(--accent-cyan)" style={{ margin: '0 auto 1rem' }} />
-              <h3 style={{ fontSize: '1.2rem', fontWeight: 700, color: '#fff', marginBottom: '0.5rem' }}>
+              <h3 style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '0.5rem' }}>
                 No Optimizations Executed Yet
               </h3>
               <p style={{ color: 'var(--text-secondary)', maxWidth: '480px', margin: '0 auto 1.5rem', fontSize: '0.9rem' }}>
@@ -148,9 +148,9 @@ export default function ChangesPage() {
                           {chg.status}
                         </span>
                       </div>
-                      <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: '#fff' }}>{chg.reason}</h3>
+                      <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-primary)' }}>{chg.reason}</h3>
                       <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                        Affected URL: <strong style={{ color: '#fff' }}>{chg.affectedUrl}</strong>
+                        Affected URL: <strong style={{ color: 'var(--text-primary)' }}>{chg.affectedUrl}</strong>
                       </span>
                     </div>
 
@@ -174,7 +174,7 @@ export default function ChangesPage() {
                       <div style={{ fontSize: '0.72rem', color: 'var(--color-success)', fontWeight: 700, textTransform: 'uppercase', marginBottom: '0.35rem' }}>
                         AFTER (Optimized Value)
                       </div>
-                      <div style={{ fontSize: '0.85rem', color: '#fff', fontFamily: 'var(--font-mono)' }}>
+                      <div style={{ fontSize: '0.85rem', color: 'var(--text-primary)', fontFamily: 'var(--font-mono)' }}>
                         {chg.newValue}
                       </div>
                     </div>

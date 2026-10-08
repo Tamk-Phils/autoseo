@@ -97,7 +97,7 @@ export default function CompetitorsPage() {
               </h1>
               <p className="page-subtitle">
                 {project ? (
-                  <>Compare search coverage and content opportunities against competitors for <strong style={{ color: '#fff' }}>{project.domain}</strong></>
+                  <>Compare search coverage and content opportunities against competitors for <strong style={{ color: 'var(--text-primary)' }}>{project.domain}</strong></>
                 ) : (
                   'Analyze competitor topical coverage, discover search intent gaps, and generate actionable content blueprints.'
                 )}
@@ -122,7 +122,7 @@ export default function CompetitorsPage() {
           ) : !project ? (
             <div className="card" style={{ textAlign: 'center', padding: '3.5rem 1rem' }}>
               <Search size={36} color="var(--accent-cyan)" style={{ margin: '0 auto 1rem' }} />
-              <h3 style={{ fontSize: '1.2rem', fontWeight: 700, color: '#fff', marginBottom: '0.5rem' }}>
+              <h3 style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '0.5rem' }}>
                 No Website Configured
               </h3>
               <p style={{ color: 'var(--text-secondary)', maxWidth: '480px', margin: '0 auto 1.5rem', fontSize: '0.9rem' }}>
@@ -135,7 +135,7 @@ export default function CompetitorsPage() {
           ) : competitors.length === 0 ? (
             <div className="card" style={{ textAlign: 'center', padding: '3.5rem 1rem' }}>
               <Users2 size={36} color="var(--accent-cyan)" style={{ margin: '0 auto 1rem' }} />
-              <h3 style={{ fontSize: '1.2rem', fontWeight: 700, color: '#fff', marginBottom: '0.5rem' }}>
+              <h3 style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '0.5rem' }}>
                 No Competitors Added Yet
               </h3>
               <p style={{ color: 'var(--text-secondary)', maxWidth: '480px', margin: '0 auto 1.5rem', fontSize: '0.9rem' }}>
@@ -158,7 +158,7 @@ export default function CompetitorsPage() {
                   <div key={comp.id} className="card">
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
                       <div>
-                        <h3 style={{ fontSize: '1.15rem', fontWeight: 700, color: '#fff' }}>{comp.name}</h3>
+                        <h3 style={{ fontSize: '1.15rem', fontWeight: 700, color: 'var(--text-primary)' }}>{comp.name}</h3>
                         <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{comp.domain}</span>
                       </div>
                       <span className="badge badge-low">Tracked Competitor</span>
@@ -167,7 +167,7 @@ export default function CompetitorsPage() {
                     <div className="grid-3" style={{ marginBottom: '0.5rem' }}>
                       <div style={{ background: 'var(--bg-input)', padding: '0.6rem 0.8rem', borderRadius: 'var(--radius-md)' }}>
                         <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Common Keywords</div>
-                        <div style={{ fontSize: '1.2rem', fontWeight: 700, color: '#fff' }}>
+                        <div style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--text-primary)' }}>
                           {comp.commonKeywords || 0}
                         </div>
                       </div>
@@ -209,7 +209,7 @@ export default function CompetitorsPage() {
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                     {opportunities.map((opp) => (
                       <div key={opp.id} style={{ background: 'var(--bg-input)', padding: '1rem', borderRadius: 'var(--radius-md)' }}>
-                        <div style={{ fontWeight: 700, color: '#fff' }}>{opp.topic}</div>
+                        <div style={{ fontWeight: 700, color: 'var(--text-primary)' }}>{opp.topic}</div>
                         <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginTop: '0.25rem' }}>{opp.reason}</div>
                       </div>
                     ))}
@@ -224,7 +224,7 @@ export default function CompetitorsPage() {
             <div className="modal-overlay" onClick={() => setIsModalOpen(false)}>
               <div className="modal-content" onClick={(e) => e.stopPropagation()}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
-                  <h2 style={{ fontSize: '1.2rem', fontWeight: 700, color: '#fff' }}>Add Competitor Domain</h2>
+                  <h2 style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--text-primary)' }}>Add Competitor Domain</h2>
                   <button type="button" onClick={() => setIsModalOpen(false)} style={{ color: 'var(--text-muted)' }}>
                     <X size={18} />
                   </button>

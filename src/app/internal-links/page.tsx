@@ -74,7 +74,7 @@ export default function InternalLinksPage() {
               </h1>
               <p className="page-subtitle">
                 {project ? (
-                  <>Real link topology diagnostics for <strong style={{ color: '#fff' }}>{project.domain}</strong></>
+                  <>Real link topology diagnostics for <strong style={{ color: 'var(--text-primary)' }}>{project.domain}</strong></>
                 ) : (
                   'Inspect crawl depth hierarchy, detect orphan pages, and generate topical internal anchor link recommendations.'
                 )}
@@ -95,7 +95,7 @@ export default function InternalLinksPage() {
           ) : !project ? (
             <div className="card" style={{ textAlign: 'center', padding: '3.5rem 1rem' }}>
               <Search size={36} color="var(--accent-cyan)" style={{ margin: '0 auto 1rem' }} />
-              <h3 style={{ fontSize: '1.2rem', fontWeight: 700, color: '#fff', marginBottom: '0.5rem' }}>
+              <h3 style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '0.5rem' }}>
                 No Website Configured
               </h3>
               <p style={{ color: 'var(--text-secondary)', maxWidth: '480px', margin: '0 auto 1.5rem', fontSize: '0.9rem' }}>
@@ -108,7 +108,7 @@ export default function InternalLinksPage() {
           ) : pages.length === 0 ? (
             <div className="card" style={{ textAlign: 'center', padding: '3.5rem 1rem' }}>
               <Network size={36} color="var(--accent-cyan)" style={{ margin: '0 auto 1rem' }} />
-              <h3 style={{ fontSize: '1.2rem', fontWeight: 700, color: '#fff', marginBottom: '0.5rem' }}>
+              <h3 style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '0.5rem' }}>
                 No Crawl Data Available
               </h3>
               <p style={{ color: 'var(--text-secondary)', maxWidth: '480px', margin: '0 auto 1.5rem', fontSize: '0.9rem' }}>
@@ -174,7 +174,7 @@ export default function InternalLinksPage() {
                         }}
                       >
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 600, color: '#fff' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 600, color: 'var(--text-primary)' }}>
                             <span style={{ color: 'var(--accent-cyan)' }}>{rec.sourcePage}</span>
                             <ArrowRight size={14} color="var(--text-muted)" />
                             <span style={{ color: 'var(--color-success)' }}>{rec.targetPage}</span>
@@ -188,7 +188,7 @@ export default function InternalLinksPage() {
 
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                           <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                            Suggested Anchor Text: <strong style={{ color: '#fff' }}>&quot;{rec.suggestedAnchor}&quot;</strong>
+                            Suggested Anchor Text: <strong style={{ color: 'var(--text-primary)' }}>&quot;{rec.suggestedAnchor}&quot;</strong>
                           </div>
                           <Link href="/recommendations" className="btn btn-secondary btn-sm">
                             <Link2 size={12} />
@@ -224,7 +224,7 @@ export default function InternalLinksPage() {
                         const isUnder = p.internalLinksCount > 0 && p.internalLinksCount < 2 && p.path !== '/';
                         return (
                           <tr key={p.id}>
-                            <td style={{ fontWeight: 600, color: '#fff' }}>{p.path}</td>
+                            <td style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{p.path}</td>
                             <td>
                               <span style={{ fontWeight: 700, color: p.internalLinksCount < 2 ? '#f97316' : '#fff' }}>
                                 {p.internalLinksCount}

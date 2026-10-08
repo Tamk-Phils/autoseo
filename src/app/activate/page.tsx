@@ -18,6 +18,7 @@ import {
   Clock,
   ArrowRight,
   CreditCard,
+  HelpCircle,
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -186,7 +187,7 @@ export default function ActivatePage() {
                 <span className="badge badge-success" style={{ marginBottom: '0.35rem' }}>
                   {planActivated ? 'ACTIVE SUBSCRIPTION' : 'AUTOPILOT MEMBERSHIP'}
                 </span>
-                <h2 style={{ fontSize: '1.35rem', fontWeight: 800, color: '#fff', margin: '0.2rem 0' }}>
+                <h2 style={{ fontSize: '1.35rem', fontWeight: 800, color: 'var(--text-primary)', margin: '0.2rem 0' }}>
                   {planActivated ? 'Autopilot Active — 24/7 Hands-Free SEO Driving' : 'Select Autopilot Tier & Start Ranking Faster'}
                 </h2>
                 <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', margin: 0 }}>
@@ -220,7 +221,7 @@ export default function ActivatePage() {
                   }}
                 >
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.25rem' }}>
-                    <strong style={{ color: '#fff', fontSize: '0.95rem' }}>Starter Scan</strong>
+                    <strong style={{ color: 'var(--text-primary)', fontSize: '0.95rem' }}>Starter Scan</strong>
                     <span style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--accent-cyan)' }}>$29/mo</span>
                   </div>
                   <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', margin: 0 }}>
@@ -255,7 +256,7 @@ export default function ActivatePage() {
                     MOST POPULAR
                   </span>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.25rem' }}>
-                    <strong style={{ color: '#fff', fontSize: '0.95rem' }}>Autonomous Autopilot</strong>
+                    <strong style={{ color: 'var(--text-primary)', fontSize: '0.95rem' }}>Autonomous Autopilot</strong>
                     <span style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--color-success)' }}>$79/mo</span>
                   </div>
                   <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', margin: 0 }}>
@@ -274,7 +275,7 @@ export default function ActivatePage() {
                   }}
                 >
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.25rem' }}>
-                    <strong style={{ color: '#fff', fontSize: '0.95rem' }}>Enterprise Scale</strong>
+                    <strong style={{ color: 'var(--text-primary)', fontSize: '0.95rem' }}>Enterprise Scale</strong>
                     <span style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--accent-cyan)' }}>$199/mo</span>
                   </div>
                   <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', margin: 0 }}>
@@ -292,7 +293,7 @@ export default function ActivatePage() {
                 <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--accent-cyan)', textTransform: 'uppercase' }}>
                   Zero-Intervention Step 1
                 </span>
-                <h3 style={{ fontSize: '1.2rem', fontWeight: 700, color: '#fff', margin: '0.2rem 0' }}>
+                <h3 style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--text-primary)', margin: '0.2rem 0' }}>
                   Paste This 1 Line into Your Website
                 </h3>
                 <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', margin: 0 }}>
@@ -301,6 +302,13 @@ export default function ActivatePage() {
               </div>
 
               <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                <Link
+                  href="/how-to-use"
+                  className="btn btn-secondary btn-sm"
+                  style={{ textDecoration: 'none' }}
+                >
+                  <HelpCircle size={14} color="var(--accent-primary)" /> View CMS Guides
+                </Link>
                 <a
                   href={`mailto:?subject=${mailtoSubject}&body=${mailtoBody}`}
                   className="btn btn-secondary btn-sm"
@@ -318,13 +326,13 @@ export default function ActivatePage() {
             {/* Code Box */}
             <div
               style={{
-                background: '#090d16',
+                background: '#0f172a',
                 border: '1px solid var(--border-color)',
                 borderRadius: 'var(--radius-md)',
                 padding: '1rem 1.25rem',
                 fontFamily: 'monospace',
                 fontSize: '0.85rem',
-                color: 'var(--accent-cyan)',
+                color: '#38bdf8',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
@@ -350,7 +358,7 @@ export default function ActivatePage() {
               }}
             >
               <div>
-                <strong style={{ fontSize: '0.92rem', color: '#fff', display: 'block', marginBottom: '0.2rem' }}>
+                <strong style={{ fontSize: '0.92rem', color: 'var(--text-primary)', display: 'block', marginBottom: '0.2rem' }}>
                   Verify Installation
                 </strong>
                 <span style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>
@@ -392,20 +400,20 @@ export default function ActivatePage() {
 
           {/* Supported CMS Badges */}
           <div className="card">
-            <h4 style={{ fontSize: '0.95rem', fontWeight: 600, color: '#fff', marginBottom: '1rem' }}>
+            <h4 style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '1rem' }}>
               Where to paste the 1-line tag (Takes 30 seconds):
             </h4>
             <div className="grid-responsive-3" style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', lineHeight: '1.6' }}>
               <div style={{ background: 'var(--bg-input)', padding: '1rem', borderRadius: 'var(--radius-md)' }}>
-                <strong style={{ color: '#fff', display: 'block', marginBottom: '0.25rem' }}>🛍️ Shopify</strong>
+                <strong style={{ color: 'var(--text-primary)', display: 'block', marginBottom: '0.25rem' }}>🛍️ Shopify</strong>
                 Go to <strong>Online Store &gt; Themes &gt; Edit Code</strong>, open <code>theme.liquid</code>, and paste right above <code>&lt;/head&gt;</code>.
               </div>
               <div style={{ background: 'var(--bg-input)', padding: '1rem', borderRadius: 'var(--radius-md)' }}>
-                <strong style={{ color: '#fff', display: 'block', marginBottom: '0.25rem' }}>🔷 WordPress</strong>
+                <strong style={{ color: 'var(--text-primary)', display: 'block', marginBottom: '0.25rem' }}>🔷 WordPress</strong>
                 Go to <strong>Settings &gt; Insert Headers and Footers</strong> (or theme header settings) and paste in Scripts in Header.
               </div>
               <div style={{ background: 'var(--bg-input)', padding: '1rem', borderRadius: 'var(--radius-md)' }}>
-                <strong style={{ color: '#fff', display: 'block', marginBottom: '0.25rem' }}>🌐 Webflow / Wix / Squarespace</strong>
+                <strong style={{ color: 'var(--text-primary)', display: 'block', marginBottom: '0.25rem' }}>🌐 Webflow / Wix / Squarespace</strong>
                 Go to <strong>Site Settings &gt; Custom Code</strong> and paste in the Head Code section.
               </div>
             </div>

@@ -153,7 +153,7 @@ export default function AutopilotPage() {
                   cursor: 'pointer',
                 }}
               >
-                <div style={{ fontWeight: 700, color: '#fff', marginBottom: '0.25rem' }}>OFF (Read Only)</div>
+                <div style={{ fontWeight: 700, color: 'var(--text-primary)', marginBottom: '0.25rem' }}>OFF (Read Only)</div>
                 <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>
                   Continuous auditing without automated execution. All changes remain purely informational recommendations.
                 </p>
@@ -169,7 +169,7 @@ export default function AutopilotPage() {
                   cursor: 'pointer',
                 }}
               >
-                <div style={{ fontWeight: 700, color: '#fff', marginBottom: '0.25rem' }}>ASSISTED (Recommended)</div>
+                <div style={{ fontWeight: 700, color: 'var(--text-primary)', marginBottom: '0.25rem' }}>ASSISTED (Recommended)</div>
                 <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>
                   AI prepares verified fixes and queues them. 1-click manual human authorization required prior to live deployment.
                 </p>
@@ -185,7 +185,7 @@ export default function AutopilotPage() {
                   cursor: 'pointer',
                 }}
               >
-                <div style={{ fontWeight: 700, color: '#fff', marginBottom: '0.25rem' }}>AUTONOMOUS (Self-Executing)</div>
+                <div style={{ fontWeight: 700, color: 'var(--text-primary)', marginBottom: '0.25rem' }}>AUTONOMOUS (Self-Executing)</div>
                 <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>
                   Engine executes approved categories of safe SEO improvements automatically as soon as verified by the QA agent.
                 </p>

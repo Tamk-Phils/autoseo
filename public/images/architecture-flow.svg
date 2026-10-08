@@ -1,0 +1,118 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 320" width="100%" height="100%" fill="none">
+  <defs>
+    <linearGradient id="blueGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#2563eb" />
+      <stop offset="100%" stop-color="#0284c7" />
+    </linearGradient>
+    <linearGradient id="emeraldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#16a34a" />
+      <stop offset="100%" stop-color="#059669" />
+    </linearGradient>
+    <linearGradient id="amberGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f59e0b" />
+      <stop offset="100%" stop-color="#d97706" />
+    </linearGradient>
+    <linearGradient id="purpleGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#8b5cf6" />
+      <stop offset="100%" stop-color="#6366f1" />
+    </linearGradient>
+    <filter id="shadowCard" x="-5%" y="-5%" width="110%" height="115%" filterUnits="userSpaceOnUse">
+      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#0f172a" flood-opacity="0.06"/>
+    </filter>
+  </defs>
+
+  <!-- Flow Line Connectors with animated dashed style -->
+  <path d="M 195 160 L 265 160" stroke="#cbd5e1" stroke-width="3" stroke-dasharray="6,4" />
+  <polygon points="265,155 275,160 265,165" fill="#2563eb" />
+
+  <path d="M 425 160 L 495 160" stroke="#cbd5e1" stroke-width="3" stroke-dasharray="6,4" />
+  <polygon points="495,155 505,160 495,165" fill="#16a34a" />
+
+  <path d="M 655 160 L 725 160" stroke="#cbd5e1" stroke-width="3" stroke-dasharray="6,4" />
+  <polygon points="725,155 735,160 725,165" fill="#8b5cf6" />
+
+  <!-- Node 1: Site Scanner -->
+  <g transform="translate(45, 60)" filter="url(#shadowCard)">
+    <rect width="150" height="200" rx="14" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
+    <rect width="150" height="42" rx="14" fill="#eff6ff" />
+    <path d="M 0 30 L 150 30" stroke="#bfdbfe" stroke-width="1"/>
+    <circle cx="28" cy="21" r="10" fill="#2563eb" />
+    <text x="28" y="25" text-anchor="middle" fill="#ffffff" font-size="11" font-weight="bold" font-family="-apple-system, BlinkMacSystemFont, sans-serif">1</text>
+    <text x="46" y="25" fill="#1e40af" font-size="11" font-weight="700" font-family="-apple-system, BlinkMacSystemFont, sans-serif">CONTINUOUS SCAN</text>
+    
+    <!-- Content -->
+    <rect x="18" y="56" width="34" height="34" rx="8" fill="#dbeafe" />
+    <path d="M 30 68 L 40 78 M 38 68 A 5 5 0 1 1 30 74" stroke="#2563eb" stroke-width="2" fill="none" stroke-linecap="round"/>
+    <text x="18" y="112" fill="#0f172a" font-size="13" font-weight="700" font-family="-apple-system, BlinkMacSystemFont, sans-serif">Site Crawler</text>
+    <text x="18" y="130" fill="#64748b" font-size="10.5" font-family="-apple-system, BlinkMacSystemFont, sans-serif">Inspects HTML DOM</text>
+    <text x="18" y="145" fill="#64748b" font-size="10.5" font-family="-apple-system, BlinkMacSystemFont, sans-serif">Missing meta &amp; titles</text>
+    <text x="18" y="160" fill="#64748b" font-size="10.5" font-family="-apple-system, BlinkMacSystemFont, sans-serif">Broken internal links</text>
+    
+    <rect x="18" y="175" width="114" height="16" rx="4" fill="#f1f5f9"/>
+    <text x="75" y="187" text-anchor="middle" fill="#2563eb" font-size="9" font-weight="600" font-family="-apple-system, BlinkMacSystemFont, sans-serif">24/7 Background</text>
+  </g>
+
+  <!-- Node 2: Multi-Model AI Engine -->
+  <g transform="translate(275, 60)" filter="url(#shadowCard)">
+    <rect width="150" height="200" rx="14" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
+    <rect width="150" height="42" rx="14" fill="#f0fdf4" />
+    <path d="M 0 30 L 150 30" stroke="#bbf7d0" stroke-width="1"/>
+    <circle cx="28" cy="21" r="10" fill="#16a34a" />
+    <text x="28" y="25" text-anchor="middle" fill="#ffffff" font-size="11" font-weight="bold" font-family="-apple-system, BlinkMacSystemFont, sans-serif">2</text>
+    <text x="46" y="25" fill="#15803d" font-size="11" font-weight="700" font-family="-apple-system, BlinkMacSystemFont, sans-serif">AI OPTIMIZER</text>
+    
+    <!-- Content -->
+    <rect x="18" y="56" width="34" height="34" rx="8" fill="#dcfce7" />
+    <path d="M 35 66 L 39 74 L 31 74 Z M 31 78 L 39 78" stroke="#16a34a" stroke-width="2" fill="none" stroke-linecap="round"/>
+    <text x="18" y="112" fill="#0f172a" font-size="13" font-weight="700" font-family="-apple-system, BlinkMacSystemFont, sans-serif">Ensemble AI</text>
+    <text x="18" y="130" fill="#64748b" font-size="10.5" font-family="-apple-system, BlinkMacSystemFont, sans-serif">Gemini 3.8 Flash</text>
+    <text x="18" y="145" fill="#64748b" font-size="10.5" font-family="-apple-system, BlinkMacSystemFont, sans-serif">Groq Qwen 3.8-27B</text>
+    <text x="18" y="160" fill="#64748b" font-size="10.5" font-family="-apple-system, BlinkMacSystemFont, sans-serif">OpenRouter Llama</text>
+    
+    <rect x="18" y="175" width="114" height="16" rx="4" fill="#f1f5f9"/>
+    <text x="75" y="187" text-anchor="middle" fill="#16a34a" font-size="9" font-weight="600" font-family="-apple-system, BlinkMacSystemFont, sans-serif">High Availability</text>
+  </g>
+
+  <!-- Node 3: 1-Line Tag Embed -->
+  <g transform="translate(505, 60)" filter="url(#shadowCard)">
+    <rect width="150" height="200" rx="14" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
+    <rect width="150" height="42" rx="14" fill="#fffbeb" />
+    <path d="M 0 30 L 150 30" stroke="#fde68a" stroke-width="1"/>
+    <circle cx="28" cy="21" r="10" fill="#d97706" />
+    <text x="28" y="25" text-anchor="middle" fill="#ffffff" font-size="11" font-weight="bold" font-family="-apple-system, BlinkMacSystemFont, sans-serif">3</text>
+    <text x="46" y="25" fill="#b45309" font-size="11" font-weight="700" font-family="-apple-system, BlinkMacSystemFont, sans-serif">ZERO-CODE TAG</text>
+    
+    <!-- Content -->
+    <rect x="18" y="56" width="34" height="34" rx="8" fill="#fef3c7" />
+    <path d="M 30 68 L 26 73 L 30 78 M 40 68 L 44 73 L 40 78" stroke="#d97706" stroke-width="2" fill="none" stroke-linecap="round"/>
+    <text x="18" y="112" fill="#0f172a" font-size="13" font-weight="700" font-family="-apple-system, BlinkMacSystemFont, sans-serif">Dynamic Inject</text>
+    <text x="18" y="130" fill="#64748b" font-size="10.5" font-family="-apple-system, BlinkMacSystemFont, sans-serif">Live Title overrides</text>
+    <text x="18" y="145" fill="#64748b" font-size="10.5" font-family="-apple-system, BlinkMacSystemFont, sans-serif">Meta descriptions</text>
+    <text x="18" y="160" fill="#64748b" font-size="10.5" font-family="-apple-system, BlinkMacSystemFont, sans-serif">JSON-LD Schemas</text>
+    
+    <rect x="18" y="175" width="114" height="16" rx="4" fill="#f1f5f9"/>
+    <text x="75" y="187" text-anchor="middle" fill="#d97706" font-size="9" font-weight="600" font-family="-apple-system, BlinkMacSystemFont, sans-serif">&lt;10ms Edge Execution</text>
+  </g>
+
+  <!-- Node 4: Search Engine IndexNow -->
+  <g transform="translate(735, 60)" filter="url(#shadowCard)">
+    <rect width="150" height="200" rx="14" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
+    <rect width="150" height="42" rx="14" fill="#f5f3ff" />
+    <path d="M 0 30 L 150 30" stroke="#ddd6fe" stroke-width="1"/>
+    <circle cx="28" cy="21" r="10" fill="#8b5cf6" />
+    <text x="28" y="25" text-anchor="middle" fill="#ffffff" font-size="11" font-weight="bold" font-family="-apple-system, BlinkMacSystemFont, sans-serif">4</text>
+    <text x="46" y="25" fill="#6d28d9" font-size="11" font-weight="700" font-family="-apple-system, BlinkMacSystemFont, sans-serif">FAST INDEXING</text>
+    
+    <!-- Content -->
+    <rect x="18" y="56" width="34" height="34" rx="8" fill="#ede9fe" />
+    <path d="M 35 68 L 40 73 L 30 73 L 35 68 Z M 35 75 L 35 80" stroke="#8b5cf6" stroke-width="2" fill="none" stroke-linecap="round"/>
+    <text x="18" y="112" fill="#0f172a" font-size="13" font-weight="700" font-family="-apple-system, BlinkMacSystemFont, sans-serif">IndexNow API</text>
+    <text x="18" y="130" fill="#64748b" font-size="10.5" font-family="-apple-system, BlinkMacSystemFont, sans-serif">Bing &amp; Microsoft</text>
+    <text x="18" y="145" fill="#64748b" font-size="10.5" font-family="-apple-system, BlinkMacSystemFont, sans-serif">Yandex, Naver</text>
+    <text x="18" y="160" fill="#64748b" font-size="10.5" font-family="-apple-system, BlinkMacSystemFont, sans-serif">Google bot re-crawl</text>
+    
+    <rect x="18" y="175" width="114" height="16" rx="4" fill="#f1f5f9"/>
+    <text x="75" y="187" text-anchor="middle" fill="#8b5cf6" font-size="9" font-weight="600" font-family="-apple-system, BlinkMacSystemFont, sans-serif">Hours Instead of Weeks</text>
+  </g>
+</svg>
+

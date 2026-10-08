@@ -222,7 +222,7 @@ export default function LiveCrawlPage() {
             <div style={{ marginTop: '1.25rem' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
                 <span>Crawl Progress</span>
-                <span style={{ fontWeight: 600, color: '#fff' }}>{progress}%</span>
+                <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{progress}%</span>
               </div>
               <div className="progress-bar-container">
                 <div className="progress-bar-fill" style={{ width: `${progress}%` }} />
@@ -280,7 +280,7 @@ export default function LiveCrawlPage() {
               <span className="stat-label">Security Protocol</span>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.25rem' }}>
                 <CheckCircle2 size={20} color="var(--color-success)" />
-                <span style={{ fontWeight: 600, color: '#fff' }}>SSRF Verified</span>
+                <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>SSRF Verified</span>
               </div>
               <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
                 DNS & Private IP filtered
@@ -306,7 +306,7 @@ export default function LiveCrawlPage() {
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap', minWidth: 0, flex: 1 }}>
                 <span className="badge badge-low" style={{ flexShrink: 0 }}>Analyzing Page</span>
-                <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.85rem', color: '#fff', wordBreak: 'break-all' }}>
+                <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.85rem', color: 'var(--text-primary)', wordBreak: 'break-all' }}>
                   {currentAnalyzing}
                 </span>
               </div>

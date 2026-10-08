@@ -111,7 +111,7 @@ export default function SearchConsolePage() {
                 <BarChart3 size={28} />
               </div>
 
-              <h2 style={{ fontSize: '1.4rem', fontWeight: 700, color: '#fff', marginBottom: '0.5rem' }}>
+              <h2 style={{ fontSize: '1.4rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '0.5rem' }}>
                 Integration Not Connected
               </h2>
 
@@ -142,11 +142,11 @@ export default function SearchConsolePage() {
             <div>
               <div className="card" style={{ textAlign: 'center', padding: '3.5rem 2rem' }}>
                 <CheckCircle2 size={40} color="var(--color-success)" style={{ margin: '0 auto 1rem' }} />
-                <h3 style={{ fontSize: '1.3rem', fontWeight: 700, color: '#fff', marginBottom: '0.5rem' }}>
+                <h3 style={{ fontSize: '1.3rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '0.5rem' }}>
                   Google Search Console Connected
                 </h3>
                 <p style={{ color: 'var(--text-secondary)', maxWidth: '500px', margin: '0 auto 1.5rem', fontSize: '0.9rem' }}>
-                  Property synchronization active for <strong style={{ color: '#fff' }}>{project?.domain || 'website'}</strong>. Imported data is stored as a verified snapshot.
+                  Property synchronization active for <strong style={{ color: 'var(--text-primary)' }}>{project?.domain || 'website'}</strong>. Imported data is stored as a verified snapshot.
                 </p>
                 <div style={{ display: 'inline-flex', padding: '0.4rem 0.85rem', background: 'var(--bg-input)', borderRadius: 'var(--radius-md)', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
                   Search Console provides position, clicks, impressions, and CTR. Search volume and keyword difficulty require a separate SEO provider.

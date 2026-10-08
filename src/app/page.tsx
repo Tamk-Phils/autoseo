@@ -81,13 +81,16 @@ export default function LandingPage() {
       <header className="landing-header">
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
           <Globe2 size={26} color="var(--accent-cyan)" />
-          <span style={{ fontSize: '1.25rem', fontWeight: 800, color: '#fff', letterSpacing: '-0.03em' }}>
+          <span style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.03em' }}>
             Apex<span style={{ color: 'var(--accent-cyan)' }}>SEO</span>
           </span>
         </div>
 
         {/* Desktop Nav */}
         <nav className="landing-nav">
+          <Link href="/how-to-use" style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', fontWeight: 600 }}>
+            How to Use
+          </Link>
           <a href="#how-it-works" style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', fontWeight: 500 }}>
             How It Works
           </a>
@@ -119,6 +122,13 @@ export default function LandingPage() {
       {/* Mobile Drawer Menu */}
       {mobileMenuOpen && (
         <div className="landing-mobile-menu">
+          <Link
+            href="/how-to-use"
+            onClick={() => setMobileMenuOpen(false)}
+            style={{ color: 'var(--accent-primary)', fontSize: '0.95rem', fontWeight: 700, padding: '0.5rem 0' }}
+          >
+            📖 How to Use Guide
+          </Link>
           <a
             href="#how-it-works"
             onClick={() => setMobileMenuOpen(false)}
@@ -208,7 +218,7 @@ export default function LandingPage() {
               background: 'transparent',
               border: 'none',
               padding: '0.85rem 1.25rem',
-              color: '#fff',
+              color: 'var(--text-primary)',
               fontSize: '1rem',
               outline: 'none',
               minWidth: 0,
@@ -246,13 +256,22 @@ export default function LandingPage() {
           <span>✓ Works on Shopify, Webflow, WordPress, Custom</span>
           <span>✓ 100% Reversible Rollbacks</span>
         </div>
+
+        {/* Hero Visual Banner Illustration */}
+        <div style={{ marginTop: '2.5rem', maxWidth: '820px', margin: '2.5rem auto 0', width: '100%' }} className="animate-float">
+          <img
+            src="/images/hero-banner.svg"
+            alt="ApexSEO Autonomous Cloud Infrastructure"
+            style={{ width: '100%', height: 'auto', display: 'block', borderRadius: 'var(--radius-lg)' }}
+          />
+        </div>
       </section>
 
       {/* Core Workflow Representation */}
       <section id="how-it-works" style={{ padding: 'clamp(2.5rem, 5vw, 4rem) clamp(1rem, 3vw, 2rem)', backgroundColor: 'var(--bg-card)', borderTop: '1px solid var(--border-color)', borderBottom: '1px solid var(--border-color)' }}>
         <div style={{ maxWidth: '1140px', margin: '0 auto', width: '100%' }}>
           <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
-            <h2 style={{ fontSize: 'clamp(1.5rem, 3vw, 2rem)', fontWeight: 700, color: '#fff', marginBottom: '0.5rem' }}>
+            <h2 style={{ fontSize: 'clamp(1.5rem, 3vw, 2rem)', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '0.5rem' }}>
               How Zero-Intervention Autopilot Works
             </h2>
             <p style={{ color: 'var(--text-secondary)' }}>
@@ -266,7 +285,7 @@ export default function LandingPage() {
                 <Search size={20} />
               </div>
               <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Step 01</div>
-              <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: '#fff', margin: '0.25rem 0 0.5rem' }}>Submit Domain</h3>
+              <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-primary)', margin: '0.25rem 0 0.5rem' }}>Submit Domain</h3>
               <p style={{ fontSize: '0.88rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
                 Enter your website URL. Our crawler inspects meta tags, headings, schema, and page speeds immediately.
               </p>
@@ -277,7 +296,7 @@ export default function LandingPage() {
                 <Zap size={20} />
               </div>
               <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Step 02</div>
-              <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: '#fff', margin: '0.25rem 0 0.5rem' }}>1-Line Tag Embed</h3>
+              <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-primary)', margin: '0.25rem 0 0.5rem' }}>1-Line Tag Embed</h3>
               <p style={{ fontSize: '0.88rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
                 Paste 1 line of script tag into your site once (like Google Analytics). No code changes or git repos required.
               </p>
@@ -288,7 +307,7 @@ export default function LandingPage() {
                 <Bot size={20} />
               </div>
               <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Step 03</div>
-              <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: '#fff', margin: '0.25rem 0 0.5rem' }}>Dynamic Overrides</h3>
+              <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-primary)', margin: '0.25rem 0 0.5rem' }}>Dynamic Overrides</h3>
               <p style={{ fontSize: '0.88rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
                 Our engine automatically pushes titles, meta descriptions, and rich JSON-LD schemas into your live pages.
               </p>
@@ -299,11 +318,18 @@ export default function LandingPage() {
                 <Activity size={20} />
               </div>
               <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Step 04</div>
-              <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: '#fff', margin: '0.25rem 0 0.5rem' }}>Fast-Track Indexing</h3>
+              <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-primary)', margin: '0.25rem 0 0.5rem' }}>Fast-Track Indexing</h3>
               <p style={{ fontSize: '0.88rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
                 Direct IndexNow protocol pings trigger search engine bots to re-crawl and rank your optimized pages in hours.
               </p>
             </div>
+          </div>
+
+          <div style={{ textAlign: 'center', marginTop: '2.5rem' }}>
+            <Link href="/how-to-use" className="btn btn-secondary" style={{ padding: '0.75rem 1.75rem', fontWeight: 600 }}>
+              <span>View Complete CMS Setup Guide (Shopify, WP, Webflow)</span>
+              <ArrowRight size={16} />
+            </Link>
           </div>
         </div>
       </section>
@@ -311,7 +337,7 @@ export default function LandingPage() {
       {/* Feature Capabilities Grid */}
       <section id="architecture" style={{ padding: 'clamp(2.5rem, 5vw, 5rem) clamp(1rem, 3vw, 2rem)', maxWidth: '1140px', margin: '0 auto', width: '100%', boxSizing: 'border-box' }}>
         <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
-          <h2 style={{ fontSize: 'clamp(1.5rem, 3vw, 2rem)', fontWeight: 700, color: '#fff', marginBottom: '0.5rem' }}>
+          <h2 style={{ fontSize: 'clamp(1.5rem, 3vw, 2rem)', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '0.5rem' }}>
             Built for Massive SEO Scale & Speed
           </h2>
           <p style={{ color: 'var(--text-secondary)' }}>
@@ -356,6 +382,7 @@ export default function LandingPage() {
       <footer className="landing-footer">
         <div>ApexSEO Engine © 2026. Production Autonomous SEO Infrastructure.</div>
         <div style={{ display: 'flex', gap: '1.25rem', flexWrap: 'wrap', justifyContent: 'center' }}>
+          <Link href="/how-to-use" style={{ color: 'var(--text-primary)', fontWeight: 600 }}>How to Use Guide</Link>
           <Link href="/activate" style={{ color: 'var(--color-success)' }}>Zero-Code Activation</Link>
           <Link href="/dashboard" style={{ color: 'var(--accent-cyan)' }}>Enter App</Link>
           <Link href="/onboarding" style={{ color: 'var(--accent-cyan)' }}>Start Crawl</Link>

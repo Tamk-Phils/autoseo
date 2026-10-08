@@ -24,6 +24,7 @@ import {
   User,
   LogIn,
   X,
+  BookOpen,
 } from 'lucide-react';
 
 export default function Sidebar() {
@@ -73,6 +74,7 @@ export default function Sidebar() {
     { label: 'Search Console', href: '/search-console', icon: BarChart3 },
     { label: 'SEO Autopilot', href: '/autopilot', icon: Bot },
     { label: 'Zero-Code Tag', href: '/activate', icon: Zap },
+    { label: 'How to Use', href: '/how-to-use', icon: BookOpen },
     { label: 'Change History', href: '/changes', icon: History },
     { label: 'Audit Reports', href: '/reports', icon: FileCheck2 },
     { label: 'Integrations', href: '/integrations', icon: Boxes },
@@ -190,7 +192,7 @@ export default function Sidebar() {
                 {(user.name || user.email)[0].toUpperCase()}
               </div>
               <div style={{ minWidth: 0, flex: 1 }}>
-                <div style={{ fontSize: '0.82rem', fontWeight: 600, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                <div style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                   {user.name || user.email.split('@')[0]}
                 </div>
                 <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>

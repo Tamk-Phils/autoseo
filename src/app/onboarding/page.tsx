@@ -108,7 +108,7 @@ export default function OnboardingPage() {
                 justifyContent: 'center',
                 fontWeight: 700,
                 fontSize: '0.85rem',
-                color: '#fff',
+                color: 'var(--text-primary)',
               }}
             >
               1
@@ -130,7 +130,7 @@ export default function OnboardingPage() {
                 justifyContent: 'center',
                 fontWeight: 700,
                 fontSize: '0.85rem',
-                color: '#fff',
+                color: 'var(--text-primary)',
               }}
             >
               2
@@ -152,7 +152,7 @@ export default function OnboardingPage() {
                 justifyContent: 'center',
                 fontWeight: 700,
                 fontSize: '0.85rem',
-                color: '#fff',
+                color: 'var(--text-primary)',
               }}
             >
               3
@@ -182,7 +182,7 @@ export default function OnboardingPage() {
           {step === 1 && (
             <div>
               <div style={{ marginBottom: '1.5rem' }}>
-                <h2 style={{ fontSize: '1.4rem', fontWeight: 700, color: '#fff', marginBottom: '0.35rem' }}>
+                <h2 style={{ fontSize: '1.4rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '0.35rem' }}>
                   Add your website
                 </h2>
                 <p style={{ fontSize: '0.88rem', color: 'var(--text-secondary)' }}>
@@ -252,7 +252,7 @@ export default function OnboardingPage() {
           {step === 2 && (
             <div>
               <div style={{ marginBottom: '1.5rem' }}>
-                <h2 style={{ fontSize: '1.4rem', fontWeight: 700, color: '#fff', marginBottom: '0.35rem' }}>
+                <h2 style={{ fontSize: '1.4rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '0.35rem' }}>
                   Choose your optimization mode
                 </h2>
                 <p style={{ fontSize: '0.88rem', color: 'var(--text-secondary)' }}>
@@ -277,7 +277,7 @@ export default function OnboardingPage() {
                 >
                   <Eye size={22} color="var(--accent-cyan)" style={{ marginTop: '0.2rem' }} />
                   <div style={{ flex: 1 }}>
-                    <div style={{ fontWeight: 700, color: '#fff', fontSize: '1rem', marginBottom: '0.25rem' }}>
+                    <div style={{ fontWeight: 700, color: 'var(--text-primary)', fontSize: '1rem', marginBottom: '0.25rem' }}>
                       Analyze Only
                     </div>
                     <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
@@ -303,7 +303,7 @@ export default function OnboardingPage() {
                   <ShieldCheck size={22} color="var(--color-warning)" style={{ marginTop: '0.2rem' }} />
                   <div style={{ flex: 1 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
-                      <span style={{ fontWeight: 700, color: '#fff', fontSize: '1rem' }}>Assisted Optimization</span>
+                      <span style={{ fontWeight: 700, color: 'var(--text-primary)', fontSize: '1rem' }}>Assisted Optimization</span>
                       <span className="badge badge-medium">Recommended</span>
                     </div>
                     <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
@@ -328,7 +328,7 @@ export default function OnboardingPage() {
                 >
                   <Bot size={22} color="var(--color-success)" style={{ marginTop: '0.2rem' }} />
                   <div style={{ flex: 1 }}>
-                    <div style={{ fontWeight: 700, color: '#fff', fontSize: '1rem', marginBottom: '0.25rem' }}>
+                    <div style={{ fontWeight: 700, color: 'var(--text-primary)', fontSize: '1rem', marginBottom: '0.25rem' }}>
                       Autonomous Optimization
                     </div>
                     <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
@@ -355,7 +355,7 @@ export default function OnboardingPage() {
           {step === 3 && (
             <div>
               <div style={{ marginBottom: '1.5rem' }}>
-                <h2 style={{ fontSize: '1.4rem', fontWeight: 700, color: '#fff', marginBottom: '0.35rem' }}>
+                <h2 style={{ fontSize: '1.4rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '0.35rem' }}>
                   Connect integrations (Optional)
                 </h2>
                 <p style={{ fontSize: '0.88rem', color: 'var(--text-secondary)' }}>
@@ -390,7 +390,7 @@ export default function OnboardingPage() {
                       }}
                     >
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 600, color: '#fff', fontSize: '0.88rem' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 600, color: 'var(--text-primary)', fontSize: '0.88rem' }}>
                           <Icon size={16} color="var(--accent-cyan)" />
                           {item.name}
                         </div>

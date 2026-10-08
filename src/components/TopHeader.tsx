@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Play, Globe, ShieldCheck, Plus, User, LogOut, LogIn, UserPlus, Menu } from 'lucide-react';
+import { Play, Globe, ShieldCheck, Plus, User, LogOut, LogIn, UserPlus, Menu, HelpCircle } from 'lucide-react';
 
 interface TopHeaderProps {
   currentProject?: {
@@ -107,7 +107,7 @@ export default function TopHeader({ currentProject }: TopHeaderProps) {
               style={{
                 background: 'transparent',
                 border: 'none',
-                color: '#fff',
+                color: 'var(--text-primary)',
                 fontWeight: 600,
                 fontSize: '0.82rem',
                 outline: 'none',
@@ -119,7 +119,7 @@ export default function TopHeader({ currentProject }: TopHeaderProps) {
               }}
             >
               {projects.map((p) => (
-                <option key={p.id} value={p.id} style={{ background: '#0b1120', color: '#fff' }}>
+                <option key={p.id} value={p.id} style={{ background: '#0b1120', color: 'var(--text-primary)' }}>
                   {p.name || p.domain}
                 </option>
               ))}
@@ -138,6 +138,10 @@ export default function TopHeader({ currentProject }: TopHeaderProps) {
       </div>
 
       <div className="header-actions">
+        <Link href="/how-to-use" className="btn btn-secondary btn-sm" title="How to Use Guide">
+          <HelpCircle size={14} color="var(--accent-primary)" />
+          <span className="hide-mobile">How to Use</span>
+        </Link>
         <Link href="/onboarding" className="btn btn-secondary btn-sm" title="Add Website">
           <Plus size={14} />
           <span className="hide-mobile">Add Website</span>
