@@ -154,10 +154,10 @@ export async function POST(req: Request) {
     const autopilotConfig = await prisma.autopilotConfig.findUnique({ where: { projectId: project.id } });
     if (isTagHeartbeat) {
       const embedTag = await prisma.integration.findFirst({ where: { projectId: project.id, type: 'EMBED_TAG', isConnected: true } });
-      // Regular automated interval: execute periodic fresh crawls every 6 hours
-      const recentRun = project.lastCrawlAt && Date.now() - project.lastCrawlAt.getTime() < 6 * 60 * 60 * 1000;
+      // Rapid automated interval: can execute every 60 seconds (1 minute) to ensure new URLs and content changes are always dispatched
+      const recentRun = project.lastCrawlAt && Date.now() - project.lastCrawlAt.getTime() < 60 * 1000;
       if (!embedTag || !autopilotConfig?.enabled || autopilotConfig.mode !== 'AUTONOMOUS' || recentRun || project.crawlStatus === 'RUNNING') {
-        return NextResponse.json({ success: true, skipped: true, message: 'Autonomous interval crawl is not due yet (runs every 6h).' });
+        return NextResponse.json({ success: true, skipped: true, message: 'Autonomous interval pulse active (1m interval).' });
       }
     }
     const effectiveMaxPages = Math.min(500, Math.max(1, Number(maxPages) || project.crawlMaxPages));

@@ -224,7 +224,7 @@ export default async function DashboardPage({
                   </span>
                 </div>
                 <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', margin: 0 }}>
-                  Cycle window: {totalDaysInPeriod} days total · Scheduled automated re-crawls &amp; instant IndexNow pings.
+                  Cycle window: {totalDaysInPeriod} days total · Continuous 1-minute automated URL dispatch &amp; instant search engine pings.
                 </p>
               </div>
             </div>

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/db';
+import { submitToIndexNow, pingSearchEngineSitemaps } from '@/lib/indexing/indexnow';
 
 export async function POST(req: Request) {
   try {
@@ -45,6 +46,14 @@ export async function POST(req: Request) {
       const autopilotConfig = await prisma.autopilotConfig.findUnique({ where: { projectId: project.id } });
       if (!autopilotConfig) {
         await prisma.autopilotConfig.create({ data: { projectId: project.id, enabled: true, mode: 'AUTONOMOUS' } });
+      }
+
+      // Immediately dispatch pinged URL to IndexNow (Bing/Yandex/Seznam/Naver) for instant indexing
+      if (url && typeof url === 'string' && url.startsWith('http')) {
+        submitToIndexNow({
+          host: project.domain,
+          urls: [url],
+        }).catch(() => {});
       }
 
       const baseUrl = new URL(req.url);
