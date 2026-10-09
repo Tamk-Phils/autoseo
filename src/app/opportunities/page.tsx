@@ -14,6 +14,7 @@ import {
   Search,
 } from 'lucide-react';
 import Link from 'next/link';
+import LoadingSpinner from '@/components/LoadingSpinner';
 
 import { resolveActiveProject } from '@/lib/activeProject';
 
@@ -22,8 +23,8 @@ export default function OpportunitiesPage() {
   const [opportunities, setOpportunities] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const loadOpportunities = () => {
-    setLoading(true);
+  const loadOpportunities = (showSpinner = true) => {
+    if (showSpinner) setLoading(true);
     fetch('/api/projects')
       .then((r) => r.json())
       .then(async (data) => {
@@ -99,8 +100,8 @@ export default function OpportunitiesPage() {
   };
 
   useEffect(() => {
-    loadOpportunities();
-    const handleProjectChanged = () => loadOpportunities();
+    loadOpportunities(true);
+    const handleProjectChanged = () => loadOpportunities(true);
     window.addEventListener('project-changed', handleProjectChanged);
     return () => window.removeEventListener('project-changed', handleProjectChanged);
   }, []);
@@ -131,8 +132,8 @@ export default function OpportunitiesPage() {
           </div>
 
           {loading ? (
-            <div className="card" style={{ textAlign: 'center', padding: '3rem 1rem', color: 'var(--text-muted)' }}>
-              Analyzing search opportunities...
+            <div className="card">
+              <LoadingSpinner size="lg" label="Analyzing Search Opportunities..." sublabel="Synthesizing crawl diagnostics, keyword rank movements, and revenue potential" />
             </div>
           ) : !project ? (
             <div className="card" style={{ textAlign: 'center', padding: '3.5rem 1rem' }}>

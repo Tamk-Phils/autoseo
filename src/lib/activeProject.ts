@@ -20,9 +20,14 @@ export function getActiveProjectId(): string | null {
 }
 
 export function setActiveProjectId(id: string) {
-  if (typeof window === 'undefined') return;
+  if (typeof window === 'undefined' || !id) return;
 
   try {
+    const prev = localStorage.getItem('activeProjectId');
+    if (prev === id) {
+      // Avoid duplicate dispatches if ID hasn't changed
+      return;
+    }
     localStorage.setItem('activeProjectId', id);
     document.cookie = `activeProjectId=${encodeURIComponent(id)}; path=/; max-age=31536000; SameSite=Lax`;
     window.dispatchEvent(new CustomEvent('project-changed', { detail: { projectId: id } }));
@@ -41,7 +46,8 @@ export function resolveActiveProject(projects: any[]): any | null {
     matched = projects[0];
   }
 
-  if (matched?.id) {
+  // Only update active project if different from current selection
+  if (matched?.id && matched.id !== currentId) {
     setActiveProjectId(matched.id);
   }
 

@@ -14,8 +14,9 @@ import {
   Search,
 } from 'lucide-react';
 import Link from 'next/link';
+import LoadingSpinner from '@/components/LoadingSpinner';
 
-import { resolveActiveProject } from '@/lib/activeProject';
+import { resolveActiveProject, getActiveProjectId } from '@/lib/activeProject';
 
 export default function SiteAuditPage() {
   const [issues, setIssues] = useState<any[]>([]);
@@ -24,8 +25,8 @@ export default function SiteAuditPage() {
   const [activeSeverity, setActiveSeverity] = useState<string>('ALL');
   const [project, setProject] = useState<any>(null);
 
-  const loadAuditData = () => {
-    setLoading(true);
+  const loadAuditData = (showSpinner = true) => {
+    if (showSpinner) setLoading(true);
     fetch('/api/projects')
       .then((r) => r.json())
       .then(async (data) => {
@@ -46,8 +47,8 @@ export default function SiteAuditPage() {
   };
 
   useEffect(() => {
-    loadAuditData();
-    const handleProjectChanged = () => loadAuditData();
+    loadAuditData(true);
+    const handleProjectChanged = () => loadAuditData(true);
     window.addEventListener('project-changed', handleProjectChanged);
     return () => window.removeEventListener('project-changed', handleProjectChanged);
   }, []);
@@ -146,8 +147,8 @@ export default function SiteAuditPage() {
 
           {/* Issues List */}
           {loading ? (
-            <div className="card" style={{ textAlign: 'center', padding: '3rem 1rem', color: 'var(--text-muted)' }}>
-              Loading audit diagnostics...
+            <div className="card">
+              <LoadingSpinner size="lg" label="Loading Audit Diagnostics..." sublabel="Analyzing crawler issues, severities, and ranking impact" />
             </div>
           ) : !project ? (
             <div className="card" style={{ textAlign: 'center', padding: '3.5rem 1rem' }}>

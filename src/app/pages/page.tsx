@@ -16,6 +16,7 @@ import {
   Clock,
 } from 'lucide-react';
 import Link from 'next/link';
+import LoadingSpinner from '@/components/LoadingSpinner';
 
 import { resolveActiveProject } from '@/lib/activeProject';
 
@@ -28,8 +29,8 @@ export default function PagesAnalyzerPage() {
   const [loading, setLoading] = useState(true);
   const [queueing, setQueueing] = useState(false);
 
-  const loadProjectPages = () => {
-    setLoading(true);
+  const loadProjectPages = (showSpinner = true) => {
+    if (showSpinner) setLoading(true);
     fetch('/api/projects')
       .then((r) => r.json())
       .then(async (data) => {
@@ -50,8 +51,8 @@ export default function PagesAnalyzerPage() {
   };
 
   useEffect(() => {
-    loadProjectPages();
-    const handleProjectChanged = () => loadProjectPages();
+    loadProjectPages(true);
+    const handleProjectChanged = () => loadProjectPages(true);
     window.addEventListener('project-changed', handleProjectChanged);
     return () => window.removeEventListener('project-changed', handleProjectChanged);
   }, []);
@@ -147,8 +148,8 @@ export default function PagesAnalyzerPage() {
           </div>
 
           {loading ? (
-            <div className="card" style={{ textAlign: 'center', padding: '3rem 1rem', color: 'var(--text-muted)' }}>
-              <Search size={18} className="animate-spin" /> Loading crawled pages...
+            <div className="card">
+              <LoadingSpinner size="lg" label="Loading Crawled Pages..." sublabel="Extracting metadata, response codes, and on-page optimization scores" />
             </div>
           ) : pages.length === 0 ? (
             <div className="card" style={{ textAlign: 'center', padding: '3.5rem 1rem' }}>
