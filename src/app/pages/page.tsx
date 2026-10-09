@@ -14,6 +14,7 @@ import {
   Code,
   Image as ImageIcon,
   Clock,
+  Zap,
 } from 'lucide-react';
 import Link from 'next/link';
 import LoadingSpinner from '@/components/LoadingSpinner';
@@ -28,6 +29,8 @@ export default function PagesAnalyzerPage() {
   const [project, setProject] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [queueing, setQueueing] = useState(false);
+  const [applyingLive, setApplyingLive] = useState(false);
+  const [successBanner, setSuccessBanner] = useState<string | null>(null);
 
   const loadProjectPages = (showSpinner = true) => {
     if (showSpinner) setLoading(true);
@@ -121,6 +124,55 @@ export default function PagesAnalyzerPage() {
     }
   };
 
+  const handleApplyLive = async () => {
+    if (!selectedPage || !optimizationResult || !project) return;
+    setApplyingLive(true);
+    try {
+      // 1. Create title change
+      await fetch('/api/changes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          projectId: project.id,
+          pageId: selectedPage.id,
+          changeType: 'TITLE',
+          originalValue: selectedPage.title || '',
+          newValue: optimizationResult.suggestedTitle,
+          reason: `On-page title optimization for ${selectedPage.path}`,
+          affectedUrl: selectedPage.url,
+          integrationUsed: 'AUTONOMOUS_ENGINE',
+          status: 'APPLIED',
+        }),
+      });
+
+      // 2. Create description change
+      await fetch('/api/changes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          projectId: project.id,
+          pageId: selectedPage.id,
+          changeType: 'META_DESCRIPTION',
+          originalValue: selectedPage.metaDescription || '',
+          newValue: optimizationResult.suggestedMetaDescription,
+          reason: `On-page meta description optimization for ${selectedPage.path}`,
+          affectedUrl: selectedPage.url,
+          integrationUsed: 'AUTONOMOUS_ENGINE',
+          status: 'APPLIED',
+        }),
+      });
+
+      setSuccessBanner(`Optimization applied live to ${selectedPage.path} in real time via engine.js!`);
+      setTimeout(() => setSuccessBanner(null), 7000);
+      setSelectedPage(null);
+      loadProjectPages(false);
+    } catch {
+      alert('Failed to apply optimization live.');
+    } finally {
+      setApplyingLive(false);
+    }
+  };
+
   return (
     <div className="app-layout">
       <Sidebar />
@@ -146,6 +198,26 @@ export default function PagesAnalyzerPage() {
               </Link>
             )}
           </div>
+
+          {successBanner && (
+            <div
+              style={{
+                padding: '0.85rem 1.25rem',
+                backgroundColor: 'rgba(22, 163, 74, 0.1)',
+                border: '1px solid var(--color-success)',
+                borderRadius: 'var(--radius-md)',
+                color: 'var(--color-success)',
+                fontSize: '0.88rem',
+                marginBottom: '1.25rem',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+              }}
+            >
+              <CheckCircle2 size={16} />
+              <span>{successBanner}</span>
+            </div>
+          )}
 
           {loading ? (
             <div className="card">
@@ -319,11 +391,27 @@ export default function PagesAnalyzerPage() {
                       </button>
                       <button
                         type="button"
-                        className="btn btn-primary"
+                        className="btn btn-secondary"
                         onClick={handleQueueOptimization}
-                        disabled={queueing}
+                        disabled={queueing || applyingLive}
                       >
-                        {queueing ? 'Queueing...' : 'Queue Recommendation'}
+                        {queueing ? 'Queueing...' : 'Queue into Recommendations'}
+                      </button>
+                      <button
+                        type="button"
+                        className="btn btn-primary"
+                        onClick={handleApplyLive}
+                        disabled={applyingLive || queueing}
+                        style={{
+                          background: 'linear-gradient(135deg, #0284c7 0%, #2563eb 100%)',
+                          border: 'none',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '0.45rem',
+                        }}
+                      >
+                        <Zap size={14} />
+                        {applyingLive ? 'Applying Live...' : 'Apply Live to Website Now'}
                       </button>
                     </div>
                   </div>
