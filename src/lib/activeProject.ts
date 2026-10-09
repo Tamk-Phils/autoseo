@@ -24,13 +24,21 @@ export function setActiveProjectId(id: string) {
 
   try {
     const prev = localStorage.getItem('activeProjectId');
-    if (prev === id) {
-      // Avoid duplicate dispatches if ID hasn't changed
-      return;
-    }
     localStorage.setItem('activeProjectId', id);
     document.cookie = `activeProjectId=${encodeURIComponent(id)}; path=/; max-age=31536000; SameSite=Lax`;
-    window.dispatchEvent(new CustomEvent('project-changed', { detail: { projectId: id } }));
+
+    // Persist to server cookies reliably for SSR
+    try {
+      fetch('/api/projects/active', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ projectId: id }),
+      }).catch(() => {});
+    } catch {}
+
+    if (prev !== id) {
+      window.dispatchEvent(new CustomEvent('project-changed', { detail: { projectId: id } }));
+    }
   } catch (err) {
     console.error('Failed to set active project id:', err);
   }

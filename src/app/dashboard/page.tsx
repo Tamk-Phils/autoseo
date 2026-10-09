@@ -1,10 +1,11 @@
-import prisma from '@/lib/db';
-import { getDefaultProject } from '@/lib/seed';
-import { getCurrentUser } from '@/lib/auth';
+'use client';
+
+import { useState, useEffect, useCallback } from 'react';
 import Sidebar from '@/components/Sidebar';
 import TopHeader from '@/components/TopHeader';
 import ScoreGauge from '@/components/ScoreGauge';
 import LiveActivityFeed from '@/components/LiveActivityFeed';
+import LoadingSpinner from '@/components/LoadingSpinner';
 import Link from 'next/link';
 import {
   AlertCircle,
@@ -23,47 +24,88 @@ import {
   CheckCircle2,
 } from 'lucide-react';
 
-import { cookies } from 'next/headers';
+import { resolveActiveProject, getActiveProjectId } from '@/lib/activeProject';
 
-export const dynamic = 'force-dynamic';
+export default function DashboardPage() {
+  const [project, setProject] = useState<any>(null);
+  const [data, setData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
-export default async function DashboardPage({
-  searchParams,
-}: {
-  searchParams?: { projectId?: string };
-}) {
-  const user = await getCurrentUser();
-  const cookieStore = cookies();
-  const cookieId = cookieStore.get('activeProjectId')?.value;
-  const targetId = searchParams?.projectId || cookieId;
+  const loadDashboard = useCallback(async (targetId?: string) => {
+    try {
+      setLoading(true);
+      const pRes = await fetch('/api/projects');
+      const pJson = await pRes.json();
 
-  let project = null;
+      if (!pJson.projects || pJson.projects.length === 0) {
+        setProject(null);
+        setData(null);
+        setLoading(false);
+        return;
+      }
 
-  if (targetId) {
-    if (user) {
-      project = await prisma.project.findFirst({
-        where: { id: targetId, userId: user.id },
-      });
+      let activeProj = null;
+      const desiredId = targetId || getActiveProjectId();
+
+      if (desiredId) {
+        activeProj = pJson.projects.find((p: any) => p.id === desiredId);
+      }
+
+      if (!activeProj) {
+        activeProj = resolveActiveProject(pJson.projects);
+      }
+
+      if (activeProj) {
+        setProject(activeProj);
+        const dRes = await fetch(`/api/dashboard?projectId=${encodeURIComponent(activeProj.id)}`);
+        const dJson = await dRes.json();
+        if (dJson.success) {
+          setData(dJson);
+          if (dJson.project) setProject(dJson.project);
+        }
+      }
+    } catch (err) {
+      console.error('Failed to load dashboard:', err);
+    } finally {
+      setLoading(false);
     }
-    if (!project) {
-      project = await prisma.project.findUnique({
-        where: { id: targetId },
-      });
-    }
+  }, []);
+
+  useEffect(() => {
+    loadDashboard();
+
+    const handleProjectChanged = (e: any) => {
+      const newId = e?.detail?.projectId || getActiveProjectId();
+      if (newId) {
+        loadDashboard(newId);
+      }
+    };
+
+    window.addEventListener('project-changed', handleProjectChanged);
+    return () => window.removeEventListener('project-changed', handleProjectChanged);
+  }, [loadDashboard]);
+
+  if (loading) {
+    return (
+      <div className="app-layout">
+        <Sidebar />
+        <div className="main-wrapper">
+          <TopHeader currentProject={project} />
+          <main className="page-container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '80vh' }}>
+            <div className="card" style={{ width: '100%', maxWidth: '600px', padding: '3rem' }}>
+              <LoadingSpinner
+                size="lg"
+                label="Loading Executive SEO Dashboard..."
+                sublabel="Synchronizing website diagnostics, monitoring cycles, and real-time optimization status"
+              />
+            </div>
+          </main>
+        </div>
+      </div>
+    );
   }
 
-  if (!project && user) {
-    project = await prisma.project.findFirst({
-      where: { userId: user.id },
-      orderBy: { createdAt: 'desc' },
-    });
-  }
-
-  if (!project) {
-    project = await getDefaultProject();
-  }
-
-  if (!project) {
+  if (!project || !data) {
     return (
       <div className="app-layout">
         <Sidebar />
@@ -71,7 +113,19 @@ export default async function DashboardPage({
           <TopHeader />
           <main className="page-container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '80vh' }}>
             <div className="card" style={{ maxWidth: '580px', textAlign: 'center', padding: '3.5rem 2rem' }}>
-              <div style={{ width: '56px', height: '56px', borderRadius: '50%', background: 'rgba(56, 189, 248, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.25rem', color: 'var(--accent-cyan)' }}>
+              <div
+                style={{
+                  width: '56px',
+                  height: '56px',
+                  borderRadius: '50%',
+                  background: 'rgba(56, 189, 248, 0.1)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  margin: '0 auto 1.25rem',
+                  color: 'var(--accent-cyan)',
+                }}
+              >
                 <Search size={28} />
               </div>
               <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '0.75rem' }}>
@@ -81,7 +135,7 @@ export default async function DashboardPage({
                 Add your website URL to initiate an autonomous crawl, discover technical SEO issues, calculate your Optimization Score, and generate verified AI fixes.
               </p>
               <Link href="/onboarding" className="btn btn-primary btn-lg">
-                <span>Add Your Website & Start Crawl</span>
+                <span>Add Your Website &amp; Start Crawl</span>
                 <ArrowRight size={18} />
               </Link>
             </div>
@@ -91,69 +145,22 @@ export default async function DashboardPage({
     );
   }
 
-  const [issues, recommendations, keywords, recentChanges, pagesCount, latestCrawlJob, recentAuditLogsCount, totalChangesCount] = await Promise.all([
-    prisma.crawlIssue.findMany({
-      where: { projectId: project.id },
-      orderBy: { createdAt: 'desc' },
-      take: 5,
-    }),
-    prisma.seoRecommendation.findMany({
-      where: { projectId: project.id },
-      orderBy: { createdAt: 'desc' },
-      take: 4,
-    }),
-    prisma.keyword.findMany({
-      where: { projectId: project.id },
-      orderBy: { currentPosition: 'asc' },
-      take: 5,
-    }),
-    prisma.optimizationChange.findMany({
-      where: { projectId: project.id },
-      orderBy: { appliedAt: 'desc' },
-      take: 4,
-    }),
-    prisma.crawlPage.count({
-      where: { projectId: project.id },
-    }),
-    prisma.crawlJob.findFirst({
-      where: { projectId: project.id },
-      orderBy: { createdAt: 'desc' },
-    }),
-    prisma.auditLog.count({
-      where: { projectId: project.id },
-    }),
-    prisma.optimizationChange.count({
-      where: { projectId: project.id },
-    }),
-  ]);
-
-  const criticalIssuesCount = await prisma.crawlIssue.count({
-    where: { projectId: project.id, severity: 'CRITICAL' },
-  });
-
-  const highIssuesCount = await prisma.crawlIssue.count({
-    where: { projectId: project.id, severity: 'HIGH' },
-  });
-
-  // Calculate monitoring cycle: period days, days left, and occurrences
-  const now = new Date();
-  let periodEnd = latestCrawlJob?.periodEnd;
-  let periodStart = latestCrawlJob?.periodStart || project.createdAt;
-
-  if (!periodEnd) {
-    const fallbackEnd = new Date(periodStart);
-    fallbackEnd.setDate(fallbackEnd.getDate() + 14);
-    periodEnd = fallbackEnd;
-  }
-
-  const msRemaining = Math.max(0, new Date(periodEnd).getTime() - now.getTime());
-  const daysRemaining = Math.ceil(msRemaining / (1000 * 60 * 60 * 24));
-  const totalDaysInPeriod = Math.max(1, Math.round((new Date(periodEnd).getTime() - new Date(periodStart).getTime()) / (1000 * 60 * 60 * 24)));
-  const daysElapsed = Math.max(0, totalDaysInPeriod - daysRemaining);
-  const periodProgressPct = Math.min(100, Math.round((daysElapsed / totalDaysInPeriod) * 100));
-
-  // Count total occurrences in this monitoring period (audit events + pages analyzed + optimizations + issues)
-  const totalOccurrencesInPeriod = recentAuditLogsCount + pagesCount + totalChangesCount;
+  const {
+    issues = [],
+    recommendations = [],
+    keywords = [],
+    recentChanges = [],
+    pagesCount = 0,
+    criticalIssuesCount = 0,
+    highIssuesCount = 0,
+    monitoringCycle = {
+      daysRemaining: 14,
+      totalDaysInPeriod: 14,
+      daysElapsed: 0,
+      periodProgressPct: 0,
+      totalOccurrencesInPeriod: 0,
+    },
+  } = data;
 
   return (
     <div className="app-layout">
@@ -224,7 +231,7 @@ export default async function DashboardPage({
                   </span>
                 </div>
                 <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', margin: 0 }}>
-                  Cycle window: {totalDaysInPeriod} days total · Continuous 1-minute automated URL dispatch &amp; instant search engine pings.
+                  Cycle window: {monitoringCycle.totalDaysInPeriod} days total · Continuous 1-minute automated URL dispatch &amp; instant search engine pings.
                 </p>
               </div>
             </div>
@@ -235,12 +242,12 @@ export default async function DashboardPage({
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', justifyContent: 'center' }}>
                   <Clock size={16} color="var(--accent-primary)" />
                   <span style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>
-                    {daysRemaining}
+                    {monitoringCycle.daysRemaining}
                   </span>
                   <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', fontWeight: 600 }}>days left</span>
                 </div>
                 <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.15rem' }}>
-                  {periodProgressPct}% elapsed ({daysElapsed}d of {totalDaysInPeriod}d)
+                  {monitoringCycle.periodProgressPct}% elapsed ({monitoringCycle.daysElapsed}d of {monitoringCycle.totalDaysInPeriod}d)
                 </div>
               </div>
 
@@ -249,7 +256,7 @@ export default async function DashboardPage({
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', justifyContent: 'center' }}>
                   <Zap size={16} color="#10b981" />
                   <span style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--color-success)', letterSpacing: '-0.02em' }}>
-                    {totalOccurrencesInPeriod.toLocaleString()}
+                    {monitoringCycle.totalOccurrencesInPeriod.toLocaleString()}
                   </span>
                   <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', fontWeight: 600 }}>events</span>
                 </div>
@@ -301,7 +308,7 @@ export default async function DashboardPage({
               <span className="stat-label">Autopilot Mode</span>
               <div className="stat-value" style={{ fontSize: '1.4rem', color: '#10b981', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <Bot size={24} />
-                {project.optimizationMode}
+                {project.optimizationMode || 'AUTONOMOUS'}
               </div>
               <div className="stat-meta" style={{ color: 'var(--text-muted)' }}>
                 <span>Granular approval policies active</span>
@@ -331,7 +338,7 @@ export default async function DashboardPage({
               <div className="card-header">
                 <h3 className="card-title">
                   <AlertCircle size={18} color="var(--color-danger)" />
-                  Priority Technical & On-Page Issues
+                  Priority Technical &amp; On-Page Issues
                 </h3>
                 <Link href="/site-audit" style={{ fontSize: '0.8rem', color: 'var(--accent-cyan)' }}>
                   View All ({issues.length})
@@ -344,7 +351,7 @@ export default async function DashboardPage({
                 </div>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                  {issues.map((iss) => (
+                  {issues.map((iss: any) => (
                     <div
                       key={iss.id}
                       style={{
@@ -385,7 +392,7 @@ export default async function DashboardPage({
                 </div>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                  {recommendations.map((rec) => (
+                  {recommendations.map((rec: any) => (
                     <div
                       key={rec.id}
                       style={{
@@ -440,7 +447,7 @@ export default async function DashboardPage({
                     </tr>
                   </thead>
                   <tbody>
-                    {keywords.map((kw) => (
+                    {keywords.map((kw: any) => (
                       <tr key={kw.id}>
                         <td style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{kw.term}</td>
                         <td>
@@ -477,7 +484,7 @@ export default async function DashboardPage({
                 </div>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                  {recentChanges.map((chg) => (
+                  {recentChanges.map((chg: any) => (
                     <div
                       key={chg.id}
                       style={{

@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Play, Globe, ShieldCheck, Plus, User, LogOut, LogIn, UserPlus, Menu, HelpCircle, Home } from 'lucide-react';
-import { resolveActiveProject, setActiveProjectId } from '@/lib/activeProject';
+import { resolveActiveProject, setActiveProjectId, getActiveProjectId } from '@/lib/activeProject';
 
 interface TopHeaderProps {
   currentProject?: {
@@ -21,6 +21,12 @@ export default function TopHeader({ currentProject }: TopHeaderProps) {
   const [projects, setProjects] = useState<any[]>([]);
   const [activeId, setActiveId] = useState<string>(currentProject?.id || '');
   const [user, setUser] = useState<{ id: string; email: string; name?: string | null } | null>(null);
+
+  useEffect(() => {
+    if (currentProject?.id) {
+      setActiveId(currentProject.id);
+    }
+  }, [currentProject?.id]);
 
   useEffect(() => {
     // 1. Fetch current user session
@@ -41,13 +47,24 @@ export default function TopHeader({ currentProject }: TopHeaderProps) {
       .then((data) => {
         if (data.projects && data.projects.length > 0) {
           setProjects(data.projects);
-          const resolved = resolveActiveProject(data.projects);
-          if (resolved?.id) {
-            setActiveId(resolved.id);
+          if (!currentProject?.id) {
+            const resolved = resolveActiveProject(data.projects);
+            if (resolved?.id) {
+              setActiveId(resolved.id);
+            }
           }
         }
       })
       .catch(() => {});
+
+    const handleProjectChanged = (e: any) => {
+      const newId = e?.detail?.projectId || getActiveProjectId();
+      if (newId) {
+        setActiveId(newId);
+      }
+    };
+    window.addEventListener('project-changed', handleProjectChanged);
+    return () => window.removeEventListener('project-changed', handleProjectChanged);
   }, [currentProject?.id]);
 
   const handleSwitchProject = (newId: string) => {
