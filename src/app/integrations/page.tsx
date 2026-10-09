@@ -52,7 +52,7 @@ export default function IntegrationsPage() {
   const [cfConnecting, setCfConnecting] = useState(false);
   const [cfStatus, setCfStatus] = useState<{ success?: boolean; message?: string } | null>(null);
 
-  useEffect(() => {
+  const loadActiveProjectAndIntegrations = () => {
     fetch('/api/projects')
       .then((r) => r.json())
       .then((data) => {
@@ -68,12 +68,24 @@ export default function IntegrationsPage() {
           setLoading(false);
         }
       });
+  };
+
+  useEffect(() => {
+    loadActiveProjectAndIntegrations();
+
+    const handleProjectChange = () => {
+      loadActiveProjectAndIntegrations();
+    };
+
+    window.addEventListener('project-changed', handleProjectChange);
 
     // Check if server has environment token
     fetch('/api/integrations/github/repos')
       .then((r) => r.json())
       .then((d) => setHasEnvToken(Boolean(d.hasEnvToken)))
       .catch(() => {});
+
+    return () => window.removeEventListener('project-changed', handleProjectChange);
   }, []);
 
   const loadIntegrations = (projectId: string) => {

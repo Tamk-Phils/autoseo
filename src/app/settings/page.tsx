@@ -25,7 +25,7 @@ export default function SettingsPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
+  const loadSettings = () => {
     fetch('/api/projects')
       .then((r) => r.json())
       .then((data) => {
@@ -42,6 +42,17 @@ export default function SettingsPage() {
       })
       .catch(() => setError('Unable to load project settings.'))
       .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    loadSettings();
+
+    const handleProjectChange = () => {
+      loadSettings();
+    };
+
+    window.addEventListener('project-changed', handleProjectChange);
+    return () => window.removeEventListener('project-changed', handleProjectChange);
   }, []);
 
   const handleSave = async () => {

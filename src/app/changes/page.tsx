@@ -14,6 +14,8 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 
+import { resolveActiveProject } from '@/lib/activeProject';
+
 export default function ChangesPage() {
   const [changes, setChanges] = useState<any[]>([]);
   const [project, setProject] = useState<any>(null);
@@ -26,12 +28,14 @@ export default function ChangesPage() {
       const pRes = await fetch('/api/projects');
       const pData = await pRes.json();
       if (pData.projects && pData.projects.length > 0) {
-        const current = pData.projects[0];
+        const current = resolveActiveProject(pData.projects);
         setProject(current);
         const res = await fetch(`/api/changes?projectId=${current.id}`);
         const data = await res.json();
         if (data.changes) {
           setChanges(data.changes);
+        } else {
+          setChanges([]);
         }
       }
     } catch (e) {
@@ -43,6 +47,9 @@ export default function ChangesPage() {
 
   useEffect(() => {
     fetchChanges();
+    const handleProjectChanged = () => fetchChanges();
+    window.addEventListener('project-changed', handleProjectChanged);
+    return () => window.removeEventListener('project-changed', handleProjectChanged);
   }, []);
 
   const handleRollback = async (changeId: string) => {

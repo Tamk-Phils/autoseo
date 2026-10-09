@@ -18,6 +18,8 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 
+import { resolveActiveProject } from '@/lib/activeProject';
+
 export default function CompetitorsPage() {
   const [project, setProject] = useState<any>(null);
   const [competitors, setCompetitors] = useState<any[]>([]);
@@ -33,13 +35,16 @@ export default function CompetitorsPage() {
       const pRes = await fetch('/api/projects');
       const pData = await pRes.json();
       if (pData.projects && pData.projects.length > 0) {
-        const current = pData.projects[0];
+        const current = resolveActiveProject(pData.projects);
         setProject(current);
         const res = await fetch(`/api/competitors?projectId=${current.id}`);
         const data = await res.json();
         if (data.competitors) {
           setCompetitors(data.competitors);
           setOpportunities(data.opportunities || []);
+        } else {
+          setCompetitors([]);
+          setOpportunities([]);
         }
       }
     } catch (e) {
@@ -51,6 +56,9 @@ export default function CompetitorsPage() {
 
   useEffect(() => {
     fetchCompetitors();
+    const handleProjectChanged = () => fetchCompetitors();
+    window.addEventListener('project-changed', handleProjectChanged);
+    return () => window.removeEventListener('project-changed', handleProjectChanged);
   }, []);
 
   const handleAddCompetitor = async (e: React.FormEvent) => {

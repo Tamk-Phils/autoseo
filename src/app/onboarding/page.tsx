@@ -61,6 +61,13 @@ export default function OnboardingPage() {
         return;
       }
 
+      // Immediately switch active project globally across all tabs and components
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('activeProjectId', data.project.id);
+        document.cookie = `activeProjectId=${encodeURIComponent(data.project.id)}; path=/; max-age=31536000; SameSite=Lax`;
+        window.dispatchEvent(new CustomEvent('project-changed', { detail: { projectId: data.project.id } }));
+      }
+
       const crawlRes = await fetch('/api/crawl/start', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

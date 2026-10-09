@@ -17,6 +17,8 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 
+import { resolveActiveProject } from '@/lib/activeProject';
+
 export default function PagesAnalyzerPage() {
   const [pages, setPages] = useState<any[]>([]);
   const [selectedPage, setSelectedPage] = useState<any | null>(null);
@@ -26,23 +28,32 @@ export default function PagesAnalyzerPage() {
   const [loading, setLoading] = useState(true);
   const [queueing, setQueueing] = useState(false);
 
-  useEffect(() => {
+  const loadProjectPages = () => {
+    setLoading(true);
     fetch('/api/projects')
       .then((r) => r.json())
       .then(async (data) => {
         if (data.projects && data.projects.length > 0) {
-          const savedId = typeof window !== 'undefined' ? (new URLSearchParams(window.location.search).get('projectId') || localStorage.getItem('activeProjectId')) : null;
-          const current = (savedId && data.projects.find((p: any) => p.id === savedId)) || data.projects[0];
+          const current = resolveActiveProject(data.projects);
           setProject(current);
           const pRes = await fetch(`/api/pages?projectId=${current.id}`);
           const pData = await pRes.json();
           if (pData.pages) {
             setPages(pData.pages);
+          } else {
+            setPages([]);
           }
         }
       })
       .catch((err) => console.error(err))
       .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    loadProjectPages();
+    const handleProjectChanged = () => loadProjectPages();
+    window.addEventListener('project-changed', handleProjectChanged);
+    return () => window.removeEventListener('project-changed', handleProjectChanged);
   }, []);
 
   const handleOptimizePage = (page: any) => {

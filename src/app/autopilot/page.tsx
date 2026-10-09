@@ -12,6 +12,8 @@ import {
   Save,
 } from 'lucide-react';
 
+import { getActiveProjectId } from '@/lib/activeProject';
+
 export default function AutopilotPage() {
   const [project, setProject] = useState<any>(null);
   const [mode, setMode] = useState<string>('ASSISTED');
@@ -29,10 +31,9 @@ export default function AutopilotPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const savedId = typeof window !== 'undefined'
-      ? new URLSearchParams(window.location.search).get('projectId') || localStorage.getItem('activeProjectId')
-      : null;
+  const loadAutopilotConfig = () => {
+    setLoading(true);
+    const savedId = getActiveProjectId();
     fetch(`/api/autopilot${savedId ? `?projectId=${encodeURIComponent(savedId)}` : ''}`)
       .then((r) => r.json())
       .then((data) => {
@@ -54,6 +55,13 @@ export default function AutopilotPage() {
       })
       .catch(() => setError('Unable to load autopilot policies.'))
       .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    loadAutopilotConfig();
+    const handleProjectChanged = () => loadAutopilotConfig();
+    window.addEventListener('project-changed', handleProjectChanged);
+    return () => window.removeEventListener('project-changed', handleProjectChanged);
   }, []);
 
   const handleSave = async () => {

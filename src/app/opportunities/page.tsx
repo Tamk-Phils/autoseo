@@ -15,18 +15,20 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 
+import { resolveActiveProject } from '@/lib/activeProject';
+
 export default function OpportunitiesPage() {
   const [project, setProject] = useState<any>(null);
   const [opportunities, setOpportunities] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
+  const loadOpportunities = () => {
+    setLoading(true);
     fetch('/api/projects')
       .then((r) => r.json())
       .then(async (data) => {
         if (data.projects && data.projects.length > 0) {
-          const savedId = typeof window !== 'undefined' ? (new URLSearchParams(window.location.search).get('projectId') || localStorage.getItem('activeProjectId')) : null;
-          const current = (savedId && data.projects.find((p: any) => p.id === savedId)) || data.projects[0];
+          const current = resolveActiveProject(data.projects);
           setProject(current);
 
           const [issuesRes, kwRes] = await Promise.all([
@@ -94,6 +96,13 @@ export default function OpportunitiesPage() {
       })
       .catch((err) => console.error(err))
       .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    loadOpportunities();
+    const handleProjectChanged = () => loadOpportunities();
+    window.addEventListener('project-changed', handleProjectChanged);
+    return () => window.removeEventListener('project-changed', handleProjectChanged);
   }, []);
 
   return (

@@ -37,7 +37,7 @@ export default function LiveCrawlPage() {
   const [jobId, setJobId] = useState<string | null>(null);
   const consoleEndRef = useRef<HTMLDivElement>(null);
 
-  // Load project defaults
+  // Load project defaults & listen for global switch
   useEffect(() => {
     const requestedJobId = typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('jobId') : null;
     setJobId(requestedJobId);
@@ -45,19 +45,30 @@ export default function LiveCrawlPage() {
       setIsRunning(true);
     }
 
-    fetch('/api/projects')
-      .then((r) => r.json())
-      .then((data) => {
-        if (data.projects && data.projects.length > 0) {
-          const savedId = typeof window !== 'undefined' ? (new URLSearchParams(window.location.search).get('projectId') || localStorage.getItem('activeProjectId')) : null;
-          const current = (savedId && data.projects.find((p: any) => p.id === savedId)) || data.projects[0];
-          setProject(current);
-          setCrawlUrl(current.url);
-          if (current && typeof window !== 'undefined') {
-            localStorage.setItem('activeProjectId', current.id);
+    const loadProjects = () => {
+      fetch('/api/projects')
+        .then((r) => r.json())
+        .then((data) => {
+          if (data.projects && data.projects.length > 0) {
+            const savedId = typeof window !== 'undefined' ? (new URLSearchParams(window.location.search).get('projectId') || localStorage.getItem('activeProjectId')) : null;
+            const current = (savedId && data.projects.find((p: any) => p.id === savedId)) || data.projects[0];
+            setProject(current);
+            setCrawlUrl(current.url);
+            if (current && typeof window !== 'undefined') {
+              localStorage.setItem('activeProjectId', current.id);
+            }
           }
-        }
-      });
+        });
+    };
+
+    loadProjects();
+
+    const handleProjectChange = () => {
+      loadProjects();
+    };
+
+    window.addEventListener('project-changed', handleProjectChange);
+    return () => window.removeEventListener('project-changed', handleProjectChange);
   }, []);
 
   // Poll status while running
@@ -114,12 +125,26 @@ export default function LiveCrawlPage() {
     setProgress(5);
 
     try {
+      let cleanUrl = crawlUrl.trim();
+      if (!cleanUrl.startsWith('http://') && !cleanUrl.startsWith('https://')) {
+        cleanUrl = `https://${cleanUrl}`;
+      }
+
       let targetProjectId = project?.id;
-      if (!targetProjectId) {
-        let cleanUrl = crawlUrl.trim();
-        if (!cleanUrl.startsWith('http://') && !cleanUrl.startsWith('https://')) {
-          cleanUrl = `https://${cleanUrl}`;
-        }
+
+      // Validate if crawlUrl actually matches the current project's domain
+      let currentDomain = '';
+      try {
+        currentDomain = project?.url ? new URL(project.url).hostname.replace(/^www\./, '').toLowerCase() : '';
+      } catch (e) {}
+
+      let targetDomain = '';
+      try {
+        targetDomain = new URL(cleanUrl).hostname.replace(/^www\./, '').toLowerCase();
+      } catch (e) {}
+
+      // If user typed a different URL, or no project is active, create or find project for this domain
+      if (!targetProjectId || (currentDomain && targetDomain && currentDomain !== targetDomain)) {
         const createRes = await fetch('/api/projects', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -129,6 +154,11 @@ export default function LiveCrawlPage() {
         if (createData.project) {
           targetProjectId = createData.project.id;
           setProject(createData.project);
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('activeProjectId', targetProjectId);
+            document.cookie = `activeProjectId=${encodeURIComponent(targetProjectId)}; path=/; max-age=31536000; SameSite=Lax`;
+            window.dispatchEvent(new CustomEvent('project-changed', { detail: { projectId: targetProjectId } }));
+          }
         }
       }
 

@@ -15,6 +15,7 @@ import {
   X,
   RefreshCw,
 } from 'lucide-react';
+import { getActiveProjectId } from '@/lib/activeProject';
 
 export default function KeywordsPage() {
   const [keywords, setKeywords] = useState<any[]>([]);
@@ -28,14 +29,15 @@ export default function KeywordsPage() {
 
   const fetchKeywords = async () => {
     try {
-      const savedId = typeof window !== 'undefined'
-        ? new URLSearchParams(window.location.search).get('projectId') || localStorage.getItem('activeProjectId')
-        : null;
+      setLoading(true);
+      const savedId = getActiveProjectId();
       const res = await fetch(`/api/keywords${savedId ? `?projectId=${encodeURIComponent(savedId)}` : ''}`);
       const data = await res.json();
       if (data.keywords) {
         setKeywords(data.keywords);
         setProject(data.project);
+      } else {
+        setKeywords([]);
       }
     } catch (e) {
       console.error(e);
@@ -46,6 +48,9 @@ export default function KeywordsPage() {
 
   useEffect(() => {
     fetchKeywords();
+    const handleProjectChanged = () => fetchKeywords();
+    window.addEventListener('project-changed', handleProjectChanged);
+    return () => window.removeEventListener('project-changed', handleProjectChanged);
   }, []);
 
   const handleAddKeyword = async (e: React.FormEvent) => {

@@ -26,13 +26,22 @@ import {
   X,
   BookOpen,
 } from 'lucide-react';
+import { getActiveProjectId } from '@/lib/activeProject';
 
 export default function Sidebar() {
   const pathname = usePathname();
   const [user, setUser] = useState<{ id: string; email: string; name?: string | null } | null>(null);
   const [isOpen, setIsOpen] = useState(false);
+  const [activeProjectId, setActiveProjectId] = useState<string | null>(null);
 
   useEffect(() => {
+    const updateActive = () => {
+      const currentId = getActiveProjectId();
+      setActiveProjectId(currentId);
+    };
+    updateActive();
+    window.addEventListener('project-changed', updateActive);
+
     fetch('/api/auth/me')
       .then((r) => r.json())
       .then((data) => {
@@ -51,6 +60,7 @@ export default function Sidebar() {
     window.addEventListener('close-sidebar', handleClose);
 
     return () => {
+      window.removeEventListener('project-changed', updateActive);
       window.removeEventListener('toggle-sidebar', handleToggle);
       window.removeEventListener('close-sidebar', handleClose);
     };
@@ -113,10 +123,11 @@ export default function Sidebar() {
           {navItems.slice(0, 6).map((item) => {
             const Icon = item.icon;
             const isActive = pathname === item.href;
+            const linkHref = activeProjectId ? `${item.href}?projectId=${encodeURIComponent(activeProjectId)}` : item.href;
             return (
               <Link
                 key={item.href}
-                href={item.href}
+                href={linkHref}
                 className={`nav-item ${isActive ? 'active' : ''}`}
                 onClick={() => setIsOpen(false)}
               >
@@ -130,10 +141,11 @@ export default function Sidebar() {
           {navItems.slice(6, 10).map((item) => {
             const Icon = item.icon;
             const isActive = pathname === item.href;
+            const linkHref = activeProjectId ? `${item.href}?projectId=${encodeURIComponent(activeProjectId)}` : item.href;
             return (
               <Link
                 key={item.href}
-                href={item.href}
+                href={linkHref}
                 className={`nav-item ${isActive ? 'active' : ''}`}
                 onClick={() => setIsOpen(false)}
               >
@@ -147,10 +159,11 @@ export default function Sidebar() {
           {navItems.slice(10).map((item) => {
             const Icon = item.icon;
             const isActive = pathname === item.href;
+            const linkHref = activeProjectId ? `${item.href}?projectId=${encodeURIComponent(activeProjectId)}` : item.href;
             return (
               <Link
                 key={item.href}
-                href={item.href}
+                href={linkHref}
                 className={`nav-item ${isActive ? 'active' : ''}`}
                 onClick={() => setIsOpen(false)}
               >

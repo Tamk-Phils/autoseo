@@ -34,21 +34,34 @@ export default function ActivatePage() {
   const [planActivated, setPlanActivated] = useState(false);
   const [pageLoading, setPageLoading] = useState(true);
 
-  useEffect(() => {
+  const loadProject = () => {
     fetch('/api/projects')
       .then((r) => r.json())
       .then((data) => {
         if (data.projects && data.projects.length > 0) {
-          const savedId = typeof window !== 'undefined' ? localStorage.getItem('activeProjectId') : null;
+          const urlParamId = typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('projectId') : null;
+          const savedId = urlParamId || (typeof window !== 'undefined' ? localStorage.getItem('activeProjectId') : null);
           const matched = savedId ? data.projects.find((p: any) => p.id === savedId) : null;
           const chosen = matched || data.projects[data.projects.length - 1];
           setProject(chosen);
           if (chosen && typeof window !== 'undefined') {
             localStorage.setItem('activeProjectId', chosen.id);
+            document.cookie = `activeProjectId=${encodeURIComponent(chosen.id)}; path=/; max-age=31536000; SameSite=Lax`;
           }
         }
       })
       .finally(() => setPageLoading(false));
+  };
+
+  useEffect(() => {
+    loadProject();
+
+    const handleProjectChange = () => {
+      loadProject();
+    };
+
+    window.addEventListener('project-changed', handleProjectChange);
+    return () => window.removeEventListener('project-changed', handleProjectChange);
   }, []);
 
   const originUrl = typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000';

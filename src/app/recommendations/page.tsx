@@ -20,6 +20,8 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 
+import { resolveActiveProject } from '@/lib/activeProject';
+
 export default function RecommendationsPage() {
   const [recommendations, setRecommendations] = useState<any[]>([]);
   const [integrations, setIntegrations] = useState<any[]>([]);
@@ -35,7 +37,7 @@ export default function RecommendationsPage() {
       const pRes = await fetch('/api/projects');
       const pData = await pRes.json();
       if (pData.projects && pData.projects.length > 0) {
-        const curr = pData.projects[0];
+        const curr = resolveActiveProject(pData.projects);
         setProject(curr);
         
         const res = await fetch(`/api/recommendations?projectId=${curr.id}`);
@@ -66,6 +68,9 @@ export default function RecommendationsPage() {
 
   useEffect(() => {
     fetchRecs();
+    const handleProjectChanged = () => fetchRecs();
+    window.addEventListener('project-changed', handleProjectChanged);
+    return () => window.removeEventListener('project-changed', handleProjectChanged);
   }, []);
 
   const handleAction = async (id: string, action: 'APPROVE' | 'REJECT') => {

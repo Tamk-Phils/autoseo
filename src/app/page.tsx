@@ -60,6 +60,13 @@ export default function LandingPage() {
         return;
       }
 
+      // Immediately switch active project globally across all tabs and components
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('activeProjectId', data.project.id);
+        document.cookie = `activeProjectId=${encodeURIComponent(data.project.id)}; path=/; max-age=31536000; SameSite=Lax`;
+        window.dispatchEvent(new CustomEvent('project-changed', { detail: { projectId: data.project.id } }));
+      }
+
       // 2. Start initial crawl
       await fetch('/api/crawl/start', {
         method: 'POST',
@@ -67,8 +74,8 @@ export default function LandingPage() {
         body: JSON.stringify({ projectId: data.project.id, maxPages: 25 }),
       });
 
-      // 3. Forward straight to zero-code autonomous activation
-      router.push('/activate');
+      // 3. Forward straight to zero-code autonomous activation with projectId
+      router.push(`/activate?projectId=${data.project.id}`);
     } catch (err: any) {
       setError(err.message || 'Network error scanning website');
       setScanning(false);

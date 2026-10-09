@@ -15,6 +15,8 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 
+import { resolveActiveProject } from '@/lib/activeProject';
+
 export default function SiteAuditPage() {
   const [issues, setIssues] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -22,23 +24,32 @@ export default function SiteAuditPage() {
   const [activeSeverity, setActiveSeverity] = useState<string>('ALL');
   const [project, setProject] = useState<any>(null);
 
-  useEffect(() => {
+  const loadAuditData = () => {
+    setLoading(true);
     fetch('/api/projects')
       .then((r) => r.json())
       .then(async (data) => {
         if (data.projects && data.projects.length > 0) {
-          const savedId = typeof window !== 'undefined' ? (new URLSearchParams(window.location.search).get('projectId') || localStorage.getItem('activeProjectId')) : null;
-          const current = (savedId && data.projects.find((p: any) => p.id === savedId)) || data.projects[0];
+          const current = resolveActiveProject(data.projects);
           setProject(current);
           const res = await fetch(`/api/issues?projectId=${current.id}`);
           const issuesData = await res.json();
           if (issuesData.issues) {
             setIssues(issuesData.issues);
+          } else {
+            setIssues([]);
           }
         }
       })
       .catch((err) => console.error(err))
       .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    loadAuditData();
+    const handleProjectChanged = () => loadAuditData();
+    window.addEventListener('project-changed', handleProjectChanged);
+    return () => window.removeEventListener('project-changed', handleProjectChanged);
   }, []);
 
   const categories = [

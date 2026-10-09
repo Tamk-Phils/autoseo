@@ -18,6 +18,8 @@ import {
   Search,
 } from 'lucide-react';
 
+import { cookies } from 'next/headers';
+
 export const dynamic = 'force-dynamic';
 
 export default async function DashboardPage({
@@ -26,12 +28,21 @@ export default async function DashboardPage({
   searchParams?: { projectId?: string };
 }) {
   const user = await getCurrentUser();
+  const cookieStore = cookies();
+  const cookieId = cookieStore.get('activeProjectId')?.value;
+  const targetId = searchParams?.projectId || cookieId;
+
   let project = null;
 
-  if (searchParams?.projectId) {
+  if (targetId) {
     if (user) {
       project = await prisma.project.findFirst({
-        where: { id: searchParams.projectId, userId: user.id },
+        where: { id: targetId, userId: user.id },
+      });
+    }
+    if (!project) {
+      project = await prisma.project.findUnique({
+        where: { id: targetId },
       });
     }
   }
@@ -43,7 +54,7 @@ export default async function DashboardPage({
     });
   }
 
-  if (!project && !user) {
+  if (!project) {
     project = await getDefaultProject();
   }
 

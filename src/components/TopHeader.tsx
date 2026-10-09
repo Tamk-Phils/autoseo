@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Play, Globe, ShieldCheck, Plus, User, LogOut, LogIn, UserPlus, Menu, HelpCircle } from 'lucide-react';
+import { resolveActiveProject, setActiveProjectId } from '@/lib/activeProject';
 
 interface TopHeaderProps {
   currentProject?: {
@@ -40,21 +41,9 @@ export default function TopHeader({ currentProject }: TopHeaderProps) {
       .then((data) => {
         if (data.projects && data.projects.length > 0) {
           setProjects(data.projects);
-          const urlParams = new URLSearchParams(window.location.search);
-          const urlProjectId = urlParams.get('projectId');
-          const saved = localStorage.getItem('activeProjectId');
-
-          if (urlProjectId && data.projects.some((p: any) => p.id === urlProjectId)) {
-            setActiveId(urlProjectId);
-            localStorage.setItem('activeProjectId', urlProjectId);
-          } else if (saved && data.projects.some((p: any) => p.id === saved)) {
-            setActiveId(saved);
-          } else if (currentProject?.id) {
-            setActiveId(currentProject.id);
-            localStorage.setItem('activeProjectId', currentProject.id);
-          } else {
-            setActiveId(data.projects[0].id);
-            localStorage.setItem('activeProjectId', data.projects[0].id);
+          const resolved = resolveActiveProject(data.projects);
+          if (resolved?.id) {
+            setActiveId(resolved.id);
           }
         }
       })
@@ -63,7 +52,7 @@ export default function TopHeader({ currentProject }: TopHeaderProps) {
 
   const handleSwitchProject = (newId: string) => {
     setActiveId(newId);
-    localStorage.setItem('activeProjectId', newId);
+    setActiveProjectId(newId);
     const url = new URL(window.location.href);
     url.searchParams.set('projectId', newId);
     window.location.href = url.toString();
@@ -73,6 +62,7 @@ export default function TopHeader({ currentProject }: TopHeaderProps) {
     try {
       await fetch('/api/auth/logout', { method: 'POST' });
       localStorage.removeItem('activeProjectId');
+      document.cookie = 'activeProjectId=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
       window.location.href = '/login';
     } catch {
       window.location.href = '/login';

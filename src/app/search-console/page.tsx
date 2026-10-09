@@ -23,7 +23,7 @@ export default function SearchConsolePage() {
   const [importing, setImporting] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
 
-  useEffect(() => {
+  const loadProjectAndStatus = () => {
     fetch('/api/projects')
       .then((r) => r.json())
       .then((data) => {
@@ -37,6 +37,17 @@ export default function SearchConsolePage() {
             .catch(() => {});
         }
       });
+  };
+
+  useEffect(() => {
+    loadProjectAndStatus();
+
+    const handleProjectChange = () => {
+      loadProjectAndStatus();
+    };
+
+    window.addEventListener('project-changed', handleProjectChange);
+    return () => window.removeEventListener('project-changed', handleProjectChange);
   }, []);
 
   const handleImport = async () => {
