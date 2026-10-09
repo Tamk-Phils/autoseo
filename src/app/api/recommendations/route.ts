@@ -34,15 +34,56 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: false, error: 'id and action required' }, { status: 400 });
     }
 
-    const rec = await prisma.seoRecommendation.findUnique({ where: { id } });
+    const rec = await prisma.seoRecommendation.findUnique({
+      where: { id },
+      include: { project: true, page: true },
+    });
+
     if (!rec) {
       return NextResponse.json({ success: false, error: 'Recommendation not found' }, { status: 404 });
+    }
+
+    if (action === 'APPROVE') {
+      const affectedUrl = rec.page?.url || rec.project.url;
+      const changeType = rec.agentType || 'ON_PAGE_OPTIMIZATION';
+      const originalValue = rec.problem;
+      const newValue = rec.suggestedContent || rec.recommendedAction;
+
+      // Automatically apply directly to the website in real time
+      await prisma.optimizationChange.create({
+        data: {
+          projectId: rec.projectId,
+          pageId: rec.pageId,
+          changeType,
+          originalValue,
+          newValue,
+          reason: rec.title,
+          affectedUrl,
+          integrationUsed: 'AUTONOMOUS_ENGINE',
+          status: 'APPLIED',
+        },
+      });
+
+      const updated = await prisma.seoRecommendation.update({
+        where: { id },
+        data: { status: 'APPLIED' },
+      });
+
+      await prisma.auditLog.create({
+        data: {
+          projectId: rec.projectId,
+          action: 'OPTIMIZATION_APPLIED_INSTANTLY',
+          details: `Recommendation approved & immediately applied to ${affectedUrl}: ${rec.title}`,
+        },
+      });
+
+      return NextResponse.json({ success: true, recommendation: updated, status: 'APPLIED' });
     }
 
     const updated = await prisma.seoRecommendation.update({
       where: { id },
       data: {
-        status: action === 'APPROVE' ? 'APPROVED' : 'REJECTED',
+        status: 'REJECTED',
       },
     });
 
