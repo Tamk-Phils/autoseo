@@ -3,7 +3,7 @@ import { executeAiPrompt } from './provider';
 
 export interface ProposedOptimization {
   pageUrl: string;
-  taskType: 'META_TITLE' | 'META_DESCRIPTION' | 'ALT_TEXT' | 'INTERNAL_LINK' | 'SCHEMA' | 'CONTENT';
+  taskType: 'META_TITLE' | 'META_DESCRIPTION' | 'ALT_TEXT' | 'INTERNAL_LINK' | 'SCHEMA' | 'CONTENT' | 'CANONICAL';
   title: string;
   problem: string;
   searchIntent?: string;
@@ -32,12 +32,12 @@ export async function runTechnicalSeoAgent(page: CrawledPageRaw): Promise<Propos
   if (!page.canonicalUrl && page.httpStatus === 200) {
     proposals.push({
       pageUrl: page.url,
-      taskType: 'SCHEMA',
+      taskType: 'CANONICAL',
       title: 'Implement self-referencing canonical tag',
       problem: 'Page lacks an explicit canonical declaration, risking duplicate content index fragmentation.',
       recommendedAction: `Add <link rel="canonical" href="${page.url}" />`,
       beforeValue: 'Missing canonical',
-      afterValue: `<link rel="canonical" href="${page.url}" />`,
+      afterValue: page.url,
       priority: 'HIGH',
       expectedImpact: 'HIGH_POTENTIAL',
       confidence: 0.95,
@@ -66,7 +66,7 @@ export async function runTechnicalSeoAgent(page: CrawledPageRaw): Promise<Propos
       problem: 'Page lacks structured data entity markup for rich snippets.',
       recommendedAction: 'Inject valid JSON-LD structured data block in page <head>.',
       beforeValue: 'None',
-      afterValue: `<script type="application/ld+json">\n${schemaSnippet}\n</script>`,
+      afterValue: schemaSnippet,
       priority: 'MEDIUM',
       expectedImpact: 'MEDIUM_POTENTIAL',
       confidence: 0.9,
@@ -82,16 +82,17 @@ export async function runTechnicalSeoAgent(page: CrawledPageRaw): Promise<Propos
  */
 export async function runContentSeoAgent(page: CrawledPageRaw, domain: string): Promise<ProposedOptimization[]> {
   const proposals: ProposedOptimization[] = [];
+  const cleanDomain = domain.replace(/^www\./, '').split('.')[0];
+  const capitalizedBrand = cleanDomain.charAt(0).toUpperCase() + cleanDomain.slice(1);
 
   // Title optimization
   if (!page.title || page.title.trim().length === 0) {
-    // Generate intelligent title based on path & domain
-    const cleanSlug = page.path.replace(/[-_/]/g, ' ').trim() || 'Home';
+    const cleanSlug = page.path === '/' ? 'Home' : page.path.replace(/[-_/]/g, ' ').trim();
     const capitalized = cleanSlug
       .split(' ')
       .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
       .join(' ');
-    const proposedTitle = `${capitalized} | ${domain}`;
+    const proposedTitle = `${capitalized} | ${capitalizedBrand}`;
 
     proposals.push({
       pageUrl: page.url,
@@ -106,9 +107,17 @@ export async function runContentSeoAgent(page: CrawledPageRaw, domain: string): 
       expectedImpact: 'HIGH_POTENTIAL',
       confidence: 0.92,
     });
-  } else if (page.title.length < 30 || page.title.length > 70) {
-    const cleanSlug = page.path.replace(/[-_/]/g, ' ').trim() || 'Official';
-    const proposedTitle = `${page.title.slice(0, 45)} | High-Performance Solutions`;
+  } else if (page.title.length < 35 || page.title.length > 65) {
+    const cleanSlug = page.path === '/' ? 'Official Store' : page.path.replace(/[-_/]/g, ' ').trim();
+    const capitalizedSlug = cleanSlug
+      .split(' ')
+      .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+      .join(' ');
+
+    const proposedTitle = page.title.toLowerCase().includes(cleanDomain.toLowerCase())
+      ? (page.title.length < 35 ? `${page.title} — Verified Quality & Fast Dispatch` : page.title.slice(0, 55).trim())
+      : `${page.title.slice(0, 38).trim()} | ${capitalizedBrand}`;
+
     proposals.push({
       pageUrl: page.url,
       taskType: 'META_TITLE',
@@ -125,17 +134,17 @@ export async function runContentSeoAgent(page: CrawledPageRaw, domain: string): 
   }
 
   // Meta description optimization
-  if (!page.metaDescription || page.metaDescription.trim().length === 0) {
-    const titleSnippet = page.title || domain;
-    const proposedDesc = `Explore ${titleSnippet}. Discover comprehensive insights, key features, and expert optimization for ${domain}.`;
+  if (!page.metaDescription || page.metaDescription.trim().length === 0 || page.metaDescription.length < 110) {
+    const titleSnippet = page.title || capitalizedBrand;
+    const proposedDesc = `Explore ${titleSnippet}. Discover comprehensive insights, premium selection, and expert support with ${capitalizedBrand}. Guaranteed performance and reliability.`;
     proposals.push({
       pageUrl: page.url,
       taskType: 'META_DESCRIPTION',
       title: 'Generate search-intent aligned meta description',
-      problem: 'Missing meta description causes search engines to pull arbitrary body text for snippets.',
+      problem: !page.metaDescription ? 'Missing meta description' : `Meta description too short (${page.metaDescription.length} chars; recommended 140-160 chars).`,
       searchIntent: 'Informational',
       recommendedAction: `Add focused meta description (145 characters).`,
-      beforeValue: '',
+      beforeValue: page.metaDescription || '',
       afterValue: proposedDesc,
       priority: 'MEDIUM',
       expectedImpact: 'MEDIUM_POTENTIAL',

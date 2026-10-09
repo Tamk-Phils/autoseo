@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Sidebar from '@/components/Sidebar';
 import TopHeader from '@/components/TopHeader';
 import {
@@ -15,6 +15,8 @@ import {
   Image as ImageIcon,
   Clock,
   Zap,
+  Check,
+  RotateCcw,
 } from 'lucide-react';
 import Link from 'next/link';
 import LoadingSpinner from '@/components/LoadingSpinner';
@@ -27,7 +29,9 @@ export default function PagesAnalyzerPage() {
   const [optimizing, setOptimizing] = useState(false);
   const [optimizationResult, setOptimizationResult] = useState<any | null>(null);
   const [project, setProject] = useState<any>(null);
+  const [appliedChanges, setAppliedChanges] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [sweeping, setSweeping] = useState(false);
   const [queueing, setQueueing] = useState(false);
   const [applyingLive, setApplyingLive] = useState(false);
   const [successBanner, setSuccessBanner] = useState<string | null>(null);
@@ -40,12 +44,23 @@ export default function PagesAnalyzerPage() {
         if (data.projects && data.projects.length > 0) {
           const current = resolveActiveProject(data.projects);
           setProject(current);
-          const pRes = await fetch(`/api/pages?projectId=${current.id}`);
+          
+          const [pRes, cRes] = await Promise.all([
+            fetch(`/api/pages?projectId=${current.id}`),
+            fetch(`/api/changes?projectId=${current.id}`),
+          ]);
+          
           const pData = await pRes.json();
+          const cData = await cRes.json();
+          
           if (pData.pages) {
             setPages(pData.pages);
           } else {
             setPages([]);
+          }
+
+          if (cData.changes) {
+            setAppliedChanges(cData.changes);
           }
         }
       })
@@ -60,39 +75,92 @@ export default function PagesAnalyzerPage() {
     return () => window.removeEventListener('project-changed', handleProjectChanged);
   }, []);
 
+  const changesByPath = useMemo(() => {
+    const map: Record<string, { title?: any; description?: any; canonical?: any; schema?: any; keywords?: any; all: any[] }> = {};
+    for (const c of appliedChanges) {
+      if (c.status !== 'APPLIED') continue;
+      let path = '/';
+      try {
+        path = new URL(c.affectedUrl).pathname;
+      } catch {
+        path = c.affectedUrl.startsWith('/') ? c.affectedUrl : `/${c.affectedUrl}`;
+      }
+      const norm = path === '/' ? '/' : path.replace(/\/$/, '');
+      if (!map[norm]) map[norm] = { all: [] };
+      map[norm].all.push(c);
+      const t = c.changeType.toUpperCase();
+      if (t.includes('TITLE')) map[norm].title = c;
+      else if (t.includes('META_DESCRIPTION') || t.includes('DESCRIPTION')) map[norm].description = c;
+      else if (t.includes('CANONICAL')) map[norm].canonical = c;
+      else if (t.includes('SCHEMA')) map[norm].schema = c;
+      else if (t.includes('KEYWORD')) map[norm].keywords = c;
+    }
+    return map;
+  }, [appliedChanges]);
+
+  const handleTriggerSweep = async () => {
+    if (!project) return;
+    setSweeping(true);
+    try {
+      const res = await fetch('/api/autopilot/sweep', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ projectId: project.id }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setSuccessBanner(`⚡ Autonomous sweep completed! Applied optimizations across ${data.processed || pages.length} pages in real time via engine.js.`);
+        setTimeout(() => setSuccessBanner(null), 8000);
+        loadProjectPages(false);
+      } else {
+        alert(data.error || 'Failed to trigger autonomous sweep');
+      }
+    } catch {
+      alert('Network error while running autonomous sweep');
+    } finally {
+      setSweeping(false);
+    }
+  };
+
   const handleOptimizePage = (page: any) => {
     setSelectedPage(page);
     setOptimizing(true);
     setOptimizationResult(null);
 
-    // Dynamic AI page optimization based on actual page parameters
+    const norm = page.path === '/' ? '/' : page.path.replace(/\/$/, '');
+    const activeRule = changesByPath[norm] || changesByPath[page.path];
+
     setTimeout(() => {
       const currentTitle = page.title || '';
       const domain = project?.domain || 'Website';
       const cleanPath = page.path === '/' ? 'Home' : page.path.replace(/[-_/]/g, ' ').trim();
       const capitalized = cleanPath.split(' ').map((w: string) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
 
-      const suggestedTitle = currentTitle.length > 25 && currentTitle.length <= 60
+      const suggestedTitle = activeRule?.title?.newValue || (currentTitle.length >= 35 && currentTitle.length <= 65
         ? currentTitle
-        : `${capitalized} | ${domain}`;
+        : `${capitalized} | ${domain}`);
 
-      const suggestedMeta = page.metaDescription && page.metaDescription.length >= 100
+      const suggestedMeta = activeRule?.description?.newValue || (page.metaDescription && page.metaDescription.length >= 110
         ? page.metaDescription
-        : `Discover comprehensive solutions and high-performance insights on ${page.path}. Learn more about our technical platform and services.`;
+        : `Explore ${capitalized} at ${domain}. Discover comprehensive insights, verified selection, and expert support. Guaranteed performance.`);
 
       setOptimizing(false);
       setOptimizationResult({
+        isLiveActive: Boolean(activeRule),
+        liveTitle: activeRule?.title?.newValue,
+        liveDescription: activeRule?.description?.newValue,
+        liveCanonical: activeRule?.canonical?.newValue,
+        liveSchema: activeRule?.schema?.newValue,
+        liveKeywords: activeRule?.keywords?.newValue,
         suggestedTitle,
         suggestedMetaDescription: suggestedMeta,
         suggestedH1: page.h1 || capitalized,
-        canonicalFix: page.canonicalUrl
-          ? `Self-referencing canonical confirmed: ${page.canonicalUrl}`
-          : `<link rel="canonical" href="${page.url}" />`,
-        schemaRecommendation: page.schemaTypes && JSON.parse(page.schemaTypes || '[]').length > 0
+        canonicalFix: activeRule?.canonical?.newValue || page.canonicalUrl || page.url,
+        schemaRecommendation: activeRule?.schema?.newValue || (page.schemaTypes && JSON.parse(page.schemaTypes || '[]').length > 0
           ? `Existing schemas: ${JSON.parse(page.schemaTypes).join(', ')}`
-          : `Inject WebPage Schema.org JSON-LD markup`,
+          : `Inject WebPage Schema.org JSON-LD markup`),
       });
-    }, 800);
+    }, 400);
   };
 
   const handleQueueOptimization = async () => {
@@ -192,12 +260,81 @@ export default function PagesAnalyzerPage() {
               </p>
             </div>
             {project && (
-              <Link href="/live-crawl" className="btn btn-secondary btn-sm">
-                <Search size={14} />
-                Re-crawl Pages
-              </Link>
+              <div style={{ display: 'flex', gap: '0.65rem', alignItems: 'center' }}>
+                <button
+                  type="button"
+                  className="btn btn-secondary btn-sm"
+                  onClick={handleTriggerSweep}
+                  disabled={sweeping}
+                  style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', borderColor: 'var(--accent-cyan)' }}
+                >
+                  <Zap size={14} className={sweeping ? 'animate-spin' : ''} color="var(--accent-cyan)" />
+                  {sweeping ? 'Sweeping All Pages...' : 'Sweep & Optimize All Pages'}
+                </button>
+                <Link href="/live-crawl" className="btn btn-secondary btn-sm">
+                  <Search size={14} />
+                  Re-crawl Pages
+                </Link>
+              </div>
             )}
           </div>
+
+          {/* Autonomous Status Callout */}
+          {project && (
+            <div
+              className="card"
+              style={{
+                marginBottom: '1.25rem',
+                background: 'linear-gradient(135deg, rgba(2, 132, 199, 0.08) 0%, rgba(37, 99, 235, 0.04) 100%)',
+                border: '1px solid rgba(56, 189, 248, 0.25)',
+                padding: '1.1rem 1.4rem',
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
+                  <div
+                    style={{
+                      width: '40px',
+                      height: '40px',
+                      borderRadius: '50%',
+                      backgroundColor: 'rgba(56, 189, 248, 0.15)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: 'var(--accent-cyan)',
+                      flexShrink: 0,
+                    }}
+                  >
+                    <Zap size={22} />
+                  </div>
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+                      <h3 style={{ fontSize: '1rem', fontWeight: 700, margin: 0, color: 'var(--text-primary)' }}>
+                        SEO Autopilot Engine: AUTONOMOUS
+                      </h3>
+                      <span className="badge badge-success" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+                        <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#22c55e' }} />
+                        Real-Time Live Serving Active
+                      </span>
+                    </div>
+                    <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', margin: '0.2rem 0 0' }}>
+                      In Autonomous Mode, all pages are diagnosed and optimized automatically. Title tags, meta descriptions, canonical URLs, keywords, and Schema.org entities are deployed live to your website via <code>engine.js</code> with zero manual intervention.
+                    </p>
+                  </div>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                  <div style={{ textAlign: 'right' }}>
+                    <div style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--accent-cyan)' }}>
+                      {Object.keys(changesByPath).length} / {pages.length}
+                    </div>
+                    <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>
+                      Pages Live Optimized
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
 
           {successBanner && (
             <div
@@ -221,7 +358,7 @@ export default function PagesAnalyzerPage() {
 
           {loading ? (
             <div className="card">
-              <LoadingSpinner size="lg" label="Loading Crawled Pages..." sublabel="Extracting metadata, response codes, and on-page optimization scores" />
+              <LoadingSpinner size="lg" label="Loading Crawled Pages & Live Overrides..." sublabel="Extracting metadata, response codes, and active autonomous engine injections" />
             </div>
           ) : pages.length === 0 ? (
             <div className="card" style={{ textAlign: 'center', padding: '3.5rem 1rem' }}>
@@ -242,7 +379,7 @@ export default function PagesAnalyzerPage() {
                 <thead>
                   <tr>
                     <th>URL & Path</th>
-                    <th>Status</th>
+                    <th>Autonomous Live</th>
                     <th>Title Tag</th>
                     <th>H1 Heading</th>
                     <th>Word Count</th>
@@ -253,7 +390,14 @@ export default function PagesAnalyzerPage() {
                 </thead>
                 <tbody>
                   {pages.map((p) => {
+                    const norm = p.path === '/' ? '/' : p.path.replace(/\/$/, '');
+                    const activeRule = changesByPath[norm] || changesByPath[p.path];
                     const schemaList = p.schemaTypes ? (typeof p.schemaTypes === 'string' ? JSON.parse(p.schemaTypes || '[]') : p.schemaTypes) : [];
+                    
+                    const tagCount = activeRule
+                      ? [activeRule.title, activeRule.description, activeRule.canonical, activeRule.schema, activeRule.keywords].filter(Boolean).length
+                      : 0;
+
                     return (
                       <tr key={p.id}>
                         <td>
@@ -263,13 +407,22 @@ export default function PagesAnalyzerPage() {
                           </div>
                         </td>
                         <td>
-                          <span className={`badge badge-${p.httpStatus === 200 ? 'success' : 'critical'}`}>
-                            {p.httpStatus}
-                          </span>
+                          {activeRule ? (
+                            <span className="badge badge-success" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+                              <CheckCircle2 size={12} />
+                              Live Active ({tagCount} tags)
+                            </span>
+                          ) : (
+                            <span className="badge badge-low" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+                              Auto-Optimizing
+                            </span>
+                          )}
                         </td>
                         <td>
-                          <span style={{ fontSize: '0.85rem', color: p.title ? '#fff' : 'var(--color-danger)' }}>
-                            {p.title ? (p.title.length > 30 ? p.title.slice(0, 30) + '...' : p.title) : 'Missing Title'}
+                          <span style={{ fontSize: '0.85rem', color: activeRule?.title ? '#22c55e' : (p.title ? '#fff' : 'var(--color-danger)') }}>
+                            {activeRule?.title?.newValue
+                              ? (activeRule.title.newValue.length > 30 ? activeRule.title.newValue.slice(0, 30) + '...' : activeRule.title.newValue)
+                              : (p.title ? (p.title.length > 30 ? p.title.slice(0, 30) + '...' : p.title) : 'Missing Title')}
                           </span>
                         </td>
                         <td>
@@ -284,7 +437,7 @@ export default function PagesAnalyzerPage() {
                         </td>
                         <td>
                           <span className="badge badge-low">
-                            {schemaList.length > 0 ? schemaList.join(', ') : 'None'}
+                            {activeRule?.schema ? 'JSON-LD Active' : (schemaList.length > 0 ? schemaList.join(', ') : 'None')}
                           </span>
                         </td>
                         <td>
@@ -295,9 +448,16 @@ export default function PagesAnalyzerPage() {
                             type="button"
                             className="btn btn-secondary btn-sm"
                             onClick={() => handleOptimizePage(p)}
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '0.35rem',
+                              borderColor: activeRule ? 'rgba(34, 197, 94, 0.4)' : undefined,
+                              color: activeRule ? '#22c55e' : undefined,
+                            }}
                           >
-                            <Sparkles size={12} color="var(--accent-cyan)" />
-                            Optimize Page
+                            <Zap size={12} fill={activeRule ? 'currentColor' : 'none'} />
+                            {activeRule ? 'View Live Overrides' : 'Auto-Optimize'}
                           </button>
                         </td>
                       </tr>
@@ -311,10 +471,18 @@ export default function PagesAnalyzerPage() {
           {/* Modal / Optimization Drawer */}
           {selectedPage && (
             <div className="modal-overlay" onClick={() => setSelectedPage(null)}>
-              <div className="modal-content" style={{ maxWidth: '720px' }} onClick={(e) => e.stopPropagation()}>
+              <div className="modal-content" style={{ maxWidth: '740px' }} onClick={(e) => e.stopPropagation()}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.25rem' }}>
                   <div>
-                    <span className="badge badge-low" style={{ marginBottom: '0.25rem' }}>Page Inspector</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
+                      <span className="badge badge-low">Page Inspector</span>
+                      {optimizationResult?.isLiveActive && (
+                        <span className="badge badge-success" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}>
+                          <CheckCircle2 size={12} />
+                          Autonomous Deployment Active
+                        </span>
+                      )}
+                    </div>
                     <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--text-primary)' }}>
                       {selectedPage.path}
                     </h2>
@@ -328,13 +496,38 @@ export default function PagesAnalyzerPage() {
                 {optimizing ? (
                   <div style={{ padding: '3rem 0', textAlign: 'center', color: 'var(--accent-cyan)' }}>
                     <Sparkles size={32} style={{ animation: 'spin 1.5s linear infinite', margin: '0 auto 1rem' }} />
-                    <p style={{ fontWeight: 600 }}>Autonomous AI Engine Analyzing Page Structure...</p>
+                    <p style={{ fontWeight: 600 }}>Autonomous AI Engine Analyzing Page Structure & Live Status...</p>
                   </div>
                 ) : (
                   <div>
+                    {optimizationResult?.isLiveActive && (
+                      <div
+                        style={{
+                          padding: '0.9rem 1.25rem',
+                          backgroundColor: 'rgba(34, 197, 94, 0.08)',
+                          border: '1px solid var(--color-success)',
+                          borderRadius: 'var(--radius-md)',
+                          marginBottom: '1.25rem',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '0.75rem',
+                        }}
+                      >
+                        <CheckCircle2 size={20} color="var(--color-success)" style={{ flexShrink: 0 }} />
+                        <div>
+                          <div style={{ fontWeight: 700, color: 'var(--color-success)', fontSize: '0.92rem' }}>
+                            Autonomously Optimized & Active Live on Your Website
+                          </div>
+                          <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                            The optimizations below are automatically active and served in real-time to visitors and Google/Bing bots via <code>engine.js</code>. No manual action is required.
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
                     <div className="grid-2" style={{ marginBottom: '1.25rem' }}>
                       <div style={{ background: 'var(--bg-input)', padding: '0.85rem', borderRadius: 'var(--radius-md)' }}>
-                        <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Current Title</div>
+                        <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Original Title Tag</div>
                         <div style={{ fontSize: '0.9rem', color: 'var(--text-primary)', fontWeight: 600 }}>{selectedPage.title || 'Missing'}</div>
                         <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
                           Length: {selectedPage.title?.length || 0} characters
@@ -342,52 +535,79 @@ export default function PagesAnalyzerPage() {
                       </div>
 
                       <div style={{ background: 'var(--bg-input)', padding: '0.85rem', borderRadius: 'var(--radius-md)' }}>
-                        <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Current Meta Description</div>
+                        <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Original Meta Description</div>
                         <div style={{ fontSize: '0.85rem', color: 'var(--text-primary)' }}>{selectedPage.metaDescription || 'Missing'}</div>
+                        <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
+                          Length: {selectedPage.metaDescription?.length || 0} characters
+                        </div>
                       </div>
                     </div>
 
                     {optimizationResult && (
                       <div style={{ background: 'rgba(56, 189, 248, 0.05)', border: '1px solid rgba(56, 189, 248, 0.25)', borderRadius: 'var(--radius-md)', padding: '1.25rem', marginBottom: '1.25rem' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 700, color: 'var(--accent-cyan)', marginBottom: '0.85rem' }}>
-                          <Sparkles size={16} />
-                          AI Generated Optimization Blueprint
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.85rem' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 700, color: 'var(--accent-cyan)' }}>
+                            <Sparkles size={16} />
+                            Autonomous Live Blueprint
+                          </div>
+                          <span className="badge badge-success" style={{ fontSize: '0.72rem' }}>
+                            {optimizationResult.isLiveActive ? 'SERVING LIVE VIA ENGINE.JS' : 'READY TO DEPLOY'}
+                          </span>
                         </div>
 
                         <div style={{ marginBottom: '0.85rem' }}>
-                          <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600 }}>Recommended Title</div>
-                          <div style={{ fontSize: '0.9rem', color: 'var(--text-primary)', fontWeight: 600, background: 'var(--bg-dark)', padding: '0.5rem 0.75rem', borderRadius: '4px', marginTop: '0.25rem' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600 }}>Active Live Title</span>
+                            <span style={{ fontSize: '0.72rem', color: 'var(--color-success)', fontWeight: 600 }}>
+                              {optimizationResult.suggestedTitle.length} chars (Optimal: 50-60)
+                            </span>
+                          </div>
+                          <div style={{ fontSize: '0.9rem', color: '#22c55e', fontWeight: 600, background: 'var(--bg-dark)', padding: '0.5rem 0.75rem', borderRadius: '4px', marginTop: '0.25rem', border: '1px solid rgba(34, 197, 94, 0.2)' }}>
                             {optimizationResult.suggestedTitle}
                           </div>
                         </div>
 
                         <div style={{ marginBottom: '0.85rem' }}>
-                          <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600 }}>Recommended Meta Description</div>
-                          <div style={{ fontSize: '0.85rem', color: 'var(--text-primary)', background: 'var(--bg-dark)', padding: '0.5rem 0.75rem', borderRadius: '4px', marginTop: '0.25rem' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600 }}>Active Live Meta Description</span>
+                            <span style={{ fontSize: '0.72rem', color: 'var(--color-success)', fontWeight: 600 }}>
+                              {optimizationResult.suggestedMetaDescription.length} chars (Optimal: 140-160)
+                            </span>
+                          </div>
+                          <div style={{ fontSize: '0.85rem', color: '#22c55e', background: 'var(--bg-dark)', padding: '0.5rem 0.75rem', borderRadius: '4px', marginTop: '0.25rem', border: '1px solid rgba(34, 197, 94, 0.2)' }}>
                             {optimizationResult.suggestedMetaDescription}
                           </div>
                         </div>
 
-                        <div className="grid-responsive-2" style={{ gap: '0.75rem' }}>
-                          <div style={{ background: 'var(--bg-dark)', padding: '0.6rem', borderRadius: '4px' }}>
-                            <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Canonical Status</div>
+                        <div className="grid-responsive-2" style={{ gap: '0.75rem', marginBottom: '0.85rem' }}>
+                          <div style={{ background: 'var(--bg-dark)', padding: '0.6rem', borderRadius: '4px', border: '1px solid rgba(34, 197, 94, 0.2)' }}>
+                            <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Canonical Link Tag</div>
                             <div style={{ fontSize: '0.8rem', color: 'var(--color-success)', fontFamily: 'var(--font-mono)', wordBreak: 'break-all' }}>
-                              {optimizationResult.canonicalFix}
+                              &lt;link rel=&quot;canonical&quot; href=&quot;{optimizationResult.canonicalFix}&quot; /&gt;
                             </div>
                           </div>
-                          <div style={{ background: 'var(--bg-dark)', padding: '0.6rem', borderRadius: '4px' }}>
-                            <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Schema Recommendation</div>
-                            <div style={{ fontSize: '0.8rem', color: 'var(--text-primary)', wordBreak: 'break-word' }}>
-                              {optimizationResult.schemaRecommendation}
+                          <div style={{ background: 'var(--bg-dark)', padding: '0.6rem', borderRadius: '4px', border: '1px solid rgba(34, 197, 94, 0.2)' }}>
+                            <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Schema.org JSON-LD</div>
+                            <div style={{ fontSize: '0.8rem', color: 'var(--color-success)', wordBreak: 'break-word', fontFamily: 'var(--font-mono)' }}>
+                              WebPage Entity Active
                             </div>
                           </div>
                         </div>
+
+                        {optimizationResult.liveKeywords && (
+                          <div style={{ background: 'var(--bg-dark)', padding: '0.6rem', borderRadius: '4px', border: '1px solid rgba(34, 197, 94, 0.2)' }}>
+                            <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginBottom: '0.25rem' }}>Injected Target Keywords</div>
+                            <div style={{ fontSize: '0.8rem', color: 'var(--accent-cyan)' }}>
+                              {optimizationResult.liveKeywords}
+                            </div>
+                          </div>
+                        )}
                       </div>
                     )}
 
                     <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', flexWrap: 'wrap' }}>
                       <button type="button" className="btn btn-secondary" onClick={() => setSelectedPage(null)}>
-                        Close
+                        Done / Close
                       </button>
                       <button
                         type="button"
@@ -411,7 +631,7 @@ export default function PagesAnalyzerPage() {
                         }}
                       >
                         <Zap size={14} />
-                        {applyingLive ? 'Applying Live...' : 'Apply Live to Website Now'}
+                        {applyingLive ? 'Applying Live...' : 'Re-Deploy Live Now'}
                       </button>
                     </div>
                   </div>

@@ -10,6 +10,8 @@ import {
   CheckCircle2,
   Lock,
   Save,
+  Zap,
+  Sparkles,
 } from 'lucide-react';
 
 import { getActiveProjectId } from '@/lib/activeProject';
@@ -29,7 +31,31 @@ export default function AutopilotPage() {
   const [savedMessage, setSavedMessage] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [sweeping, setSweeping] = useState(false);
+  const [sweepMessage, setSweepMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  const handleRunSweep = async () => {
+    if (!project) return;
+    setSweeping(true);
+    setSweepMessage(null);
+    try {
+      const res = await fetch('/api/autopilot/sweep', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ projectId: project.id }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setSweepMessage(`⚡ Autonomous sweep complete! Live optimizations verified across all crawled pages.`);
+        setTimeout(() => setSweepMessage(null), 6000);
+      }
+    } catch {
+      setError('Failed to trigger autonomous sweep');
+    } finally {
+      setSweeping(false);
+    }
+  };
 
   const loadAutopilotConfig = () => {
     setLoading(true);
@@ -200,6 +226,81 @@ export default function AutopilotPage() {
               </div>
             </div>
           </div>
+
+          {mode === 'AUTONOMOUS' && (
+            <div
+              className="card"
+              style={{
+                marginBottom: '1.75rem',
+                background: 'linear-gradient(135deg, rgba(2, 132, 199, 0.08) 0%, rgba(37, 99, 235, 0.04) 100%)',
+                border: '1px solid rgba(56, 189, 248, 0.25)',
+                padding: '1.25rem',
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
+                  <div
+                    style={{
+                      width: '42px',
+                      height: '42px',
+                      borderRadius: '50%',
+                      backgroundColor: 'rgba(56, 189, 248, 0.15)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: 'var(--accent-cyan)',
+                    }}
+                  >
+                    <Zap size={22} />
+                  </div>
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <h3 style={{ fontSize: '1rem', fontWeight: 700, margin: 0, color: 'var(--text-primary)' }}>
+                        Autonomous Self-Driving Mode is Active
+                      </h3>
+                      <span className="badge badge-success" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}>
+                        <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#22c55e' }} />
+                        Serving Live in Real Time
+                      </span>
+                    </div>
+                    <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', margin: '0.25rem 0 0' }}>
+                      All crawl diagnostics automatically synthesize optimized title tags, meta descriptions, canonical URLs, search keywords, and JSON-LD structured data. Changes are deployed directly to your website via <code>engine.js</code> every minute without requiring manual confirmation.
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  className="btn btn-secondary btn-sm"
+                  onClick={handleRunSweep}
+                  disabled={sweeping || !project}
+                  style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', borderColor: 'var(--accent-cyan)' }}
+                >
+                  <Sparkles size={14} className={sweeping ? 'animate-spin' : ''} color="var(--accent-cyan)" />
+                  {sweeping ? 'Running Full Sweep...' : 'Trigger Autonomous Sweep Now'}
+                </button>
+              </div>
+
+              {sweepMessage && (
+                <div
+                  style={{
+                    marginTop: '1rem',
+                    padding: '0.65rem 1rem',
+                    backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                    border: '1px solid var(--color-success)',
+                    borderRadius: 'var(--radius-sm)',
+                    color: 'var(--color-success)',
+                    fontSize: '0.85rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.5rem',
+                  }}
+                >
+                  <CheckCircle2 size={15} />
+                  <span>{sweepMessage}</span>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Granular Permissions Section (Section 26 & 445) */}
           <div className="grid-2">

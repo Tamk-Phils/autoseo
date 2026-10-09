@@ -29,7 +29,17 @@ export async function GET(
       return NextResponse.json({ overrides: {}, message: 'Site not found' }, { status: 404 });
     }
 
-    const overrides: Record<string, { title?: string; description?: string; schemaJson?: string; keywords?: string }> = {};
+    const overrides: Record<
+      string,
+      {
+        title?: string;
+        description?: string;
+        canonical?: string;
+        schemaJson?: string;
+        keywords?: string;
+        autoAlt?: boolean;
+      }
+    > = {};
 
     for (const change of project.optimizationChanges) {
       let path = '/';
@@ -49,21 +59,32 @@ export async function GET(
         overrides[path].title = change.newValue;
       } else if ((type.includes('META_DESCRIPTION') || type.includes('DESCRIPTION')) && !overrides[path].description) {
         overrides[path].description = change.newValue;
+      } else if (type.includes('CANONICAL') && !overrides[path].canonical) {
+        overrides[path].canonical = change.newValue;
       } else if (type.includes('SCHEMA') && !overrides[path].schemaJson) {
-        overrides[path].schemaJson = change.newValue;
+        let cleanSchema = change.newValue.trim();
+        if (cleanSchema.startsWith('<script') && cleanSchema.endsWith('</script>')) {
+          cleanSchema = cleanSchema.replace(/^<script[^>]*>/, '').replace(/<\/script>$/, '').trim();
+        }
+        overrides[path].schemaJson = cleanSchema;
       } else if (type.includes('KEYWORD') && !overrides[path].keywords) {
         overrides[path].keywords = change.newValue;
+      } else if (type.includes('ALT')) {
+        overrides[path].autoAlt = true;
       }
     }
 
-    // Auto-enrich structured schema with detected keywords if schemaJson is not manually configured
+    // Auto-enrich structured schema with detected keywords and canonical if not manually configured
     for (const [path, rule] of Object.entries(overrides)) {
+      if (!rule.canonical) {
+        rule.canonical = `${project.url.replace(/\/$/, '')}${path}`;
+      }
       if (!rule.schemaJson && (rule.keywords || rule.title)) {
         rule.schemaJson = JSON.stringify({
           '@context': 'https://schema.org',
           '@type': 'WebPage',
           name: rule.title || project.name || project.domain,
-          description: rule.description || '',
+          description: rule.description || `Official ${path} page for ${project.domain}`,
           url: `${project.url.replace(/\/$/, '')}${path}`,
           keywords: rule.keywords || undefined,
           about: rule.keywords

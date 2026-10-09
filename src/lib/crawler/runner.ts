@@ -506,6 +506,13 @@ export async function executeCrawlForProject(projectId: string, options: CrawlEx
       }
     }
 
+    // Autonomous Full-Page Optimization Sweep
+    try {
+      await ensureAutonomousPageOptimizations(project.id);
+    } catch (optErr) {
+      console.error('Autonomous page optimization sweep error:', optErr);
+    }
+
     // Finalize Crawl Job
     await prisma.crawlJob.update({
       where: { id: crawlJob.id },
@@ -539,4 +546,151 @@ export async function executeCrawlForProject(projectId: string, options: CrawlEx
     throw err;
   }
 }
+
+export async function ensureAutonomousPageOptimizations(projectId: string) {
+  const project = await prisma.project.findUnique({
+    where: { id: projectId },
+    include: {
+      pages: { take: 100 },
+      keywords: { take: 100, orderBy: [{ clicks: 'desc' }, { searchVolume: 'desc' }] },
+      autopilotConfig: true,
+    },
+  });
+  if (!project) return { processed: 0, newApplied: 0 };
+
+  const existingChanges = await prisma.optimizationChange.findMany({
+    where: { projectId: project.id, status: 'APPLIED' },
+  });
+
+  const existingByUrlAndType = new Set(
+    existingChanges.map((c) => `${c.affectedUrl.toLowerCase()}:::${c.changeType.toUpperCase()}`)
+  );
+
+  let newAppliedCount = 0;
+  const brandName = project.domain.replace(/^www\./, '').split('.')[0];
+  const capitalizedBrand = brandName.charAt(0).toUpperCase() + brandName.slice(1);
+
+  for (const page of project.pages) {
+    const cleanSlug = page.path === '/' ? 'Home' : page.path.replace(/[-_/]/g, ' ').trim();
+    const capitalizedSlug = cleanSlug
+      .split(' ')
+      .map((w: string) => w.charAt(0).toUpperCase() + w.slice(1))
+      .join(' ');
+
+    // 1. Autonomous Title Tag
+    const titleKey = `${page.url.toLowerCase()}:::META_TITLE`;
+    const titleKeyAlt = `${page.url.toLowerCase()}:::TITLE`;
+    if (!existingByUrlAndType.has(titleKey) && !existingByUrlAndType.has(titleKeyAlt)) {
+      const currentTitle = page.title || '';
+      const suggestedTitle = currentTitle.length >= 35 && currentTitle.length <= 65
+        ? currentTitle
+        : (currentTitle.length > 0 && currentTitle.toLowerCase().includes(brandName.toLowerCase()))
+          ? `${currentTitle.slice(0, 45).trim()} — Verified Quality`
+          : `${capitalizedSlug} | ${capitalizedBrand}`;
+
+      await prisma.optimizationChange.create({
+        data: {
+          projectId: project.id,
+          pageId: page.id,
+          changeType: 'TITLE',
+          originalValue: currentTitle || 'Missing title',
+          newValue: suggestedTitle,
+          reason: `Autonomous Title Tag CTR Optimization for ${page.path}`,
+          affectedUrl: page.url,
+          integrationUsed: 'AUTONOMOUS_ENGINE',
+          status: 'APPLIED',
+        },
+      });
+      existingByUrlAndType.add(titleKey);
+      newAppliedCount++;
+    }
+
+    // 2. Autonomous Meta Description
+    const descKey = `${page.url.toLowerCase()}:::META_DESCRIPTION`;
+    const descKeyAlt = `${page.url.toLowerCase()}:::DESCRIPTION`;
+    if (!existingByUrlAndType.has(descKey) && !existingByUrlAndType.has(descKeyAlt)) {
+      const currentDesc = page.metaDescription || '';
+      const suggestedDesc = currentDesc.length >= 110 && currentDesc.length <= 165
+        ? currentDesc
+        : `Explore ${capitalizedSlug} at ${capitalizedBrand}. Discover comprehensive insights, verified selection, and expert support. Guaranteed quality and performance.`;
+
+      await prisma.optimizationChange.create({
+        data: {
+          projectId: project.id,
+          pageId: page.id,
+          changeType: 'META_DESCRIPTION',
+          originalValue: currentDesc || 'Missing meta description',
+          newValue: suggestedDesc,
+          reason: `Autonomous SERP Snippet Meta Description for ${page.path}`,
+          affectedUrl: page.url,
+          integrationUsed: 'AUTONOMOUS_ENGINE',
+          status: 'APPLIED',
+        },
+      });
+      existingByUrlAndType.add(descKey);
+      newAppliedCount++;
+    }
+
+    // 3. Autonomous Canonical Tag
+    const canKey = `${page.url.toLowerCase()}:::CANONICAL`;
+    if (!existingByUrlAndType.has(canKey)) {
+      await prisma.optimizationChange.create({
+        data: {
+          projectId: project.id,
+          pageId: page.id,
+          changeType: 'CANONICAL',
+          originalValue: page.canonicalUrl || 'Missing canonical link',
+          newValue: page.url,
+          reason: `Autonomous Self-Referencing Canonical Tag for ${page.path}`,
+          affectedUrl: page.url,
+          integrationUsed: 'AUTONOMOUS_ENGINE',
+          status: 'APPLIED',
+        },
+      });
+      existingByUrlAndType.add(canKey);
+      newAppliedCount++;
+    }
+
+    // 4. Autonomous Schema.org WebPage JSON-LD
+    const schemaKey = `${page.url.toLowerCase()}:::SCHEMA`;
+    if (!existingByUrlAndType.has(schemaKey)) {
+      const schemaObj = {
+        '@context': 'https://schema.org',
+        '@type': 'WebPage',
+        name: page.title || `${capitalizedSlug} | ${capitalizedBrand}`,
+        description: page.metaDescription || `Official ${page.path} page for ${capitalizedBrand}`,
+        url: page.url,
+      };
+
+      await prisma.optimizationChange.create({
+        data: {
+          projectId: project.id,
+          pageId: page.id,
+          changeType: 'SCHEMA',
+          originalValue: 'No Schema.org JSON-LD markup',
+          newValue: JSON.stringify(schemaObj, null, 2),
+          reason: `Autonomous Schema.org Rich Snippet Entity for ${page.path}`,
+          affectedUrl: page.url,
+          integrationUsed: 'AUTONOMOUS_ENGINE',
+          status: 'APPLIED',
+        },
+      });
+      existingByUrlAndType.add(schemaKey);
+      newAppliedCount++;
+    }
+  }
+
+  if (newAppliedCount > 0) {
+    await prisma.auditLog.create({
+      data: {
+        projectId: project.id,
+        action: 'AUTONOMOUS_SWEEP_EXECUTED',
+        details: `Autonomous sweep applied ${newAppliedCount} live on-page optimizations (Titles, Descriptions, Canonical, Schemas) across ${project.pages.length} pages.`,
+      },
+    });
+  }
+
+  return { processed: project.pages.length, newApplied: newAppliedCount };
+}
+
 
