@@ -14,6 +14,8 @@ import {
   ExternalLink,
   X,
   RefreshCw,
+  Zap,
+  CheckCircle2,
 } from 'lucide-react';
 import { getActiveProjectId } from '@/lib/activeProject';
 
@@ -22,6 +24,8 @@ export default function KeywordsPage() {
   const [loading, setLoading] = useState(true);
   const [project, setProject] = useState<any>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isApplyingKeywords, setIsApplyingKeywords] = useState(false);
+  const [applyMessage, setApplyMessage] = useState<string | null>(null);
   const [newTerm, setNewTerm] = useState('');
   const [newIntent, setNewIntent] = useState('Commercial');
   const [newVolume, setNewVolume] = useState('2400');
@@ -52,6 +56,30 @@ export default function KeywordsPage() {
     window.addEventListener('project-changed', handleProjectChanged);
     return () => window.removeEventListener('project-changed', handleProjectChanged);
   }, []);
+
+  const handleApplyKeywordsToSite = async () => {
+    if (!project) return;
+    setIsApplyingKeywords(true);
+    setApplyMessage(null);
+    try {
+      const res = await fetch('/api/keywords/apply', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ projectId: project.id }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setApplyMessage(data.message);
+        setTimeout(() => setApplyMessage(null), 8000);
+      } else {
+        alert(data.error || 'Failed to apply keywords to website');
+      }
+    } catch (e: any) {
+      alert(`Error applying keywords: ${e.message}`);
+    } finally {
+      setIsApplyingKeywords(false);
+    }
+  };
 
   const handleAddKeyword = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -96,10 +124,66 @@ export default function KeywordsPage() {
                 Track organic keyword rankings, SERP intent classifications, and detect high-ROI &quot;Almost Ranking&quot; opportunities.
               </p>
             </div>
-            <button type="button" className="btn btn-primary btn-sm" onClick={() => setIsModalOpen(true)}>
-              <Plus size={14} />
-              Add Target Keyword
-            </button>
+            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+              <button
+                type="button"
+                className="btn btn-primary btn-sm"
+                onClick={handleApplyKeywordsToSite}
+                disabled={isApplyingKeywords || keywords.length === 0}
+                style={{ background: 'linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%)', border: 'none' }}
+              >
+                <Zap size={14} />
+                {isApplyingKeywords ? 'Injecting Keywords into Site...' : 'Apply Keywords to Live Site'}
+              </button>
+              <button type="button" className="btn btn-secondary btn-sm" onClick={() => setIsModalOpen(true)}>
+                <Plus size={14} />
+                Add Target Keyword
+              </button>
+            </div>
+          </div>
+
+          {/* Autonomous Injection Alert Message */}
+          {applyMessage && (
+            <div
+              style={{
+                padding: '0.85rem 1.25rem',
+                backgroundColor: 'rgba(16, 185, 129, 0.12)',
+                border: '1px solid rgba(16, 185, 129, 0.35)',
+                borderRadius: 'var(--radius-md)',
+                color: 'var(--color-success)',
+                fontSize: '0.9rem',
+                marginBottom: '1.5rem',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.65rem',
+              }}
+            >
+              <CheckCircle2 size={18} />
+              <span>{applyMessage}</span>
+            </div>
+          )}
+
+          {/* Autonomous Status Callout */}
+          <div
+            style={{
+              padding: '0.9rem 1.25rem',
+              borderRadius: 'var(--radius-md)',
+              background: 'linear-gradient(90deg, rgba(6, 182, 212, 0.08) 0%, rgba(59, 130, 246, 0.08) 100%)',
+              border: '1px solid rgba(6, 182, 212, 0.25)',
+              marginBottom: '1.5rem',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              flexWrap: 'wrap',
+              gap: '0.75rem',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+              <Sparkles size={18} color="var(--accent-cyan)" />
+              <div style={{ fontSize: '0.88rem', color: 'var(--text-primary)' }}>
+                <strong>Zero-Code Keyword Injection:</strong> All detected keywords are automatically matched and injected into your website&apos;s <code>&lt;meta name=&quot;keywords&quot;&gt;</code>, title, and Schema JSON-LD entities in real-time. Headings and body copy recommendations are synthesized for your designer.
+              </div>
+            </div>
           </div>
 
           {/* Quick Metrics */}

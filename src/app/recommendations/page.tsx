@@ -17,6 +17,9 @@ import {
   Globe,
   GitPullRequest,
   Zap,
+  Palette,
+  Copy,
+  Check,
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -31,6 +34,13 @@ export default function RecommendationsPage() {
   const [message, setMessage] = useState<string | null>(null);
   const [applyingId, setApplyingId] = useState<string | null>(null);
   const [actingId, setActingId] = useState<string | null>(null);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  const copyToClipboard = (text: string, id: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedId(id);
+    setTimeout(() => setCopiedId(null), 2500);
+  };
 
   const fetchRecs = async () => {
     try {
@@ -231,12 +241,21 @@ export default function RecommendationsPage() {
             </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-              {recommendations.map((rec) => (
-                <div key={rec.id} className="card">
+              {recommendations.map((rec) => {
+                const isDesignerAction = rec.agentType === 'DESIGNER_ACTION';
+                return (
+                <div key={rec.id} className="card" style={isDesignerAction ? { border: '1px solid rgba(236, 72, 153, 0.35)', background: 'linear-gradient(180deg, rgba(236, 72, 153, 0.03) 0%, rgba(13, 17, 23, 0.6) 100%)' } : {}}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.75rem' }}>
                     <div style={{ flex: '1 1 280px', minWidth: 0 }}>
                       <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.4rem', alignItems: 'center', flexWrap: 'wrap' }}>
-                        <span className="badge badge-low">{rec.agentType} AGENT</span>
+                        {isDesignerAction ? (
+                          <span className="badge" style={{ backgroundColor: 'rgba(236, 72, 153, 0.15)', color: '#f472b6', border: '1px solid rgba(236, 72, 153, 0.3)', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                            <Palette size={12} />
+                            DESIGNER / DEVELOPER ACTION
+                          </span>
+                        ) : (
+                          <span className="badge badge-low">{rec.agentType} AGENT</span>
+                        )}
                         <span className={`badge badge-${rec.priority === 'HIGH' ? 'high' : 'medium'}`}>
                           {rec.priority} PRIORITY
                         </span>
@@ -274,6 +293,30 @@ export default function RecommendationsPage() {
                     )}
                   </div>
 
+                  {/* Automated System Fix Status Banner for Designer Actions */}
+                  {isDesignerAction && (
+                    <div
+                      style={{
+                        padding: '0.85rem 1.15rem',
+                        marginBottom: '1.25rem',
+                        borderRadius: 'var(--radius-md)',
+                        backgroundColor: 'rgba(16, 185, 129, 0.08)',
+                        border: '1px solid rgba(16, 185, 129, 0.25)',
+                        display: 'flex',
+                        alignItems: 'flex-start',
+                        gap: '0.75rem',
+                        fontSize: '0.86rem',
+                        color: 'var(--color-success)',
+                        lineHeight: 1.5,
+                      }}
+                    >
+                      <CheckCircle2 size={18} style={{ flexShrink: 0, marginTop: '2px' }} />
+                      <div>
+                        <strong>System Automated Fix Already Applied in Real-Time:</strong> The Autonomous Engine has already injected these detected keywords into your live website&apos;s <code>&lt;meta name=&quot;keywords&quot;&gt;</code>, title tags, and Schema.org JSON-LD entities via <code>engine.js</code>! Follow the designer guide below to add them to visible template headings for maximum ranking power on Google and Bing.
+                      </div>
+                    </div>
+                  )}
+
                   <div className="grid-responsive-2" style={{ marginBottom: '1rem' }}>
                     <div style={{ background: 'var(--bg-input)', padding: '0.85rem', borderRadius: 'var(--radius-md)' }}>
                       <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', textTransform: 'uppercase', marginBottom: '0.25rem', fontWeight: 600 }}>
@@ -285,10 +328,23 @@ export default function RecommendationsPage() {
                     </div>
 
                     <div style={{ background: 'var(--bg-input)', padding: '0.85rem', borderRadius: 'var(--radius-md)' }}>
-                      <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', textTransform: 'uppercase', marginBottom: '0.25rem', fontWeight: 600 }}>
-                        Recommended Solution
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.25rem' }}>
+                        <span style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', textTransform: 'uppercase', fontWeight: 600 }}>
+                          {isDesignerAction ? 'Designer Implementation Guide' : 'Recommended Solution'}
+                        </span>
+                        {isDesignerAction && (
+                          <button
+                            type="button"
+                            className="btn btn-secondary btn-sm"
+                            style={{ padding: '0.2rem 0.5rem', fontSize: '0.75rem', height: 'auto' }}
+                            onClick={() => copyToClipboard(rec.recommendedAction, `guide-${rec.id}`)}
+                          >
+                            {copiedId === `guide-${rec.id}` ? <Check size={12} color="var(--color-success)" /> : <Copy size={12} />}
+                            {copiedId === `guide-${rec.id}` ? 'Copied' : 'Copy Guide'}
+                          </button>
+                        )}
                       </div>
-                      <div style={{ fontSize: '0.88rem', color: 'var(--color-success)', wordBreak: 'break-word' }}>
+                      <div style={{ fontSize: '0.88rem', color: 'var(--color-success)', wordBreak: 'break-word', whiteSpace: 'pre-line' }}>
                         {rec.recommendedAction}
                       </div>
                     </div>
@@ -296,8 +352,19 @@ export default function RecommendationsPage() {
 
                   {rec.suggestedContent && (
                     <div style={{ marginBottom: '1rem' }}>
-                      <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', textTransform: 'uppercase', marginBottom: '0.35rem', fontWeight: 600 }}>
-                        Proposed Content / Schema Code
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.35rem' }}>
+                        <span style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', textTransform: 'uppercase', fontWeight: 600 }}>
+                          {isDesignerAction ? 'Ready-To-Paste HTML Markup' : 'Proposed Content / Schema Code'}
+                        </span>
+                        <button
+                          type="button"
+                          className="btn btn-secondary btn-sm"
+                          style={{ padding: '0.2rem 0.5rem', fontSize: '0.75rem', height: 'auto' }}
+                          onClick={() => copyToClipboard(rec.suggestedContent, `code-${rec.id}`)}
+                        >
+                          {copiedId === `code-${rec.id}` ? <Check size={12} color="var(--color-success)" /> : <Copy size={12} />}
+                          {copiedId === `code-${rec.id}` ? 'Copied' : 'Copy HTML'}
+                        </button>
                       </div>
                       <pre
                         style={{
@@ -385,7 +452,8 @@ export default function RecommendationsPage() {
                     )}
                   </div>
                 </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </main>

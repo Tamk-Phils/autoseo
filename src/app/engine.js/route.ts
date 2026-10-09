@@ -49,7 +49,20 @@ export async function GET(req: Request) {
       if (ogDesc) ogDesc.setAttribute('content', rule.description);
     }
 
-    // 3. Dynamic JSON-LD Structured Data Schema
+    // 3. Dynamic Meta Keywords Tag (Autonomous keyword injection)
+    if (rule.keywords) {
+      var metaKw = document.querySelector('meta[name="keywords"]');
+      if (metaKw) {
+        metaKw.setAttribute('content', rule.keywords);
+      } else {
+        var kwEl = document.createElement('meta');
+        kwEl.name = 'keywords';
+        kwEl.content = rule.keywords;
+        document.head.appendChild(kwEl);
+      }
+    }
+
+    // 4. Dynamic JSON-LD Structured Data Schema & Keywords
     if (rule.schemaJson) {
       try {
         var schemaEl = document.createElement('script');

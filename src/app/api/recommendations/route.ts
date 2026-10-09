@@ -16,6 +16,7 @@ export async function GET(req: Request) {
 
     const recommendations = await prisma.seoRecommendation.findMany({
       where: { projectId: project.id },
+      include: { page: true },
       orderBy: { createdAt: 'desc' },
     });
 
