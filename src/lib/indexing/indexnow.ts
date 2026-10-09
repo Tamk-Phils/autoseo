@@ -86,20 +86,41 @@ export async function submitToIndexNow(params: {
 export async function pingSearchEngineSitemaps(sitemapUrl: string): Promise<IndexNowResult[]> {
   const results: IndexNowResult[] = [];
 
-  // Google sitemap ping
+  // 1. Google sitemap ping
   try {
     const res = await fetch(`https://www.google.com/ping?sitemap=${encodeURIComponent(sitemapUrl)}`, {
       method: 'GET',
+      headers: { 'User-Agent': 'ApexSEO-Indexer/1.0' },
     });
     results.push({
       engine: 'Google Sitemap Ping',
-      success: res.ok,
+      success: res.ok || res.status === 200,
       statusCode: res.status,
-      message: res.ok ? 'Googlebot pinged successfully' : `Google status ${res.status}`,
+      message: res.ok ? 'Googlebot pinged successfully' : `Google response code: ${res.status}`,
     });
   } catch (e: any) {
     results.push({
       engine: 'Google Sitemap Ping',
+      success: false,
+      message: e.message,
+    });
+  }
+
+  // 2. Microsoft Bing sitemap ping
+  try {
+    const res = await fetch(`https://www.bing.com/ping?sitemap=${encodeURIComponent(sitemapUrl)}`, {
+      method: 'GET',
+      headers: { 'User-Agent': 'ApexSEO-Indexer/1.0' },
+    });
+    results.push({
+      engine: 'Microsoft Bing Sitemap Ping',
+      success: res.ok || res.status === 200,
+      statusCode: res.status,
+      message: res.ok ? 'Bingbot sitemap pinged successfully' : `Bing response code: ${res.status}`,
+    });
+  } catch (e: any) {
+    results.push({
+      engine: 'Microsoft Bing Sitemap Ping',
       success: false,
       message: e.message,
     });

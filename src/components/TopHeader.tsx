@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Play, Globe, ShieldCheck, Plus, User, LogOut, LogIn, UserPlus, Menu, HelpCircle } from 'lucide-react';
+import { Play, Globe, ShieldCheck, Plus, User, LogOut, LogIn, UserPlus, Menu, HelpCircle, Home } from 'lucide-react';
 import { resolveActiveProject, setActiveProjectId } from '@/lib/activeProject';
 
 interface TopHeaderProps {
@@ -128,6 +128,12 @@ export default function TopHeader({ currentProject }: TopHeaderProps) {
       </div>
 
       <div className="header-actions">
+        {user && (
+          <Link href="/" className="btn btn-secondary btn-sm" title="Back to Home Page" style={{ borderColor: 'rgba(56, 189, 248, 0.3)', background: 'rgba(56, 189, 248, 0.05)' }}>
+            <Home size={14} color="var(--accent-cyan)" />
+            <span className="hide-mobile">Home</span>
+          </Link>
+        )}
         <Link href="/how-to-use" className="btn btn-secondary btn-sm" title="How to Use Guide">
           <HelpCircle size={14} color="var(--accent-primary)" />
           <span className="hide-mobile">How to Use</span>

@@ -47,3 +47,4 @@ export function resolveActiveProject(projects: any[]): any | null {
 
   return matched;
 }
+

@@ -16,6 +16,11 @@ import {
   ArrowRight,
   ShieldCheck,
   Search,
+  Clock,
+  Activity,
+  Calendar,
+  Zap,
+  CheckCircle2,
 } from 'lucide-react';
 
 import { cookies } from 'next/headers';
@@ -86,7 +91,7 @@ export default async function DashboardPage({
     );
   }
 
-  const [issues, recommendations, keywords, recentChanges, pagesCount] = await Promise.all([
+  const [issues, recommendations, keywords, recentChanges, pagesCount, latestCrawlJob, recentAuditLogsCount, totalChangesCount] = await Promise.all([
     prisma.crawlIssue.findMany({
       where: { projectId: project.id },
       orderBy: { createdAt: 'desc' },
@@ -110,6 +115,16 @@ export default async function DashboardPage({
     prisma.crawlPage.count({
       where: { projectId: project.id },
     }),
+    prisma.crawlJob.findFirst({
+      where: { projectId: project.id },
+      orderBy: { createdAt: 'desc' },
+    }),
+    prisma.auditLog.count({
+      where: { projectId: project.id },
+    }),
+    prisma.optimizationChange.count({
+      where: { projectId: project.id },
+    }),
   ]);
 
   const criticalIssuesCount = await prisma.crawlIssue.count({
@@ -119,6 +134,26 @@ export default async function DashboardPage({
   const highIssuesCount = await prisma.crawlIssue.count({
     where: { projectId: project.id, severity: 'HIGH' },
   });
+
+  // Calculate monitoring cycle: period days, days left, and occurrences
+  const now = new Date();
+  let periodEnd = latestCrawlJob?.periodEnd;
+  let periodStart = latestCrawlJob?.periodStart || project.createdAt;
+
+  if (!periodEnd) {
+    const fallbackEnd = new Date(periodStart);
+    fallbackEnd.setDate(fallbackEnd.getDate() + 14);
+    periodEnd = fallbackEnd;
+  }
+
+  const msRemaining = Math.max(0, new Date(periodEnd).getTime() - now.getTime());
+  const daysRemaining = Math.ceil(msRemaining / (1000 * 60 * 60 * 24));
+  const totalDaysInPeriod = Math.max(1, Math.round((new Date(periodEnd).getTime() - new Date(periodStart).getTime()) / (1000 * 60 * 60 * 24)));
+  const daysElapsed = Math.max(0, totalDaysInPeriod - daysRemaining);
+  const periodProgressPct = Math.min(100, Math.round((daysElapsed / totalDaysInPeriod) * 100));
+
+  // Count total occurrences in this monitoring period (audit events + pages analyzed + optimizations + issues)
+  const totalOccurrencesInPeriod = recentAuditLogsCount + pagesCount + totalChangesCount;
 
   return (
     <div className="app-layout">
@@ -143,6 +178,90 @@ export default async function DashboardPage({
               <Link href="/opportunities" className="btn btn-primary btn-sm">
                 <Sparkles size={14} />
                 View Opportunities
+              </Link>
+            </div>
+          </div>
+
+          {/* Autonomous Monitoring Cycle Banner */}
+          <div
+            style={{
+              backgroundColor: 'var(--bg-card)',
+              border: '1px solid rgba(56, 189, 248, 0.25)',
+              borderRadius: 'var(--radius-lg)',
+              padding: '1.25rem 1.5rem',
+              marginBottom: '1.75rem',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              flexWrap: 'wrap',
+              gap: '1.25rem',
+              boxShadow: 'var(--shadow-sm)',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', minWidth: '260px' }}>
+              <div
+                style={{
+                  width: '46px',
+                  height: '46px',
+                  borderRadius: '12px',
+                  backgroundColor: 'rgba(56, 189, 248, 0.1)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: 'var(--accent-cyan)',
+                  flexShrink: 0,
+                }}
+              >
+                <Activity size={24} />
+              </div>
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.2rem' }}>
+                  <span style={{ fontSize: '0.92rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+                    Active Autonomous Monitoring Cycle
+                  </span>
+                  <span className="badge badge-low" style={{ fontSize: '0.72rem' }}>
+                    ● 24/7 Engine
+                  </span>
+                </div>
+                <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', margin: 0 }}>
+                  Cycle window: {totalDaysInPeriod} days total · Scheduled automated re-crawls &amp; instant IndexNow pings.
+                </p>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '2rem', flexWrap: 'wrap' }}>
+              {/* Days Left Metric */}
+              <div style={{ textAlign: 'center' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', justifyContent: 'center' }}>
+                  <Clock size={16} color="var(--accent-primary)" />
+                  <span style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>
+                    {daysRemaining}
+                  </span>
+                  <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', fontWeight: 600 }}>days left</span>
+                </div>
+                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.15rem' }}>
+                  {periodProgressPct}% elapsed ({daysElapsed}d of {totalDaysInPeriod}d)
+                </div>
+              </div>
+
+              {/* Total Occurrences in Period */}
+              <div style={{ textAlign: 'center' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', justifyContent: 'center' }}>
+                  <Zap size={16} color="#10b981" />
+                  <span style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--color-success)', letterSpacing: '-0.02em' }}>
+                    {totalOccurrencesInPeriod.toLocaleString()}
+                  </span>
+                  <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', fontWeight: 600 }}>events</span>
+                </div>
+                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.15rem' }}>
+                  Occurred in this monitoring period
+                </div>
+              </div>
+
+              {/* Action Button */}
+              <Link href="/live-crawl" className="btn btn-secondary btn-sm" style={{ fontWeight: 600 }}>
+                <span>Trigger Manual Pulse</span>
+                <ArrowRight size={13} />
               </Link>
             </div>
           </div>

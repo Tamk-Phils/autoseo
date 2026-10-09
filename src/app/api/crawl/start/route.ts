@@ -10,7 +10,7 @@ import {
   runInternalLinkingAgent,
   runQaAgent,
 } from '@/lib/ai/agents';
-import { submitToIndexNow } from '@/lib/indexing/indexnow';
+import { submitToIndexNow, pingSearchEngineSitemaps } from '@/lib/indexing/indexnow';
 
 // In-memory progress tracker for live streaming console
 export const globalActiveCrawlLogs: Record<string, CrawlLogEntry[]> = {};
@@ -154,9 +154,10 @@ export async function POST(req: Request) {
     const autopilotConfig = await prisma.autopilotConfig.findUnique({ where: { projectId: project.id } });
     if (isTagHeartbeat) {
       const embedTag = await prisma.integration.findFirst({ where: { projectId: project.id, type: 'EMBED_TAG', isConnected: true } });
-      const recentRun = project.lastCrawlAt && Date.now() - project.lastCrawlAt.getTime() < 24 * 60 * 60 * 1000;
+      // Regular automated interval: execute periodic fresh crawls every 6 hours
+      const recentRun = project.lastCrawlAt && Date.now() - project.lastCrawlAt.getTime() < 6 * 60 * 60 * 1000;
       if (!embedTag || !autopilotConfig?.enabled || autopilotConfig.mode !== 'AUTONOMOUS' || recentRun || project.crawlStatus === 'RUNNING') {
-        return NextResponse.json({ success: true, skipped: true, message: 'Autonomous crawl is not due yet.' });
+        return NextResponse.json({ success: true, skipped: true, message: 'Autonomous interval crawl is not due yet (runs every 6h).' });
       }
     }
     const effectiveMaxPages = Math.min(500, Math.max(1, Number(maxPages) || project.crawlMaxPages));
@@ -376,7 +377,7 @@ export async function POST(req: Request) {
           }
         }
 
-        // Autonomous IndexNow Push: If autonomous mode is active, automatically ping search engines
+        // Autonomous IndexNow & Search Engine Push: Automatically ping Google and Bing
         const isAutonomous = autopilotConfig?.enabled && autopilotConfig.mode === 'AUTONOMOUS';
         if (isAutonomous && crawlResult.pages.length > 0) {
           try {
@@ -385,11 +386,17 @@ export async function POST(req: Request) {
               host: project.domain,
               urls: urlsToIndex,
             });
+
+            // If a sitemap URL exists or standard sitemap is available, ping Google & Bing sitemaps
+            const cleanOrigin = project.url.replace(/\/+$/, '');
+            const candidateSitemap = `${cleanOrigin}/sitemap.xml`;
+            await pingSearchEngineSitemaps(candidateSitemap);
+
             await prisma.auditLog.create({
               data: {
                 projectId: project.id,
-                action: 'INDEXNOW_DISPATCHED',
-                details: `Autonomously dispatched ${urlsToIndex.length} crawled URLs to IndexNow (Bing / Yandex / Seznam / Naver) for priority indexing.`,
+                action: 'SEARCH_ENGINES_NOTIFIED',
+                details: `Dispatched ${urlsToIndex.length} URLs to IndexNow (Bing/Yandex/Seznam) and pinged Google & Bing sitemap crawlers for instant indexing.`,
               },
             });
           } catch (idxErr) {

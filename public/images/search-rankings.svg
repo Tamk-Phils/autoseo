@@ -1,0 +1,90 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 860 360" width="100%" height="100%" fill="none">
+  <defs>
+    <filter id="cShadow" x="-3%" y="-3%" width="106%" height="110%" filterUnits="userSpaceOnUse">
+      <feDropShadow dx="0" dy="6" stdDeviation="10" flood-color="#0f172a" flood-opacity="0.08"/>
+    </filter>
+  </defs>
+
+  <!-- Left Card: Google Real-Time Rankings -->
+  <g transform="translate(20, 20)" filter="url(#cShadow)">
+    <rect width="395" height="320" rx="16" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
+    <rect width="395" height="48" rx="16" fill="#f8fafc" />
+    <path d="M 0 36 L 395 36" stroke="#e2e8f0" stroke-width="1"/>
+    
+    <!-- Header -->
+    <circle cx="32" cy="24" r="8" fill="#4285f4" />
+    <text x="32" y="28" text-anchor="middle" fill="#ffffff" font-size="10" font-weight="bold" font-family="-apple-system, sans-serif">G</text>
+    <text x="50" y="28" fill="#0f172a" font-size="13" font-weight="700" font-family="-apple-system, sans-serif">Google Search Ranking Trajectory</text>
+    
+    <!-- Position 1 Badge -->
+    <g transform="translate(20, 56)">
+      <rect width="355" height="74" rx="10" fill="#eff6ff" stroke="#bfdbfe"/>
+      <circle cx="28" cy="37" r="14" fill="#2563eb"/>
+      <text x="28" y="42" text-anchor="middle" fill="#ffffff" font-size="13" font-weight="bold" font-family="-apple-system, sans-serif">#1</text>
+      <text x="54" y="28" fill="#1e3a8a" font-size="13" font-weight="700" font-family="-apple-system, sans-serif">Target High-Intent Keyword</text>
+      <text x="54" y="46" fill="#2563eb" font-size="11" font-weight="500" font-family="-apple-system, sans-serif">https://yourwebsite.com/best-solution</text>
+      <text x="54" y="62" fill="#16a34a" font-size="10.5" font-weight="600" font-family="-apple-system, sans-serif">▲ +17 spots climb in 48 hours</text>
+    </g>
+
+    <!-- Discovered Keyword Matrix -->
+    <g transform="translate(20, 142)">
+      <rect width="355" height="150" rx="10" fill="#f8fafc" stroke="#e2e8f0"/>
+      <text x="16" y="26" fill="#64748b" font-size="11" font-weight="700" font-family="-apple-system, sans-serif" text-transform="uppercase">Discovered Long-Tail Cluster</text>
+      
+      <!-- Row 1 -->
+      <text x="16" y="52" fill="#0f172a" font-size="12" font-weight="600" font-family="-apple-system, sans-serif">"best organic seo automation engine"</text>
+      <text x="339" y="52" text-anchor="end" fill="#16a34a" font-size="11" font-weight="700" font-family="-apple-system, sans-serif">Rank #1</text>
+
+      <!-- Row 2 -->
+      <line x1="16" y1="64" x2="339" y2="64" stroke="#e2e8f0" stroke-width="1"/>
+      <text x="16" y="86" fill="#0f172a" font-size="12" font-weight="600" font-family="-apple-system, sans-serif">"fast-track zero-code website indexing"</text>
+      <text x="339" y="86" text-anchor="end" fill="#16a34a" font-size="11" font-weight="700" font-family="-apple-system, sans-serif">Rank #2</text>
+
+      <!-- Row 3 -->
+      <line x1="16" y1="98" x2="339" y2="98" stroke="#e2e8f0" stroke-width="1"/>
+      <text x="16" y="120" fill="#0f172a" font-size="12" font-weight="600" font-family="-apple-system, sans-serif">"automated indexnow search console setup"</text>
+      <text x="339" y="120" text-anchor="end" fill="#16a34a" font-size="11" font-weight="700" font-family="-apple-system, sans-serif">Rank #1</text>
+    </g>
+  </g>
+
+  <!-- Right Card: Bing & Microsoft Copilot IndexNow Speed -->
+  <g transform="translate(445, 20)" filter="url(#cShadow)">
+    <rect width="395" height="320" rx="16" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
+    <rect width="395" height="48" rx="16" fill="#f8fafc" />
+    <path d="M 0 36 L 395 36" stroke="#e2e8f0" stroke-width="1"/>
+    
+    <!-- Header -->
+    <circle cx="32" cy="24" r="8" fill="#008373" />
+    <text x="32" y="28" text-anchor="middle" fill="#ffffff" font-size="10" font-weight="bold" font-family="-apple-system, sans-serif">B</text>
+    <text x="50" y="28" fill="#0f172a" font-size="13" font-weight="700" font-family="-apple-system, sans-serif">Bing &amp; Microsoft Copilot IndexNow Sync</text>
+    
+    <g transform="translate(20, 56)">
+      <rect width="355" height="74" rx="10" fill="#ecfdf5" stroke="#a7f3d0"/>
+      <circle cx="28" cy="37" r="14" fill="#059669"/>
+      <text x="28" y="42" text-anchor="middle" fill="#ffffff" font-size="11" font-weight="bold" font-family="-apple-system, sans-serif">⚡</text>
+      <text x="54" y="28" fill="#065f46" font-size="13" font-weight="700" font-family="-apple-system, sans-serif">Instant Re-Crawl Handshake</text>
+      <text x="54" y="46" fill="#047857" font-size="11" font-weight="500" font-family="-apple-system, sans-serif">IndexNow API Protocol 202 Accepted</text>
+      <text x="54" y="62" fill="#059669" font-size="10.5" font-weight="600" font-family="-apple-system, sans-serif">Bingbot dispatched in &lt; 2 minutes</text>
+    </g>
+
+    <g transform="translate(20, 142)">
+      <rect width="355" height="150" rx="10" fill="#f8fafc" stroke="#e2e8f0"/>
+      <text x="16" y="26" fill="#64748b" font-size="11" font-weight="700" font-family="-apple-system, sans-serif" text-transform="uppercase">Continuous Bot Health</text>
+      
+      <g transform="translate(16, 42)">
+        <circle cx="6" cy="6" r="5" fill="#10b981"/>
+        <text x="18" y="10" fill="#0f172a" font-size="12" font-weight="600" font-family="-apple-system, sans-serif">Automated Interval Crawl: Every 6 Hours</text>
+      </g>
+
+      <g transform="translate(16, 74)">
+        <circle cx="6" cy="6" r="5" fill="#10b981"/>
+        <text x="18" y="10" fill="#0f172a" font-size="12" font-weight="600" font-family="-apple-system, sans-serif">Search Suggestion Ingestion: 200 keywords/run</text>
+      </g>
+
+      <g transform="translate(16, 106)">
+        <circle cx="6" cy="6" r="5" fill="#10b981"/>
+        <text x="18" y="10" fill="#0f172a" font-size="12" font-weight="600" font-family="-apple-system, sans-serif">Search Engine Pings: 100% Verified Delivery</text>
+      </g>
+    </g>
+  </g>
+</svg>

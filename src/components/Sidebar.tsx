@@ -25,6 +25,7 @@ import {
   LogIn,
   X,
   BookOpen,
+  Home,
 } from 'lucide-react';
 import { getActiveProjectId } from '@/lib/activeProject';
 
@@ -117,6 +118,29 @@ export default function Sidebar() {
             <X size={18} />
           </button>
         </div>
+
+        {user && (
+          <div style={{ padding: '0 0.85rem 0.5rem' }}>
+            <Link
+              href="/"
+              onClick={() => setIsOpen(false)}
+              className="btn btn-secondary btn-sm"
+              style={{
+                width: '100%',
+                justifyContent: 'center',
+                gap: '0.5rem',
+                fontSize: '0.82rem',
+                fontWeight: 600,
+                color: 'var(--text-primary)',
+                background: 'rgba(56, 189, 248, 0.08)',
+                borderColor: 'rgba(56, 189, 248, 0.25)',
+              }}
+            >
+              <Home size={15} color="var(--accent-cyan)" />
+              <span>← Back to Home</span>
+            </Link>
+          </div>
+        )}
 
         <nav className="sidebar-nav">
           <div className="nav-section-label">Engine Core</div>

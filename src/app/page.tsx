@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
@@ -20,6 +20,13 @@ import {
   RefreshCw,
   Menu,
   X,
+  LogIn,
+  User,
+  LayoutDashboard,
+  TrendingUp,
+  Award,
+  KeyRound,
+  FileCheck2,
 } from 'lucide-react';
 
 export default function LandingPage() {
@@ -28,6 +35,20 @@ export default function LandingPage() {
   const [scanning, setScanning] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [user, setUser] = useState<{ id: string; email: string; name?: string | null } | null>(null);
+
+  useEffect(() => {
+    fetch('/api/auth/me')
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.user) {
+          setUser(data.user);
+        } else {
+          setUser(null);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   const handleInstantScan = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -119,12 +140,53 @@ export default function LandingPage() {
             <Link href="/activate" style={{ color: 'var(--color-success)', fontSize: '0.9rem', fontWeight: 600 }}>
               ⚡ Zero-Code Autopilot
             </Link>
-            <Link href="/dashboard" className="btn btn-secondary btn-sm">
-              Live Platform
-            </Link>
-            <Link href="/onboarding" className="btn btn-primary btn-sm">
-              Full Audit
-            </Link>
+
+            {user ? (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+                <Link
+                  href="/dashboard"
+                  className="btn btn-secondary btn-sm"
+                  style={{ gap: '0.45rem', borderColor: 'rgba(56, 189, 248, 0.3)', background: 'rgba(56, 189, 248, 0.08)' }}
+                >
+                  <LayoutDashboard size={14} color="var(--accent-cyan)" />
+                  <span>Dashboard</span>
+                </Link>
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.4rem',
+                    padding: '0.35rem 0.65rem',
+                    background: 'rgba(255, 255, 255, 0.8)',
+                    border: '1px solid var(--border-color)',
+                    borderRadius: 'var(--radius-full)',
+                    fontSize: '0.8rem',
+                    fontWeight: 600,
+                    color: 'var(--text-primary)',
+                  }}
+                  title={user.email}
+                >
+                  <User size={13} color="var(--accent-cyan)" />
+                  <span style={{ maxWidth: '100px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {user.name || user.email.split('@')[0]}
+                  </span>
+                </div>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <Link
+                  href="/login"
+                  className="btn btn-secondary btn-sm"
+                  style={{ gap: '0.4rem', padding: '0.4rem 0.85rem', fontWeight: 600 }}
+                >
+                  <LogIn size={14} color="var(--accent-cyan)" />
+                  <span>Log In</span>
+                </Link>
+                <Link href="/signup" className="btn btn-primary btn-sm" style={{ padding: '0.4rem 0.85rem', fontWeight: 600 }}>
+                  Sign Up
+                </Link>
+              </div>
+            )}
           </nav>
 
           {/* Mobile Nav Toggle */}
@@ -169,23 +231,41 @@ export default function LandingPage() {
             >
               ⚡ Zero-Code Autopilot
             </Link>
+
             <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.5rem', flexWrap: 'wrap' }}>
-              <Link
-                href="/dashboard"
-                className="btn btn-secondary"
-                onClick={() => setMobileMenuOpen(false)}
-                style={{ flex: '1 1 auto', justifyContent: 'center' }}
-              >
-                Live Platform
-              </Link>
-              <Link
-                href="/onboarding"
-                className="btn btn-primary"
-                onClick={() => setMobileMenuOpen(false)}
-                style={{ flex: '1 1 auto', justifyContent: 'center' }}
-              >
-                Full Audit
-              </Link>
+              {user ? (
+                <>
+                  <Link
+                    href="/dashboard"
+                    className="btn btn-primary"
+                    onClick={() => setMobileMenuOpen(false)}
+                    style={{ flex: '1 1 auto', justifyContent: 'center', gap: '0.45rem' }}
+                  >
+                    <LayoutDashboard size={15} />
+                    <span>Go to Dashboard</span>
+                  </Link>
+                </>
+              ) : (
+                <>
+                  <Link
+                    href="/login"
+                    className="btn btn-secondary"
+                    onClick={() => setMobileMenuOpen(false)}
+                    style={{ flex: '1 1 auto', justifyContent: 'center', gap: '0.45rem' }}
+                  >
+                    <LogIn size={15} />
+                    <span>Log In</span>
+                  </Link>
+                  <Link
+                    href="/signup"
+                    className="btn btn-primary"
+                    onClick={() => setMobileMenuOpen(false)}
+                    style={{ flex: '1 1 auto', justifyContent: 'center' }}
+                  >
+                    Sign Up Free
+                  </Link>
+                </>
+              )}
             </div>
           </div>
         )}
@@ -277,6 +357,15 @@ export default function LandingPage() {
           <span>✓ 100% Reversible Rollbacks</span>
         </div>
 
+        {/* Hero Interactive App Visual */}
+        <div style={{ maxWidth: '880px', width: '100%', marginTop: '3rem', marginInline: 'auto' }}>
+          <img
+            src="/images/hero-banner.svg"
+            alt="ApexSEO Autonomous Dashboard Telemetry Visual"
+            style={{ width: '100%', height: 'auto', borderRadius: '18px', display: 'block' }}
+          />
+        </div>
+
         {/* Live Telemetry Ribbon - No Layering */}
         <div
           style={{
@@ -319,6 +408,28 @@ export default function LandingPage() {
             </div>
             <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)', fontWeight: 600, marginTop: '0.25rem' }}>Edge Tag Speed</div>
           </div>
+        </div>
+      </section>
+
+      {/* Before / After SERP Snippet Visual */}
+      <section style={{ padding: 'clamp(2rem, 4vw, 3.5rem) clamp(1rem, 3vw, 2rem)', maxWidth: '1140px', margin: '0 auto', width: '100%', boxSizing: 'border-box' }}>
+        <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+          <div style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--accent-cyan)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+            Google &amp; Bing Search Result Transformation
+          </div>
+          <h2 style={{ fontSize: 'clamp(1.5rem, 3vw, 2rem)', fontWeight: 700, color: 'var(--text-primary)', marginTop: '0.35rem' }}>
+            From Buried on Page 2 to the #1 Top Ranking Result
+          </h2>
+          <p style={{ color: 'var(--text-secondary)', maxWidth: '640px', margin: '0.5rem auto 0' }}>
+            Search engines reward clean meta titles, rich structured data schemas, and instant IndexNow pings. See the real before and after results:
+          </p>
+        </div>
+        <div style={{ maxWidth: '860px', margin: '0 auto' }}>
+          <img
+            src="/images/serp-comparison.svg"
+            alt="Search Engine Result Page Comparison Before and After ApexSEO"
+            style={{ width: '100%', height: 'auto', borderRadius: '16px', display: 'block' }}
+          />
         </div>
       </section>
 
@@ -389,15 +500,49 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Feature Capabilities Grid */}
-      <section id="architecture" style={{ padding: 'clamp(2.5rem, 5vw, 5rem) clamp(1rem, 3vw, 2rem)', maxWidth: '1140px', margin: '0 auto', width: '100%', boxSizing: 'border-box' }}>
+      {/* Autonomous Search Engine Indexing & Keyword Discovery Illustration */}
+      <section style={{ padding: 'clamp(2rem, 4vw, 4rem) clamp(1rem, 3vw, 2rem)', maxWidth: '1140px', margin: '0 auto', width: '100%', boxSizing: 'border-box' }}>
         <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
+          <div style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--accent-cyan)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+            Instant Search Visibility Engine
+          </div>
+          <h2 style={{ fontSize: 'clamp(1.5rem, 3vw, 2rem)', fontWeight: 700, color: 'var(--text-primary)', marginTop: '0.35rem' }}>
+            Automated Keyword Clustering &amp; Search Engine Indexing
+          </h2>
+          <p style={{ color: 'var(--text-secondary)', maxWidth: '680px', margin: '0.5rem auto 0', lineHeight: 1.6 }}>
+            Our autonomous crawler discovers high-intent long-tail keywords directly from live user queries, injects semantic schema tags into your pages, and pings IndexNow so Bing and Google rank your site first.
+          </p>
+        </div>
+
+        <div style={{ maxWidth: '880px', margin: '0 auto 3rem' }}>
+          <img
+            src="/images/search-rankings.svg"
+            alt="Search Engine Keyword Discovery and Instant IndexNow Submissions"
+            style={{ width: '100%', height: 'auto', borderRadius: '16px', display: 'block' }}
+          />
+        </div>
+      </section>
+
+      {/* Engine Architecture Flow Diagram */}
+      <section id="architecture" style={{ padding: 'clamp(2.5rem, 5vw, 5rem) clamp(1rem, 3vw, 2rem)', maxWidth: '1140px', margin: '0 auto', width: '100%', boxSizing: 'border-box', borderTop: '1px solid var(--border-color)' }}>
+        <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
+          <div style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--accent-cyan)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+            Under the Hood
+          </div>
           <h2 style={{ fontSize: 'clamp(1.5rem, 3vw, 2rem)', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '0.5rem' }}>
             Built for Massive SEO Scale & Speed
           </h2>
-          <p style={{ color: 'var(--text-secondary)' }}>
+          <p style={{ color: 'var(--text-secondary)', maxWidth: '640px', margin: '0 auto' }}>
             Real crawler data feeds genuine algorithmic scoring and modular optimization pipelines.
           </p>
+        </div>
+
+        <div style={{ maxWidth: '900px', margin: '0 auto 3rem' }}>
+          <img
+            src="/images/architecture-flow.svg"
+            alt="ApexSEO Autonomous Engine Architecture Flow"
+            style={{ width: '100%', height: 'auto', borderRadius: '16px', display: 'block' }}
+          />
         </div>
 
         <div className="grid-3">

@@ -35,7 +35,6 @@ export default function LiveCrawlPage() {
   const [progress, setProgress] = useState(0);
   const [project, setProject] = useState<any>(null);
   const [jobId, setJobId] = useState<string | null>(null);
-  const consoleEndRef = useRef<HTMLDivElement>(null);
 
   // Load project defaults & listen for global switch
   useEffect(() => {
@@ -113,9 +112,13 @@ export default function LiveCrawlPage() {
     return () => clearInterval(interval);
   }, [isRunning, maxPages, jobId]);
 
-  // Auto-scroll console
+  const consoleBoxRef = useRef<HTMLDivElement>(null);
+
+  // Auto-scroll inside console box without hijacking window/mobile page scroll
   useEffect(() => {
-    consoleEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (consoleBoxRef.current) {
+      consoleBoxRef.current.scrollTop = consoleBoxRef.current.scrollHeight;
+    }
   }, [logs]);
 
   const handleStartCrawl = async () => {
@@ -361,7 +364,7 @@ export default function LiveCrawlPage() {
               </span>
             </div>
 
-            <div className="console-box">
+            <div className="console-box" ref={consoleBoxRef}>
               {logs.length === 0 ? (
                 <div style={{ color: 'var(--text-muted)', padding: '1rem 0' }}>
                   Ready to crawl. Press &quot;Start Live Crawl&quot; above to initialize asynchronous worker.
@@ -383,7 +386,6 @@ export default function LiveCrawlPage() {
                   );
                 })
               )}
-              <div ref={consoleEndRef} />
             </div>
           </div>
         </main>
