@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
+import AutonomousHeartbeat from '@/components/AutonomousHeartbeat';
 
 export const metadata: Metadata = {
   title: 'ApexSEO - Autonomous AI SEO Optimization Engine',
@@ -20,7 +21,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        <AutonomousHeartbeat />
+        {children}
+      </body>
     </html>
   );
 }
