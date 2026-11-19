@@ -1,15 +1,29 @@
 import prisma from '@/lib/db';
 import { executeCrawlForProject } from '@/lib/crawler/runner';
 
-let isPulseRunning = false;
-let schedulerTimer: NodeJS.Timeout | null = null;
+type SchedulerGlobal = typeof globalThis & {
+  __apexSeoPulseRunning?: boolean;
+  __apexSeoPulseStartedAt?: number;
+  __apexSeoSchedulerTimer?: NodeJS.Timeout | null;
+  __apexSeoLastPulseAt?: string | null;
+};
+
+const g = globalThis as SchedulerGlobal;
 
 export async function runAutonomousCrawlPulse() {
-  if (isPulseRunning) {
+  // Safety valve: if a previous pulse has been stuck for > 5 minutes, release the lock
+  if (g.__apexSeoPulseRunning && g.__apexSeoPulseStartedAt) {
+    if (Date.now() - g.__apexSeoPulseStartedAt > 5 * 60 * 1000) {
+      g.__apexSeoPulseRunning = false;
+    }
+  }
+
+  if (g.__apexSeoPulseRunning) {
     return { skipped: true, reason: 'Pulse already in progress' };
   }
 
-  isPulseRunning = true;
+  g.__apexSeoPulseRunning = true;
+  g.__apexSeoPulseStartedAt = Date.now();
   const processedProjects: string[] = [];
 
   try {
@@ -82,33 +96,37 @@ export async function runAutonomousCrawlPulse() {
       }
     }
 
+    g.__apexSeoLastPulseAt = new Date().toISOString();
+
     return {
       success: true,
-      timestamp: new Date().toISOString(),
+      timestamp: g.__apexSeoLastPulseAt,
       projectsProcessed: processedProjects,
+      serverSchedulerActive: Boolean(g.__apexSeoSchedulerTimer),
     };
   } finally {
-    isPulseRunning = false;
+    g.__apexSeoPulseRunning = false;
   }
 }
 
 export function initAutonomousScheduler() {
-  if (schedulerTimer) return;
+  if (g.__apexSeoSchedulerTimer) return;
 
   // Run initial pulse after 5 seconds of server startup
-  setTimeout(() => {
+  const bootTimer = setTimeout(() => {
     runAutonomousCrawlPulse().catch((err) => console.error('Initial crawl pulse error:', err));
   }, 5000);
+  if (bootTimer.unref) bootTimer.unref();
 
-  // Then tick continuously every 60 seconds (1 minute)
-  schedulerTimer = setInterval(() => {
+  // Then tick continuously every 60 seconds (1 minute) on the server, even with 0 browsers open
+  g.__apexSeoSchedulerTimer = setInterval(() => {
     runAutonomousCrawlPulse().catch((err) => console.error('Recurring crawl pulse error:', err));
   }, 60 * 1000);
 
-  if (schedulerTimer.unref) {
-    schedulerTimer.unref();
+  if (g.__apexSeoSchedulerTimer.unref) {
+    g.__apexSeoSchedulerTimer.unref();
   }
 
-  console.log('[AutonomousScheduler] 1-minute autonomous crawl loop initialized.');
+  console.log('[AutonomousScheduler] 1-minute server-side autonomous crawl loop initialized.');
 }
 

@@ -1,0 +1,29 @@
+name: Autonomous SEO Background Pulse
+
+on:
+  schedule:
+    # Runs 24/7 on GitHub servers every 5 minutes even when no browser is open
+    - cron: '*/5 * * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: autonomous-seo-pulse
+  cancel-in-progress: false
+
+jobs:
+  pulse:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Trigger autonomous crawl pulse
+        env:
+          APP_URL: ${{ secrets.APP_URL || vars.APP_URL }}
+        run: |
+          if [ -z "$APP_URL" ]; then
+            echo "APP_URL secret/variable is not configured yet. Set APP_URL in GitHub Repo Settings -> Secrets and variables -> Actions (e.g. https://your-app.vercel.app)."
+            exit 0
+          fi
+          TARGET="${APP_URL%/}/api/crawl/cron"
+          echo "Triggering autonomous pulse at $TARGET"
+          curl -fsS -X POST "$TARGET" -H "User-Agent: ApexSEO-GitHub-Cron/1.0" --max-time 55
+          echo ""
