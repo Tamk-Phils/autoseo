@@ -4,9 +4,10 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "prisma generate && next build",
+    "build": "prisma generate && (prisma db push --skip-generate || true) && next build",
     "start": "next start",
     "lint": "next lint",
+    "test": "npx tsc tests/acquisition.test.ts --outDir /tmp/autoseo-test --module commonjs --target es2022 --moduleResolution node --esModuleInterop --skipLibCheck && node --test /tmp/autoseo-test/tests/acquisition.test.js",
     "postinstall": "prisma generate",
     "db:push": "prisma db push",
     "db:generate": "prisma generate"

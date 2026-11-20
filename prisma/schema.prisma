@@ -8,25 +8,60 @@ generator client {
 }
 
 model User {
-  id            String         @id @default(uuid())
-  email         String         @unique
-  name          String?
-  passwordHash  String?
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
-  organizations Organization[]
-  projects      Project[]
-  auditLogs     AuditLog[]
+  id                  String               @id @default(uuid())
+  email               String               @unique
+  name                String?
+  passwordHash        String?
+  role                String               @default("USER") // USER, ADMIN, SUPER_ADMIN
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+  organizations       Organization[]
+  memberships         OrganizationMember[]
+  projects            Project[]
+  auditLogs           AuditLog[]
+  acquisitionCampaigns AcquisitionCampaign[]
+  assignedLeads       Lead[]               @relation("LeadAssignee")
+  leadNotes           LeadNote[]
+  approvedMessages    OutreachMessage[]    @relation("MessageApprover")
+  followUpTasks       FollowUpTask[]
+  usageLogs           AcquisitionUsageLog[]
 }
 
 model Organization {
-  id        String    @id @default(uuid())
-  name      String
-  ownerId   String
-  owner     User      @relation(fields: [ownerId], references: [id], onDelete: Cascade)
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  projects  Project[]
+  id                   String                @id @default(uuid())
+  name                 String
+  type                 String                @default("SUBSCRIBER") // INTERNAL, SUBSCRIBER
+  plan                 String                @default("STARTER") // STARTER, PROFESSIONAL, BUSINESS, INTERNAL_UNLIMITED
+  ownerId              String
+  owner                User                  @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  createdAt            DateTime              @default(now())
+  updatedAt            DateTime              @updatedAt
+  projects             Project[]
+  members              OrganizationMember[]
+  acquisitionCampaigns AcquisitionCampaign[]
+  discoveryRuns        DiscoveryRun[]
+  leads                Lead[]
+  leadAudits           LeadAudit[]
+  leadScores           LeadScore[]
+  leadNotes            LeadNote[]
+  outreachMessages     OutreachMessage[]
+  followUpTasks        FollowUpTask[]
+  suppressionEntries   SuppressionEntry[]
+  conversionEvents     ConversionEvent[]
+  usageLogs            AcquisitionUsageLog[]
+}
+
+model OrganizationMember {
+  id             String       @id @default(uuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  userId         String
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role           String       @default("OWNER") // OWNER, ADMIN, SALES, MEMBER
+  createdAt      DateTime     @default(now())
+
+  @@unique([organizationId, userId])
+  @@index([userId])
 }
 
 model Project {
@@ -403,5 +438,267 @@ model AuditLog {
   details   String?
   ipAddress String?
   createdAt DateTime @default(now())
+}
+
+// ============================================================================
+// AI CUSTOMER ACQUISITION ENGINE (Tenant-Isolated via organizationId)
+// ============================================================================
+
+model AcquisitionCampaign {
+  id               String         @id @default(uuid())
+  organizationId   String
+  organization     Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdById      String
+  createdBy        User           @relation(fields: [createdById], references: [id], onDelete: Cascade)
+  name             String
+  description      String?
+  targetCountry    String
+  targetCity       String?
+  targetIndustry   String
+  targetKeywords   String?        // JSON array of strings
+  websiteCondition String         @default("SEO_ISSUES") // SEO_ISSUES, ANY_WEBSITE, NO_WEBSITE, ALL
+  targetLeadCount  Int            @default(50)
+  status           String         @default("DRAFT") // DRAFT, RUNNING, PAUSED, COMPLETED, FAILED
+  scheduleCron     String?
+  discoveredCount  Int            @default(0)
+  auditedCount     Int            @default(0)
+  qualifiedCount   Int            @default(0)
+  lastRunAt        DateTime?
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+
+  discoveryRuns    DiscoveryRun[]
+  leads            Lead[]
+
+  @@index([organizationId])
+  @@index([organizationId, status])
+}
+
+model DiscoveryRun {
+  id                String              @id @default(uuid())
+  organizationId    String
+  organization      Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  campaignId        String
+  campaign          AcquisitionCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  status            String              @default("RUNNING") // RUNNING, COMPLETED, FAILED
+  provider          String              // OPENSTREETMAP, GOOGLE_PLACES, BING_SEARCH
+  queriesExecuted   String?             // JSON array
+  businessesFound   Int                 @default(0)
+  duplicatesSkipped Int                 @default(0)
+  websitesVerified  Int                 @default(0)
+  errorMessage      String?
+  startedAt         DateTime            @default(now())
+  completedAt       DateTime?
+
+  @@index([organizationId])
+  @@index([campaignId])
+}
+
+model Lead {
+  id                 String               @id @default(uuid())
+  organizationId     String
+  organization       Organization         @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  campaignId         String?
+  campaign           AcquisitionCampaign? @relation(fields: [campaignId], references: [id], onDelete: SetNull)
+  businessName       String
+  normalizedName     String
+  websiteUrl         String?
+  normalizedDomain   String?
+  websiteStatus      String               @default("UNVERIFIED") // VERIFIED, UNVERIFIED, NO_WEBSITE_VERIFIED, UNREACHABLE
+  country            String?
+  city               String?
+  address            String?
+  industry           String?
+  publicEmail        String?
+  publicPhone        String?
+  contactSource      String?
+  discoverySource    String               @default("OPENSTREETMAP")
+  seoScore           Int?
+  opportunityScore   Int?
+  priority           String               @default("C") // A, B, C, LOW
+  status             String               @default("DISCOVERED") // DISCOVERED, ANALYSED, QUALIFIED, CONTACT_APPROVED, CONTACTED, INTERESTED, CONVERTED, REJECTED, DISQUALIFIED, LOST, UNSUBSCRIBED
+  assignedUserId     String?
+  assignedUser       User?                @relation("LeadAssignee", fields: [assignedUserId], references: [id], onDelete: SetNull)
+  convertedProjectId String?
+  isOptedOut         Boolean              @default(false)
+  lawfulBasis        String?              @default("LEGITIMATE_INTEREST_B2B")
+  lastInteractionAt  DateTime?
+  nextFollowUpAt     DateTime?
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
+
+  audits             LeadAudit[]
+  scores             LeadScore[]
+  notes              LeadNote[]
+  outreachMessages   OutreachMessage[]
+  followUpTasks      FollowUpTask[]
+  conversions        ConversionEvent[]
+
+  @@index([organizationId])
+  @@index([organizationId, status])
+  @@index([organizationId, normalizedName])
+  @@index([organizationId, normalizedDomain])
+}
+
+model LeadAudit {
+  id                  String       @id @default(uuid())
+  organizationId      String
+  organization        Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  leadId              String
+  lead                Lead         @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  url                 String
+  scoringVersion      String       @default("v1.0")
+  seoScore            Int
+  technicalScore      Int
+  onPageScore         Int
+  performanceScore    Int
+  mobileScore         Int
+  structuredDataScore Int
+  localSeoScore       Int
+  securityScore       Int
+  pageSpeedData       String?      // JSON
+  measuredFacts       String       // JSON array of directly measured evidence
+  inferredInsights    String       // JSON array of AI/rule-inferred opportunities
+  unavailableData     String       // JSON array of metrics requiring owner access
+  issues              String       // JSON array of structured SEO issues
+  rawEvidence         String?      // JSON snapshot (title, meta, h1, status, responseTimeMs, etc.)
+  createdAt           DateTime     @default(now())
+
+  @@index([organizationId])
+  @@index([leadId])
+}
+
+model LeadScore {
+  id                     String       @id @default(uuid())
+  organizationId         String
+  organization           Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  leadId                 String
+  lead                   Lead         @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  version                String       @default("v1.0")
+  totalScore             Int
+  priority               String       // A, B, C, LOW
+  seoOpportunityPts      Int
+  websiteQualityPts      Int
+  commercialRelevancePts Int
+  competitionPts         Int
+  completenessPts        Int
+  contactabilityPts      Int
+  reasons                String       // JSON array
+  evidence               String       // JSON array
+  recommendedServices    String       // JSON array
+  missingInfo            String       // JSON array
+  weightsUsed            String       // JSON object
+  createdAt              DateTime     @default(now())
+
+  @@index([organizationId])
+  @@index([leadId])
+}
+
+model LeadNote {
+  id             String       @id @default(uuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  leadId         String
+  lead           Lead         @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  authorId       String
+  author         User         @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  content        String
+  createdAt      DateTime     @default(now())
+
+  @@index([organizationId])
+  @@index([leadId])
+}
+
+model OutreachMessage {
+  id                  String       @id @default(uuid())
+  organizationId      String
+  organization        Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  leadId              String
+  lead                Lead         @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  channel             String       @default("EMAIL") // EMAIL, WHATSAPP, LINKEDIN, CONTACT_FORM
+  direction           String       @default("OUTBOUND") // OUTBOUND, INBOUND
+  subject             String?
+  body                String
+  proposalSummary     String?
+  status              String       @default("PENDING_APPROVAL") // DRAFT, PENDING_APPROVAL, APPROVED, SENT, FAILED, REJECTED, REPLIED
+  approvedById        String?
+  approvedBy          User?        @relation("MessageApprover", fields: [approvedById], references: [id], onDelete: SetNull)
+  approvedAt          DateTime?
+  sentAt              DateTime?
+  replyClassification String?      // INTERESTED, NOT_INTERESTED, REQUESTING_PRICING, REQUESTING_INFO, HAS_PROVIDER, UNSUBSCRIBE, NEEDS_HUMAN
+  sequenceStep        Int          @default(1)
+  deliveryMetadata    String?      // JSON
+  createdAt           DateTime     @default(now())
+  updatedAt           DateTime     @updatedAt
+
+  @@index([organizationId])
+  @@index([organizationId, status])
+  @@index([leadId])
+}
+
+model FollowUpTask {
+  id             String       @id @default(uuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  leadId         String
+  lead           Lead         @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  assignedUserId String?
+  assignedUser   User?        @relation(fields: [assignedUserId], references: [id], onDelete: SetNull)
+  title          String
+  notes          String?
+  dueAt          DateTime
+  status         String       @default("PENDING") // PENDING, COMPLETED, CANCELLED
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@index([organizationId])
+  @@index([organizationId, status])
+  @@index([leadId])
+}
+
+model SuppressionEntry {
+  id             String       @id @default(uuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  identifier     String       // normalized email or domain
+  reason         String       @default("UNSUBSCRIBE") // UNSUBSCRIBE, BOUNCE, COMPLAINT, MANUAL_BLOCK
+  source         String?
+  createdAt      DateTime     @default(now())
+
+  @@unique([organizationId, identifier])
+  @@index([organizationId])
+}
+
+model ConversionEvent {
+  id             String       @id @default(uuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  leadId         String
+  lead           Lead         @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  type           String       @default("SUBSCRIPTION") // SUBSCRIPTION, CUSTOMER_SALE
+  revenueAmount  Float        @default(0)
+  currency       String       @default("USD")
+  projectId      String?
+  notes          String?
+  convertedAt    DateTime     @default(now())
+
+  @@index([organizationId])
+  @@index([leadId])
+}
+
+model AcquisitionUsageLog {
+  id               String       @id @default(uuid())
+  organizationId   String
+  organization     Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  userId           String?
+  user             User?        @relation(fields: [userId], references: [id], onDelete: SetNull)
+  operation        String       // DISCOVERY, AUDIT, PROPOSAL, OUTREACH, EXPORT
+  creditsCharged   Int          @default(1)
+  aiProvider       String?
+  estimatedCostUsd Float        @default(0)
+  referenceId      String?
+  createdAt        DateTime     @default(now())
+
+  @@index([organizationId, operation, createdAt])
 }
 

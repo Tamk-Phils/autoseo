@@ -26,6 +26,11 @@ import {
   X,
   BookOpen,
   Home,
+  Radar,
+  Target,
+  Send,
+  CalendarClock,
+  TrendingUp,
 } from 'lucide-react';
 import { getActiveProjectId } from '@/lib/activeProject';
 
@@ -92,6 +97,15 @@ export default function Sidebar() {
     { label: 'Settings', href: '/settings', icon: Settings },
   ];
 
+  const acquisitionItems = [
+    { label: 'Acquisition Overview', href: '/acquisition', icon: Target },
+    { label: 'Discover Businesses', href: '/acquisition/discover', icon: Radar },
+    { label: 'Lead Database', href: '/acquisition/leads', icon: Users2 },
+    { label: 'Outreach Centre', href: '/acquisition/outreach', icon: Send },
+    { label: 'Follow-ups', href: '/acquisition/follow-ups', icon: CalendarClock },
+    { label: 'Acquisition Analytics', href: '/acquisition/analytics', icon: TrendingUp },
+  ];
+
   return (
     <>
       {isOpen && (
@@ -152,6 +166,41 @@ export default function Sidebar() {
               <Link
                 key={item.href}
                 href={linkHref}
+                className={`nav-item ${isActive ? 'active' : ''}`}
+                onClick={() => setIsOpen(false)}
+              >
+                <Icon size={18} />
+                <span>{item.label}</span>
+              </Link>
+            );
+          })}
+
+          <div className="nav-section-label" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <span>AI Acquisition</span>
+            <span
+              style={{
+                fontSize: '0.62rem',
+                fontWeight: 700,
+                padding: '0.1rem 0.38rem',
+                borderRadius: '999px',
+                background: 'rgba(16, 185, 129, 0.2)',
+                color: '#34d399',
+                letterSpacing: '0.04em',
+              }}
+            >
+              NEW
+            </span>
+          </div>
+          {acquisitionItems.map((item) => {
+            const Icon = item.icon;
+            const isActive =
+              item.href === '/acquisition'
+                ? pathname === '/acquisition'
+                : pathname.startsWith(item.href);
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
                 className={`nav-item ${isActive ? 'active' : ''}`}
                 onClick={() => setIsOpen(false)}
               >
