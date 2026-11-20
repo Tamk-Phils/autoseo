@@ -302,10 +302,9 @@ export async function executeDiscoveryCampaign(campaignId: string, tenant: Tenan
     const normName = normalizeBusinessName(biz.businessName);
     const normDom = normalizeDomain(biz.websiteUrl);
 
-    // Filter by campaign websiteCondition if user asked only for websites
-    if (campaign.websiteCondition === 'SEO_ISSUES' || campaign.websiteCondition === 'ANY_WEBSITE') {
-      // Keep businesses with websites prioritized; still store up to a small number if needed
-      if (!biz.websiteUrl && createdCount >= 5) continue;
+    // Filter only if user explicitly restricted to websites-only
+    if (campaign.websiteCondition === 'ANY_WEBSITE' && !biz.websiteUrl) {
+      continue;
     }
 
     // Duplicate prevention

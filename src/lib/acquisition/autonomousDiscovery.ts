@@ -157,8 +157,9 @@ export async function runAutonomousDiscoveryForProject(projectId: string) {
   const { project, tenant } = ctx;
   const profile = inferSiteNicheAndMarket(project, project.pages);
 
-  // Persist inferred industry on project if it was blank/General
-  if (!project.industry || project.industry === 'General') {
+  // Persist inferred industry on project if it was blank, General, or default Technology when a stronger niche matched
+  const genericSet = new Set(['', 'general', 'technology', 'other']);
+  if (!project.industry || (genericSet.has(project.industry.toLowerCase()) && profile.industry !== project.industry)) {
     await prisma.project.update({
       where: { id: project.id },
       data: { industry: profile.industry },
@@ -173,9 +174,9 @@ export async function runAutonomousDiscoveryForProject(projectId: string) {
     },
   });
 
-  // Throttle autonomous discovery per campaign to once every 30 minutes to keep DB & network fast
-  const thirtyMinutesAgo = new Date(Date.now() - 30 * 60 * 1000);
-  if (campaign?.lastRunAt && campaign.lastRunAt > thirtyMinutesAgo) {
+  // Throttle autonomous discovery per campaign to once every 10 minutes
+  const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000);
+  if (campaign?.lastRunAt && campaign.lastRunAt > tenMinutesAgo && campaign.discoveredCount > 0) {
     return { skipped: true, reason: 'Autonomous discovery ran recently for this project' };
   }
 
@@ -190,8 +191,8 @@ export async function runAutonomousDiscoveryForProject(projectId: string) {
         targetCity: profile.city,
         targetIndustry: profile.industry,
         targetKeywords: JSON.stringify(profile.nicheKeywords.slice(0, 12)),
-        websiteCondition: 'SEO_ISSUES',
-        targetLeadCount: 15,
+        websiteCondition: 'ALL',
+        targetLeadCount: 40,
         status: 'RUNNING',
         lastRunAt: new Date(),
       },
@@ -208,7 +209,7 @@ export async function runAutonomousDiscoveryForProject(projectId: string) {
     country: profile.country,
     city: profile.city,
     keywords: profile.nicheKeywords.slice(0, 5),
-    limit: 15,
+    limit: 40,
   });
 
   const run = await prisma.discoveryRun.create({

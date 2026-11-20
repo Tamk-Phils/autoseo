@@ -171,7 +171,9 @@ export function inferSiteNicheAndMarket(
     ...pages.slice(0, 15).flatMap((p) => [p.title || '', p.h1 || '', p.metaDescription || '', p.path || '']),
   ].join(' ');
 
-  let industry = (project.industry && project.industry !== 'General' && project.industry.trim()) || '';
+  const genericIndustries = new Set(['', 'general', 'technology', 'other', 'business', 'website', 'ecommerce', 'e-commerce']);
+  const rawIndustry = (project.industry || '').trim();
+  let industry = genericIndustries.has(rawIndustry.toLowerCase()) ? '' : rawIndustry;
   const nicheKeywords = new Set<string>();
 
   for (const niche of NICHE_PATTERNS) {
@@ -179,6 +181,10 @@ export function inferSiteNicheAndMarket(
       if (!industry) industry = niche.industry;
       for (const kw of niche.coreModifiers) nicheKeywords.add(kw);
     }
+  }
+
+  if (!industry && rawIndustry) {
+    industry = rawIndustry;
   }
 
   const cleanBrand = project.domain.replace(/^www\./, '').split('.')[0].replace(/[-_]+/g, ' ').trim();
