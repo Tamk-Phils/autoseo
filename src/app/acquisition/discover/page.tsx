@@ -134,6 +134,28 @@ export default function DiscoverBusinessesPage() {
 
           <AcquisitionWorkspaceBar onWorkspaceChanged={loadCampaigns} />
 
+          <div
+            className="card"
+            style={{
+              marginBottom: '1.25rem',
+              padding: '0.95rem 1.15rem',
+              borderColor: 'rgba(22, 163, 74, 0.35)',
+              background: 'var(--color-success-bg)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: '0.75rem',
+              flexWrap: 'wrap',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', minWidth: 0 }}>
+              <span className="live-pulse-dot" />
+              <div style={{ fontSize: '0.86rem', color: 'var(--text-primary)' }}>
+                <strong>100% Autonomous Discovery &amp; Keyword Ranking Active:</strong> AutoSEO automatically crawls your sites, understands your niche (cars, jewelry, pets, etc.), mines high-intent keywords online, pushes them live to your site, and discovers &amp; audits matching prospects automatically in the background.
+              </div>
+            </div>
+          </div>
+
           {notice && (
             <div
               className="card"

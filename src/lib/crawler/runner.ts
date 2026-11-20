@@ -9,6 +9,11 @@ import {
   runQaAgent,
 } from '@/lib/ai/agents';
 import { submitToIndexNow, pingSearchEngineSitemaps } from '@/lib/indexing/indexnow';
+import {
+  inferSiteNicheAndMarket,
+  expandNicheKeywordsOnline,
+  runAutonomousDiscoveryForProject,
+} from '@/lib/acquisition/autonomousDiscovery';
 
 export const globalActiveCrawlLogs: Record<string, CrawlLogEntry[]> = {};
 
@@ -506,11 +511,54 @@ export async function executeCrawlForProject(projectId: string, options: CrawlEx
       }
     }
 
-    // Autonomous Full-Page Optimization Sweep
+    // Autonomous Niche Keyword Mining Online (Google Suggest + DuckDuckGo + Commercial Modifiers)
+    try {
+      const profile = inferSiteNicheAndMarket(project, crawlResult.pages);
+      const pageSeeds = crawlResult.pages
+        .slice(0, 10)
+        .flatMap((p) => [p.title || '', p.h1 || '', p.path.replace(/[-_/]+/g, ' ')]);
+      const expandedTerms = await expandNicheKeywordsOnline(profile, pageSeeds);
+
+      if (expandedTerms.length > 0) {
+        const existingKw = await prisma.keyword.findMany({
+          where: { projectId: project.id },
+          select: { term: true },
+        });
+        const existingSet = new Set(existingKw.map((k) => k.term.toLowerCase()));
+        const freshTerms = expandedTerms.filter((t) => !existingSet.has(t.toLowerCase())).slice(0, 120);
+
+        if (freshTerms.length > 0) {
+          await prisma.keyword.createMany({
+            data: freshTerms.map((term) => ({
+              projectId: project.id,
+              term,
+              source: 'AUTONOMOUS_WEB_MINER',
+              searchIntent: /buy|price|deal|used|for sale|near me|best|affordable/i.test(term)
+                ? 'Commercial / Transactional'
+                : 'Informational',
+              trend: 'UP',
+              isOpportunity: true,
+              opportunityNote: `Automatically mined online for ${profile.industry} niche and queued for live site injection.`,
+            })),
+          });
+        }
+      }
+    } catch (kwErr) {
+      console.error('Autonomous niche keyword mining error:', kwErr);
+    }
+
+    // Autonomous Full-Page Optimization & Live Keyword Injection Sweep
     try {
       await ensureAutonomousPageOptimizations(project.id);
     } catch (optErr) {
       console.error('Autonomous page optimization sweep error:', optErr);
+    }
+
+    // Autonomous Business & People Discovery (Zero-Manual Background Acquisition)
+    try {
+      await runAutonomousDiscoveryForProject(project.id);
+    } catch (acqErr) {
+      console.error('Autonomous business discovery error:', acqErr);
     }
 
     // Finalize Crawl Job
@@ -569,6 +617,8 @@ export async function ensureAutonomousPageOptimizations(projectId: string) {
   let newAppliedCount = 0;
   const brandName = project.domain.replace(/^www\./, '').split('.')[0];
   const capitalizedBrand = brandName.charAt(0).toUpperCase() + brandName.slice(1);
+  const allKeywordTerms = project.keywords.map((k) => k.term).filter(Boolean);
+  const primaryNicheKeyword = allKeywordTerms[0] || project.industry || capitalizedBrand;
 
   for (const page of project.pages) {
     const cleanSlug = page.path === '/' ? 'Home' : page.path.replace(/[-_/]/g, ' ').trim();
@@ -577,16 +627,33 @@ export async function ensureAutonomousPageOptimizations(projectId: string) {
       .map((w: string) => w.charAt(0).toUpperCase() + w.slice(1))
       .join(' ');
 
-    // 1. Autonomous Title Tag
+    // Match top high-intent keywords for this specific page
+    const pageTokens = new Set(
+      [page.path.replace(/[-_/]+/g, ' '), page.title || '', page.h1 || '']
+        .join(' ')
+        .toLowerCase()
+        .replace(/[^a-z0-9 ]/g, ' ')
+        .split(/\s+/)
+        .filter((w) => w.length > 2)
+    );
+    const matchedKeywords = allKeywordTerms.filter((term) => {
+      const lower = term.toLowerCase();
+      return Array.from(pageTokens).some((tok) => lower.includes(tok));
+    });
+    const pageKeywords = Array.from(new Set([...matchedKeywords, ...allKeywordTerms.slice(0, 10)])).slice(0, 12);
+    const topPageKw = pageKeywords[0] || primaryNicheKeyword;
+    const secondaryPageKw = pageKeywords[1] || pageKeywords[0] || capitalizedSlug;
+    const keywordsString = pageKeywords.join(', ');
+
+    // 1. Autonomous Keyword-Rich Title Tag
     const titleKey = `${page.url.toLowerCase()}:::META_TITLE`;
     const titleKeyAlt = `${page.url.toLowerCase()}:::TITLE`;
     if (!existingByUrlAndType.has(titleKey) && !existingByUrlAndType.has(titleKeyAlt)) {
       const currentTitle = page.title || '';
-      const suggestedTitle = currentTitle.length >= 35 && currentTitle.length <= 65
-        ? currentTitle
-        : (currentTitle.length > 0 && currentTitle.toLowerCase().includes(brandName.toLowerCase()))
-          ? `${currentTitle.slice(0, 45).trim()} — Verified Quality`
-          : `${capitalizedSlug} | ${capitalizedBrand}`;
+      const suggestedTitle =
+        currentTitle.length >= 35 && currentTitle.length <= 65 && currentTitle.toLowerCase().includes(topPageKw.toLowerCase())
+          ? currentTitle
+          : `${page.path === '/' ? topPageKw : capitalizedSlug} — ${secondaryPageKw} | ${capitalizedBrand}`.slice(0, 65);
 
       await prisma.optimizationChange.create({
         data: {
@@ -595,7 +662,7 @@ export async function ensureAutonomousPageOptimizations(projectId: string) {
           changeType: 'TITLE',
           originalValue: currentTitle || 'Missing title',
           newValue: suggestedTitle,
-          reason: `Autonomous Title Tag CTR Optimization for ${page.path}`,
+          reason: `Autonomous Keyword-Optimized Title Tag for ${page.path} (targeting "${topPageKw}")`,
           affectedUrl: page.url,
           integrationUsed: 'AUTONOMOUS_ENGINE',
           status: 'APPLIED',
@@ -605,14 +672,16 @@ export async function ensureAutonomousPageOptimizations(projectId: string) {
       newAppliedCount++;
     }
 
-    // 2. Autonomous Meta Description
+    // 2. Autonomous Keyword-Rich Meta Description
     const descKey = `${page.url.toLowerCase()}:::META_DESCRIPTION`;
     const descKeyAlt = `${page.url.toLowerCase()}:::DESCRIPTION`;
     if (!existingByUrlAndType.has(descKey) && !existingByUrlAndType.has(descKeyAlt)) {
       const currentDesc = page.metaDescription || '';
-      const suggestedDesc = currentDesc.length >= 110 && currentDesc.length <= 165
-        ? currentDesc
-        : `Explore ${capitalizedSlug} at ${capitalizedBrand}. Discover comprehensive insights, verified selection, and expert support. Guaranteed quality and performance.`;
+      const kwSnippet = pageKeywords.slice(0, 3).join(', ');
+      const suggestedDesc =
+        currentDesc.length >= 110 && currentDesc.length <= 165
+          ? currentDesc
+          : `Discover ${kwSnippet || capitalizedSlug} at ${capitalizedBrand}. Trusted selection, competitive value, and fast service for ${topPageKw}.`.slice(0, 160);
 
       await prisma.optimizationChange.create({
         data: {
@@ -621,7 +690,7 @@ export async function ensureAutonomousPageOptimizations(projectId: string) {
           changeType: 'META_DESCRIPTION',
           originalValue: currentDesc || 'Missing meta description',
           newValue: suggestedDesc,
-          reason: `Autonomous SERP Snippet Meta Description for ${page.path}`,
+          reason: `Autonomous Keyword-Enriched Meta Description for ${page.path}`,
           affectedUrl: page.url,
           integrationUsed: 'AUTONOMOUS_ENGINE',
           status: 'APPLIED',
@@ -631,7 +700,27 @@ export async function ensureAutonomousPageOptimizations(projectId: string) {
       newAppliedCount++;
     }
 
-    // 3. Autonomous Canonical Tag
+    // 3. Autonomous Live Meta Keywords Injection (Always auto-pushed to site)
+    const kwKey = `${page.url.toLowerCase()}:::META_KEYWORDS`;
+    if (keywordsString && !existingByUrlAndType.has(kwKey)) {
+      await prisma.optimizationChange.create({
+        data: {
+          projectId: project.id,
+          pageId: page.id,
+          changeType: 'META_KEYWORDS',
+          originalValue: 'No autonomous keywords injected',
+          newValue: keywordsString,
+          reason: `Autonomous Niche Keyword Push (${pageKeywords.length} high-intent queries) for ${page.path}`,
+          affectedUrl: page.url,
+          integrationUsed: 'AUTONOMOUS_ENGINE',
+          status: 'APPLIED',
+        },
+      });
+      existingByUrlAndType.add(kwKey);
+      newAppliedCount++;
+    }
+
+    // 4. Autonomous Canonical Tag
     const canKey = `${page.url.toLowerCase()}:::CANONICAL`;
     if (!existingByUrlAndType.has(canKey)) {
       await prisma.optimizationChange.create({
@@ -651,15 +740,41 @@ export async function ensureAutonomousPageOptimizations(projectId: string) {
       newAppliedCount++;
     }
 
-    // 4. Autonomous Schema.org WebPage JSON-LD
+    // 5. Autonomous Rich Multi-Entity Schema.org JSON-LD (WebPage + FAQPage + knowsAbout keywords)
     const schemaKey = `${page.url.toLowerCase()}:::SCHEMA`;
     if (!existingByUrlAndType.has(schemaKey)) {
-      const schemaObj = {
+      const schemaGraph = {
         '@context': 'https://schema.org',
-        '@type': 'WebPage',
-        name: page.title || `${capitalizedSlug} | ${capitalizedBrand}`,
-        description: page.metaDescription || `Official ${page.path} page for ${capitalizedBrand}`,
-        url: page.url,
+        '@graph': [
+          {
+            '@type': 'WebPage',
+            name: page.title || `${topPageKw} | ${capitalizedBrand}`,
+            description: page.metaDescription || `Explore ${pageKeywords.slice(0, 4).join(', ')} at ${capitalizedBrand}.`,
+            url: page.url,
+            keywords: keywordsString || undefined,
+            about: pageKeywords.slice(0, 8).map((term) => ({
+              '@type': 'Thing',
+              name: term,
+            })),
+          },
+          {
+            '@type': 'Organization',
+            name: capitalizedBrand,
+            url: project.url,
+            knowsAbout: pageKeywords.slice(0, 10),
+          },
+          {
+            '@type': 'FAQPage',
+            mainEntity: pageKeywords.slice(0, 3).map((kw) => ({
+              '@type': 'Question',
+              name: `Where can I find ${kw}?`,
+              acceptedAnswer: {
+                '@type': 'Answer',
+                text: `${capitalizedBrand} provides verified solutions and options for ${kw} at ${page.url}.`,
+              },
+            })),
+          },
+        ],
       };
 
       await prisma.optimizationChange.create({
@@ -668,14 +783,34 @@ export async function ensureAutonomousPageOptimizations(projectId: string) {
           pageId: page.id,
           changeType: 'SCHEMA',
           originalValue: 'No Schema.org JSON-LD markup',
-          newValue: JSON.stringify(schemaObj, null, 2),
-          reason: `Autonomous Schema.org Rich Snippet Entity for ${page.path}`,
+          newValue: JSON.stringify(schemaGraph, null, 2),
+          reason: `Autonomous Rich Entity + FAQ Schema.org Markup (${pageKeywords.length} topics) for ${page.path}`,
           affectedUrl: page.url,
           integrationUsed: 'AUTONOMOUS_ENGINE',
           status: 'APPLIED',
         },
       });
       existingByUrlAndType.add(schemaKey);
+      newAppliedCount++;
+    }
+
+    // 6. Autonomous Missing Image Alt Text Enricher
+    const altKey = `${page.url.toLowerCase()}:::ALT_TEXT`;
+    if (page.imagesMissingAlt > 0 && !existingByUrlAndType.has(altKey)) {
+      await prisma.optimizationChange.create({
+        data: {
+          projectId: project.id,
+          pageId: page.id,
+          changeType: 'ALT_TEXT',
+          originalValue: `${page.imagesMissingAlt} images missing alt attributes`,
+          newValue: topPageKw,
+          reason: `Autonomous Image Alt-Text Keyword Enrichment for ${page.path}`,
+          affectedUrl: page.url,
+          integrationUsed: 'AUTONOMOUS_ENGINE',
+          status: 'APPLIED',
+        },
+      });
+      existingByUrlAndType.add(altKey);
       newAppliedCount++;
     }
   }

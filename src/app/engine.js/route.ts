@@ -28,30 +28,34 @@ export async function GET(req: Request) {
     var rule = data.overrides[currentPath] || data.overrides[normPath] || data.overrides['/' + normPath.replace(/^\//, '')];
     if (!rule) return;
 
-    // 1. Dynamic Title Tag & Social Cards
-    if (rule.title && document.title !== rule.title) {
-      document.title = rule.title;
-      var ogTitle = document.querySelector('meta[property="og:title"]');
-      if (ogTitle) ogTitle.setAttribute('content', rule.title);
-      var twTitle = document.querySelector('meta[name="twitter:title"]');
-      if (twTitle) twTitle.setAttribute('content', rule.title);
+    // Helper to create or update a meta tag
+    function upsertMeta(attrName, attrVal, content) {
+      if (!content) return;
+      var el = document.querySelector('meta[' + attrName + '="' + attrVal + '"]');
+      if (el) {
+        el.setAttribute('content', content);
+      } else {
+        var m = document.createElement('meta');
+        m.setAttribute(attrName, attrVal);
+        m.setAttribute('content', content);
+        document.head.appendChild(m);
+      }
+    }
+
+    // 1. Dynamic Title Tag & OpenGraph / Twitter Cards
+    if (rule.title) {
+      if (document.title !== rule.title) document.title = rule.title;
+      upsertMeta('property', 'og:title', rule.title);
+      upsertMeta('name', 'twitter:title', rule.title);
+      upsertMeta('property', 'og:type', 'website');
+      upsertMeta('property', 'og:url', window.location.href);
     }
 
     // 2. Dynamic Meta Description & Social Cards
     if (rule.description) {
-      var metaDesc = document.querySelector('meta[name="description"]');
-      if (metaDesc) {
-        metaDesc.setAttribute('content', rule.description);
-      } else {
-        var m = document.createElement('meta');
-        m.name = 'description';
-        m.content = rule.description;
-        document.head.appendChild(m);
-      }
-      var ogDesc = document.querySelector('meta[property="og:description"]');
-      if (ogDesc) ogDesc.setAttribute('content', rule.description);
-      var twDesc = document.querySelector('meta[name="twitter:description"]');
-      if (twDesc) twDesc.setAttribute('content', rule.description);
+      upsertMeta('name', 'description', rule.description);
+      upsertMeta('property', 'og:description', rule.description);
+      upsertMeta('name', 'twitter:description', rule.description);
     }
 
     // 3. Dynamic Canonical Link Tag

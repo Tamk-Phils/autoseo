@@ -6,6 +6,7 @@ import { calculateDeterministicOpportunityScore } from '../src/lib/acquisition/s
 import { normalizeBusinessName, normalizeDomain } from '../src/lib/acquisition/discovery';
 import { classifyProspectReply } from '../src/lib/acquisition/salesAgent';
 import { runNativePerformanceAndVitalsAudit } from '../src/lib/acquisition/performanceEngine';
+import { inferSiteNicheAndMarket } from '../src/lib/acquisition/nicheInference';
 
 describe('SSRF & Website Crawling Security', () => {
   it('blocks loopback, RFC1918 private networks, and cloud metadata IPs', () => {
@@ -148,5 +149,33 @@ describe('In-House Native Performance & Web Vitals Engine', () => {
     assert.ok(report.estimatedClsRisk > 0);
     assert.ok(report.performanceScore < 90);
     assert.ok(report.accessibilityScore < 90);
+  });
+});
+
+describe('Zero-Manual Niche Understanding & Keyword Expansion', () => {
+  it('automatically understands car dealership sites and expands used cars keywords', () => {
+    const profile = inferSiteNicheAndMarket(
+      { domain: 'kjautos.online', country: 'US' },
+      [{ title: 'KJ Autos - Quality Used Cars and SUVs', h1: 'Find Your Next Car', path: '/inventory' }]
+    );
+    assert.equal(profile.industry, 'Auto dealership & cars');
+    assert.ok(profile.nicheKeywords.includes('used cars'));
+    assert.ok(profile.nicheKeywords.includes('cars for sale'));
+  });
+
+  it('automatically understands jewelry and pet sites without manual industry input', () => {
+    const jewelry = inferSiteNicheAndMarket(
+      { domain: 'marchell0thejeweler.com', country: 'US' },
+      [{ title: 'Custom Diamond Rings & Gold Chains', path: '/' }]
+    );
+    assert.equal(jewelry.industry, 'Jewelry store');
+    assert.ok(jewelry.nicheKeywords.includes('diamond rings'));
+
+    const pets = inferSiteNicheAndMarket(
+      { domain: 'happypaws.shop', country: 'UK' },
+      [{ title: 'Dog Food, Cat Toys & Pet Grooming', path: '/' }]
+    );
+    assert.equal(pets.industry, 'Pet care & supplies');
+    assert.ok(pets.nicheKeywords.includes('pet supplies online'));
   });
 });
