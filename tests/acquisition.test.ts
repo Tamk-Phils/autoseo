@@ -1,9 +1,11 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
+import * as cheerio from 'cheerio';
 import { isPrivateOrReservedIp, validateSafePublicUrl } from '../src/lib/acquisition/ssrf';
 import { calculateDeterministicOpportunityScore } from '../src/lib/acquisition/scoring';
 import { normalizeBusinessName, normalizeDomain } from '../src/lib/acquisition/discovery';
 import { classifyProspectReply } from '../src/lib/acquisition/salesAgent';
+import { runNativePerformanceAndVitalsAudit } from '../src/lib/acquisition/performanceEngine';
 
 describe('SSRF & Website Crawling Security', () => {
   it('blocks loopback, RFC1918 private networks, and cloud metadata IPs', () => {
@@ -112,5 +114,39 @@ describe('Outreach Compliance & Reply Classification', () => {
     assert.equal(res.classification, 'REQUESTING_PRICING');
     assert.equal(res.shouldSuppress, false);
     assert.equal(res.suggestedNextStatus, 'INTERESTED');
+  });
+});
+
+describe('In-House Native Performance & Web Vitals Engine', () => {
+  it('measures render-blocking scripts, unsized images, and missing lang without third-party APIs', () => {
+    const html = `<html><head><script src="/a.js"></script><script src="/b.js"></script><link rel="stylesheet" href="/s.css"></head><body><img src="/hero.jpg"><img src="/photo.png"><img src="/pic.jpg"></body></html>`;
+    const $ = cheerio.load(html);
+    const report = runNativePerformanceAndVitalsAudit(
+      {
+        ok: true,
+        status: 200,
+        finalUrl: 'https://example.com/',
+        contentType: 'text/html',
+        body: html,
+        byteLength: Buffer.byteLength(html),
+        ttfbMs: 950,
+        responseTimeMs: 1200,
+        headers: {
+          contentEncoding: null,
+          cacheControl: null,
+          strictTransportSecurity: null,
+          xContentTypeOptions: null,
+        },
+      },
+      $
+    );
+
+    assert.equal(report.source, 'AUTOSEO_NATIVE_PERF_ENGINE');
+    assert.equal(report.renderBlockingScripts, 2);
+    assert.equal(report.imagesWithoutDimensions, 3);
+    assert.ok(report.estimatedLcpMs > 950);
+    assert.ok(report.estimatedClsRisk > 0);
+    assert.ok(report.performanceScore < 90);
+    assert.ok(report.accessibilityScore < 90);
   });
 });

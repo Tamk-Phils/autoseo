@@ -253,7 +253,7 @@ export default function DiscoverBusinessesPage() {
 
             <div style={{ marginTop: '1.15rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem' }}>
               <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-                Uses authorized discovery APIs (Google Places / Bing / OpenStreetMap). Credits are never charged for duplicates or failed requests.
+                Powered by AutoSEO&apos;s built-in Native Worldwide Discovery &amp; Web Vitals Engine (zero third-party API keys). Credits are never charged for duplicates or failed requests.
               </span>
               <button type="submit" className="btn btn-primary" disabled={submitting} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.45rem' }}>
                 <Radar size={16} />

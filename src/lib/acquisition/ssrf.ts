@@ -7,7 +7,15 @@ export interface SafeFetchResult {
   finalUrl: string;
   contentType: string;
   body: string;
+  byteLength: number;
+  ttfbMs: number;
   responseTimeMs: number;
+  headers: {
+    contentEncoding: string | null;
+    cacheControl: string | null;
+    strictTransportSecurity: string | null;
+    xContentTypeOptions: string | null;
+  };
   error?: string;
 }
 
@@ -129,6 +137,13 @@ export async function safePublicFetch(
 
   let currentUrl = rawUrl;
 
+  const emptyHeaders = {
+    contentEncoding: null,
+    cacheControl: null,
+    strictTransportSecurity: null,
+    xContentTypeOptions: null,
+  };
+
   for (let hop = 0; hop <= MAX_REDIRECTS; hop++) {
     const validation = await validateSafePublicUrl(currentUrl);
     if (!validation.safe || !validation.url) {
@@ -138,7 +153,10 @@ export async function safePublicFetch(
         finalUrl: currentUrl,
         contentType: '',
         body: '',
+        byteLength: 0,
+        ttfbMs: Date.now() - start,
         responseTimeMs: Date.now() - start,
+        headers: emptyHeaders,
         error: validation.reason || 'URL failed SSRF safety check',
       };
     }
@@ -150,9 +168,12 @@ export async function safePublicFetch(
         headers: {
           'User-Agent': 'AutoSEO-IntelligenceBot/1.0 (+https://autoseo-beta.vercel.app)',
           Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+          'Accept-Encoding': 'gzip, deflate, br',
         },
         signal: AbortSignal.timeout(timeoutMs),
       });
+
+      const ttfbMs = Date.now() - start;
 
       if (res.status >= 300 && res.status < 400) {
         const location = res.headers.get('location');
@@ -163,7 +184,10 @@ export async function safePublicFetch(
             finalUrl: validation.url.toString(),
             contentType: '',
             body: '',
+            byteLength: 0,
+            ttfbMs,
             responseTimeMs: Date.now() - start,
+            headers: emptyHeaders,
             error: 'Redirect without Location header',
           };
         }
@@ -172,7 +196,15 @@ export async function safePublicFetch(
       }
 
       const contentType = res.headers.get('content-type') || '';
+      const responseHeaders = {
+        contentEncoding: res.headers.get('content-encoding'),
+        cacheControl: res.headers.get('cache-control'),
+        strictTransportSecurity: res.headers.get('strict-transport-security'),
+        xContentTypeOptions: res.headers.get('x-content-type-options'),
+      };
+
       let body = '';
+      let byteLength = 0;
 
       if (method === 'GET' && res.body) {
         const reader = res.body.getReader();
@@ -186,13 +218,16 @@ export async function safePublicFetch(
             received += value.byteLength;
             if (received > maxBytes) {
               chunks.push(value.slice(0, value.byteLength - (received - maxBytes)));
+              received = maxBytes;
               await reader.cancel().catch(() => {});
               break;
             }
             chunks.push(value);
           }
         }
-        body = Buffer.concat(chunks.map((c) => Buffer.from(c))).toString('utf8');
+        const buf = Buffer.concat(chunks.map((c) => Buffer.from(c)));
+        byteLength = buf.byteLength;
+        body = buf.toString('utf8');
       }
 
       return {
@@ -201,7 +236,10 @@ export async function safePublicFetch(
         finalUrl: validation.url.toString(),
         contentType,
         body,
+        byteLength,
+        ttfbMs,
         responseTimeMs: Date.now() - start,
+        headers: responseHeaders,
       };
     } catch (err: any) {
       return {
@@ -210,7 +248,10 @@ export async function safePublicFetch(
         finalUrl: validation.url.toString(),
         contentType: '',
         body: '',
+        byteLength: 0,
+        ttfbMs: Date.now() - start,
         responseTimeMs: Date.now() - start,
+        headers: emptyHeaders,
         error: err?.message || 'Network request failed',
       };
     }
@@ -222,7 +263,10 @@ export async function safePublicFetch(
     finalUrl: currentUrl,
     contentType: '',
     body: '',
+    byteLength: 0,
+    ttfbMs: Date.now() - start,
     responseTimeMs: Date.now() - start,
+    headers: emptyHeaders,
     error: `Exceeded maximum redirects (${MAX_REDIRECTS})`,
   };
 }

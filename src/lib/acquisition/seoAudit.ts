@@ -1,5 +1,9 @@
 import * as cheerio from 'cheerio';
 import { safePublicFetch } from './ssrf';
+import {
+  runNativePerformanceAndVitalsAudit,
+  NativeWebVitalsReport,
+} from './performanceEngine';
 
 export interface SeoAuditIssueItem {
   category:
@@ -33,14 +37,7 @@ export interface LeadSeoAuditResult {
   securityScore: number;
   discoveredEmail: string | null;
   discoveredPhone: string | null;
-  pageSpeedData: {
-    source: 'GOOGLE_PAGESPEED_INSIGHTS' | 'UNAVAILABLE';
-    performanceScore?: number;
-    seoScore?: number;
-    accessibilityScore?: number;
-    lcpMs?: number;
-    cls?: number;
-  };
+  pageSpeedData: NativeWebVitalsReport;
   measuredFacts: string[];
   inferredInsights: string[];
   unavailableData: string[];
@@ -48,7 +45,10 @@ export interface LeadSeoAuditResult {
   rawEvidence: {
     httpStatus: number;
     isHttps: boolean;
+    ttfbMs: number;
     responseTimeMs: number;
+    htmlSizeBytes: number;
+    domNodesCount: number;
     title: string | null;
     titleLength: number;
     metaDescription: string | null;
@@ -72,45 +72,8 @@ export interface LeadSeoAuditResult {
 }
 
 /**
- * Optional Google PageSpeed Insights check (mobile strategy).
- */
-async function fetchPageSpeedInsights(url: string): Promise<LeadSeoAuditResult['pageSpeedData']> {
-  const apiKey = process.env.GOOGLE_PAGESPEED_API_KEY?.trim();
-  const endpoint = `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=${encodeURIComponent(
-    url
-  )}&strategy=mobile&category=performance&category=seo&category=accessibility${
-    apiKey ? `&key=${encodeURIComponent(apiKey)}` : ''
-  }`;
-
-  try {
-    const res = await fetch(endpoint, { signal: AbortSignal.timeout(8000) });
-    if (!res.ok) return { source: 'UNAVAILABLE' };
-    const data = await res.json();
-    const cats = data?.lighthouseResult?.categories;
-    const audits = data?.lighthouseResult?.audits;
-    if (!cats) return { source: 'UNAVAILABLE' };
-
-    return {
-      source: 'GOOGLE_PAGESPEED_INSIGHTS',
-      performanceScore: typeof cats.performance?.score === 'number' ? Math.round(cats.performance.score * 100) : undefined,
-      seoScore: typeof cats.seo?.score === 'number' ? Math.round(cats.seo.score * 100) : undefined,
-      accessibilityScore:
-        typeof cats.accessibility?.score === 'number' ? Math.round(cats.accessibility.score * 100) : undefined,
-      lcpMs: audits?.['largest-contentful-paint']?.numericValue
-        ? Math.round(audits['largest-contentful-paint'].numericValue)
-        : undefined,
-      cls: typeof audits?.['cumulative-layout-shift']?.numericValue === 'number'
-        ? Number(audits['cumulative-layout-shift'].numericValue.toFixed(3))
-        : undefined,
-    };
-  } catch {
-    return { source: 'UNAVAILABLE' };
-  }
-}
-
-/**
- * Runs an SSRF-safe, deterministic, evidence-based SEO audit on a prospect's public website.
- * Strictly separates measured facts, inferred opportunities, and unavailable private data.
+ * Runs a 100% in-house, SSRF-safe, deterministic, evidence-based SEO & Web Vitals audit
+ * on a prospect's public website — zero third-party PageSpeed APIs required.
  */
 export async function runLeadSeoAudit(
   websiteUrl: string,
@@ -125,13 +88,10 @@ export async function runLeadSeoAudit(
   const origin = finalUrlObj.origin;
   const isHttps = finalUrlObj.protocol === 'https:';
 
-  // Parallel check for robots.txt, sitemap.xml, and optional PageSpeed Insights
-  const [robotsRes, sitemapRes, pageSpeedData] = await Promise.all([
+  // Parallel check for robots.txt and sitemap.xml via SSRF-safe fetcher
+  const [robotsRes, sitemapRes] = await Promise.all([
     safePublicFetch(`${origin}/robots.txt`, { method: 'GET', timeoutMs: 4000, maxBytes: 64 * 1024 }),
     safePublicFetch(`${origin}/sitemap.xml`, { method: 'HEAD', timeoutMs: 4000 }),
-    context?.runPageSpeed
-      ? fetchPageSpeedInsights(fetchRes.finalUrl)
-      : Promise.resolve({ source: 'UNAVAILABLE' } as LeadSeoAuditResult['pageSpeedData']),
   ]);
 
   const hasRobotsTxt = robotsRes.ok && robotsRes.status === 200 && robotsRes.body.length > 5;
@@ -140,6 +100,9 @@ export async function runLeadSeoAudit(
     (hasRobotsTxt && /sitemap:/i.test(robotsRes.body));
 
   const $ = cheerio.load(fetchRes.body);
+
+  // Run our in-house Native Performance, Web Vitals & Accessibility Engine BEFORE mutating DOM
+  const nativePerf = runNativePerformanceAndVitalsAudit(fetchRes, $);
 
   const title = $('title').first().text().trim() || null;
   const metaDescription = $('meta[name="description"]').attr('content')?.trim() || null;
@@ -170,7 +133,7 @@ export async function runLeadSeoAudit(
     }
   });
 
-  // Links & images
+  // Links & public contact channels
   let internalLinksCount = 0;
   let externalLinksCount = 0;
   let discoveredEmail: string | null = null;
@@ -214,7 +177,6 @@ export async function runLeadSeoAudit(
   const bodyText = $('body').text().replace(/\s+/g, ' ').trim();
   const wordCount = bodyText ? bodyText.split(' ').filter(Boolean).length : 0;
 
-  // Fallback public email extraction from visible text if no mailto link
   if (!discoveredEmail) {
     const emailMatch = bodyText.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);
     if (emailMatch && !/example\.com|sentry\.io|wixpress/i.test(emailMatch[0])) {
@@ -223,19 +185,32 @@ export async function runLeadSeoAudit(
   }
 
   // =========================================================================
-  // DETERMINISTIC, VERSIONED SCORING (v1.0)
+  // DETERMINISTIC, VERSIONED SCORING (v1.0 — 100% Native AutoSEO Engine)
   // =========================================================================
-  const issues: SeoAuditIssueItem[] = [];
+  const issues: SeoAuditIssueItem[] = [...nativePerf.findings];
   const measuredFacts: string[] = [];
   const inferredInsights: string[] = [];
 
-  measuredFacts.push(`HTTP ${fetchRes.status} response in ${fetchRes.responseTimeMs}ms (${isHttps ? 'HTTPS enabled' : 'No HTTPS'}).`);
-  measuredFacts.push(`Homepage contains ${wordCount} words, ${internalLinksCount} internal links, and ${imagesTotal} images (${imagesMissingAlt} missing alt text).`);
+  measuredFacts.push(
+    `HTTP ${fetchRes.status} | TTFB: ${fetchRes.ttfbMs}ms | Total load: ${fetchRes.responseTimeMs}ms | Size: ${(
+      fetchRes.byteLength / 1024
+    ).toFixed(1)}KB | DOM nodes: ${nativePerf.domNodesCount} (${isHttps ? 'HTTPS' : 'HTTP'}).`
+  );
+  measuredFacts.push(
+    `Native Web Vitals Lab: Perf ${nativePerf.performanceScore}/100, Accessibility ${nativePerf.accessibilityScore}/100, Est. LCP ${nativePerf.estimatedLcpMs}ms, Est. CLS risk ${nativePerf.estimatedClsRisk}, Render-blocking scripts: ${nativePerf.renderBlockingScripts}.`
+  );
+  measuredFacts.push(
+    `Homepage contains ${wordCount} words, ${internalLinksCount} internal links, and ${imagesTotal} images (${imagesMissingAlt} missing alt text).`
+  );
   if (title) measuredFacts.push(`Title tag present (${title.length} chars): "${title.slice(0, 70)}".`);
   else measuredFacts.push('Title tag is completely missing.');
   if (metaDescription) measuredFacts.push(`Meta description present (${metaDescription.length} chars).`);
   else measuredFacts.push('Meta description is missing.');
-  measuredFacts.push(`robots.txt: ${hasRobotsTxt ? 'Found' : 'Missing'} | sitemap.xml: ${hasSitemapXml ? 'Found' : 'Missing'} | Schema.org types: ${schemaTypes.length > 0 ? schemaTypes.join(', ') : 'None'}.`);
+  measuredFacts.push(
+    `robots.txt: ${hasRobotsTxt ? 'Found' : 'Missing'} | sitemap.xml: ${hasSitemapXml ? 'Found' : 'Missing'} | Schema.org types: ${
+      schemaTypes.length > 0 ? schemaTypes.join(', ') : 'None'
+    }.`
+  );
 
   // 1. Technical SEO (100)
   let technicalScore = 100;
@@ -362,30 +337,11 @@ export async function runLeadSeoAudit(
   }
   onPageScore = Math.max(0, onPageScore);
 
-  // 3. Performance (100)
-  let performanceScore =
-    pageSpeedData.performanceScore ??
-    (fetchRes.responseTimeMs < 500
-      ? 92
-      : fetchRes.responseTimeMs < 1200
-      ? 78
-      : fetchRes.responseTimeMs < 2500
-      ? 58
-      : 35);
-  if (performanceScore < 70) {
-    issues.push({
-      category: 'Performance',
-      severity: performanceScore < 50 ? 'HIGH' : 'MEDIUM',
-      title: 'Slow Server / Page Performance',
-      evidence: `Measured initial response time: ${fetchRes.responseTimeMs}ms${
-        pageSpeedData.lcpMs ? `, Mobile LCP: ${pageSpeedData.lcpMs}ms` : ''
-      }.`,
-      recommendation: 'Optimize server caching, compress images, and defer render-blocking scripts.',
-    });
-  }
+  // 3. Performance (100) — directly from our in-house Native Performance Engine
+  const performanceScore = nativePerf.performanceScore;
 
   // 4. Mobile SEO (100)
-  let mobileScore = hasViewport ? 90 : 35;
+  const mobileScore = hasViewport ? 90 : 35;
   if (!hasViewport) {
     issues.push({
       category: 'Mobile SEO',
@@ -426,7 +382,7 @@ export async function runLeadSeoAudit(
   localSeoScore = Math.max(0, Math.min(100, localSeoScore));
 
   // 7. Security (100)
-  const securityScore = isHttps ? 100 : 25;
+  const securityScore = isHttps ? (nativePerf.hasHsts ? 100 : 90) : 25;
   if (!isHttps) {
     issues.push({
       category: 'Security',
@@ -437,7 +393,6 @@ export async function runLeadSeoAudit(
     });
   }
 
-  // Weighted aggregate SEO score (transparent v1.0 formula)
   const seoScore = Math.round(
     technicalScore * 0.22 +
       onPageScore * 0.25 +
@@ -450,7 +405,7 @@ export async function runLeadSeoAudit(
 
   if (issues.length > 0) {
     inferredInsights.push(
-      `Identified ${issues.length} actionable SEO improvement opportunities (top categories: ${Array.from(
+      `Identified ${issues.length} actionable SEO & Web Vitals opportunities (top categories: ${Array.from(
         new Set(issues.slice(0, 4).map((i) => i.category))
       ).join(', ')}).`
     );
@@ -460,13 +415,10 @@ export async function runLeadSeoAudit(
   }
 
   const unavailableData = [
-    'Actual organic search traffic volume (requires Google Analytics / Search Console authorization).',
-    'Verified keyword ranking positions and CTR (requires Google Search Console access).',
-    'Private backlink toxicity and referring domain history (requires third-party backlink index or Search Console).',
+    'Actual organic search traffic volume (requires website owner analytics authorization).',
+    'Verified keyword ranking positions and CTR (requires Search Console authorization).',
+    'Private backlink toxicity and referring domain history (requires owner-side index access).',
   ];
-  if (pageSpeedData.source === 'UNAVAILABLE') {
-    unavailableData.push('Field Core Web Vitals (CrUX / PageSpeed Insights API unavailable during this audit).');
-  }
 
   return {
     url: websiteUrl,
@@ -482,7 +434,7 @@ export async function runLeadSeoAudit(
     securityScore,
     discoveredEmail,
     discoveredPhone,
-    pageSpeedData,
+    pageSpeedData: nativePerf,
     measuredFacts,
     inferredInsights,
     unavailableData,
@@ -490,7 +442,10 @@ export async function runLeadSeoAudit(
     rawEvidence: {
       httpStatus: fetchRes.status,
       isHttps,
+      ttfbMs: fetchRes.ttfbMs,
       responseTimeMs: fetchRes.responseTimeMs,
+      htmlSizeBytes: fetchRes.byteLength,
+      domNodesCount: nativePerf.domNodesCount,
       title,
       titleLength: title?.length || 0,
       metaDescription,
