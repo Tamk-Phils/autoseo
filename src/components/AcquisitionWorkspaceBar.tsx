@@ -75,28 +75,28 @@ export default function AcquisitionWorkspaceBar({ onWorkspaceChanged }: Workspac
 
   const tabs = [
     { label: 'Overview', href: '/acquisition', icon: LayoutGrid },
-    { label: 'Discover Businesses', href: '/acquisition/discover', icon: Radar },
-    { label: 'Lead Database', href: '/acquisition/leads', icon: Users },
-    { label: 'Outreach Centre', href: '/acquisition/outreach', icon: Send },
+    { label: 'Discover', href: '/acquisition/discover', icon: Radar },
+    { label: 'Lead CRM', href: '/acquisition/leads', icon: Users },
+    { label: 'Outreach', href: '/acquisition/outreach', icon: Send },
     { label: 'Follow-ups', href: '/acquisition/follow-ups', icon: CalendarClock },
     { label: 'Analytics', href: '/acquisition/analytics', icon: BarChart2 },
   ];
+
+  const isInternal = workspace?.type === 'INTERNAL';
 
   return (
     <div
       className="card"
       style={{
         marginBottom: '1.25rem',
-        padding: '0.9rem 1.15rem',
+        padding: '0.95rem 1.15rem',
         display: 'flex',
         flexDirection: 'column',
         gap: '0.85rem',
-        background:
-          workspace?.type === 'INTERNAL'
-            ? 'linear-gradient(135deg, rgba(168,85,247,0.12), rgba(15,23,42,0.95))'
-            : 'linear-gradient(135deg, rgba(56,189,248,0.08), rgba(15,23,42,0.95))',
-        borderColor:
-          workspace?.type === 'INTERNAL' ? 'rgba(168,85,247,0.35)' : 'rgba(56,189,248,0.25)',
+        background: isInternal
+          ? 'linear-gradient(135deg, rgba(147,51,234,0.06), #ffffff)'
+          : 'linear-gradient(135deg, rgba(37,99,235,0.05), #ffffff)',
+        borderColor: isInternal ? 'rgba(147,51,234,0.3)' : 'var(--border-color)',
       }}
     >
       <div
@@ -108,86 +108,77 @@ export default function AcquisitionWorkspaceBar({ onWorkspaceChanged }: Workspac
           gap: '0.75rem',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', flexWrap: 'wrap', minWidth: 0 }}>
           <span
             className="badge"
             style={{
-              background:
-                workspace?.type === 'INTERNAL' ? 'rgba(168,85,247,0.2)' : 'rgba(56,189,248,0.18)',
-              color: workspace?.type === 'INTERNAL' ? '#d8b4fe' : '#38bdf8',
-              border: '1px solid currentColor',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '0.35rem',
-              padding: '0.28rem 0.65rem',
-              fontSize: '0.75rem',
-              fontWeight: 700,
+              background: isInternal ? 'rgba(147,51,234,0.12)' : 'rgba(37,99,235,0.1)',
+              color: isInternal ? '#7e22ce' : '#1d4ed8',
+              border: `1px solid ${isInternal ? 'rgba(147,51,234,0.3)' : 'rgba(37,99,235,0.25)'}`,
             }}
           >
-            {workspace?.type === 'INTERNAL' ? <Shield size={13} /> : <Building2 size={13} />}
-            {workspace?.type === 'INTERNAL' ? 'INTERNAL AUTOSEO WORKSPACE' : 'SUBSCRIBER WORKSPACE'}
+            {isInternal ? <Shield size={13} /> : <Building2 size={13} />}
+            {isInternal ? 'Internal AutoSEO' : 'Subscriber Workspace'}
           </span>
-          <span style={{ fontSize: '0.88rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+          <span style={{ fontSize: '0.88rem', fontWeight: 700, color: 'var(--text-primary)', wordBreak: 'break-word' }}>
             {workspace?.name || 'Loading workspace...'}
           </span>
           {workspace && (
-            <span style={{ fontSize: '0.76rem', color: 'var(--text-muted)' }}>
+            <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
               Plan: <strong style={{ color: 'var(--text-primary)' }}>{workspace.plan}</strong>
             </span>
           )}
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
-          {usage && limits && workspace?.type !== 'INTERNAL' && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', flexWrap: 'wrap', maxWidth: '100%' }}>
+          {usage && limits && !isInternal && (
             <div
               style={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: '0.75rem',
+                flexWrap: 'wrap',
+                gap: '0.65rem',
                 fontSize: '0.76rem',
                 color: 'var(--text-secondary)',
-                background: 'rgba(15,23,42,0.7)',
+                background: 'var(--bg-surface)',
                 padding: '0.32rem 0.65rem',
                 borderRadius: 'var(--radius-md)',
                 border: '1px solid var(--border-color)',
               }}
             >
               <span>
-                Discovery: <strong>{usage.DISCOVERY}/{limits.discoveryCreditsPerMonth}</strong>
+                Discovery: <strong style={{ color: 'var(--text-primary)' }}>{usage.DISCOVERY}/{limits.discoveryCreditsPerMonth}</strong>
               </span>
               <span>
-                Audits: <strong>{usage.AUDIT}/{limits.auditsPerMonth}</strong>
+                Audits: <strong style={{ color: 'var(--text-primary)' }}>{usage.AUDIT}/{limits.auditsPerMonth}</strong>
               </span>
               <span>
-                Proposals: <strong>{usage.PROPOSAL}/{limits.proposalsPerMonth}</strong>
+                Proposals: <strong style={{ color: 'var(--text-primary)' }}>{usage.PROPOSAL}/{limits.proposalsPerMonth}</strong>
               </span>
             </div>
           )}
 
           {isAdmin && (
-            <div style={{ display: 'inline-flex', gap: '0.35rem' }}>
+            <div style={{ display: 'inline-flex', gap: '0.35rem', flexWrap: 'wrap' }}>
               <button
                 type="button"
-                className={`btn btn-sm ${workspace?.type === 'SUBSCRIBER' ? 'btn-primary' : 'btn-secondary'}`}
+                className={`btn btn-sm ${!isInternal ? 'btn-primary' : 'btn-secondary'}`}
                 onClick={() => handleSwitch('SUBSCRIBER')}
                 disabled={switching}
-                style={{ fontSize: '0.75rem', padding: '0.3rem 0.65rem' }}
               >
-                Subscriber View
+                Subscriber
               </button>
               <button
                 type="button"
-                className={`btn btn-sm ${workspace?.type === 'INTERNAL' ? 'btn-primary' : 'btn-secondary'}`}
+                className={`btn btn-sm ${isInternal ? 'btn-primary' : 'btn-secondary'}`}
                 onClick={() => handleSwitch('INTERNAL')}
                 disabled={switching}
                 style={{
-                  fontSize: '0.75rem',
-                  padding: '0.3rem 0.65rem',
-                  background: workspace?.type === 'INTERNAL' ? '#9333ea' : undefined,
-                  borderColor: workspace?.type === 'INTERNAL' ? '#a855f7' : undefined,
+                  background: isInternal ? '#7e22ce' : undefined,
+                  borderColor: isInternal ? '#7e22ce' : undefined,
                 }}
               >
-                {switching ? <RefreshCw size={12} className="spin" /> : null}
+                {switching ? <RefreshCw size={12} className="animate-spin" /> : null}
                 Internal AutoSEO
               </button>
             </div>
@@ -207,14 +198,7 @@ export default function AcquisitionWorkspaceBar({ onWorkspaceChanged }: Workspac
               key={tab.href}
               href={tab.href}
               className={`btn btn-sm ${active ? 'btn-primary' : 'btn-secondary'}`}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '0.4rem',
-                fontSize: '0.8rem',
-                padding: '0.38rem 0.78rem',
-                textDecoration: 'none',
-              }}
+              style={{ textDecoration: 'none' }}
             >
               <Icon size={14} />
               <span>{tab.label}</span>

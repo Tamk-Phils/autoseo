@@ -120,14 +120,16 @@ export default function DiscoverBusinessesPage() {
   return (
     <div className="app-layout">
       <Sidebar />
-      <div className="main-content">
+      <div className="main-wrapper">
         <TopHeader />
         <main className="page-container">
           <div className="page-header">
-            <h1 className="page-title">Discover Businesses Worldwide</h1>
-            <p className="page-subtitle">
-              Automatically discover real businesses by industry and location, verify their websites, and run SSRF-safe SEO audits.
-            </p>
+            <div style={{ minWidth: 0 }}>
+              <h1 className="page-title">Discover Businesses Worldwide</h1>
+              <p className="page-subtitle">
+                Automatically discover real businesses by industry and location, verify their websites, and run SSRF-safe SEO audits.
+              </p>
+            </div>
           </div>
 
           <AcquisitionWorkspaceBar onWorkspaceChanged={loadCampaigns} />
@@ -138,8 +140,8 @@ export default function DiscoverBusinessesPage() {
               style={{
                 marginBottom: '1rem',
                 padding: '0.9rem 1.1rem',
-                borderColor: notice.type === 'success' ? 'rgba(16,185,129,0.5)' : 'rgba(239,68,68,0.5)',
-                background: notice.type === 'success' ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)',
+                borderColor: notice.type === 'success' ? 'rgba(22,163,74,0.35)' : 'rgba(220,38,38,0.35)',
+                background: notice.type === 'success' ? 'var(--color-success-bg)' : 'var(--color-danger-bg)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
@@ -147,12 +149,12 @@ export default function DiscoverBusinessesPage() {
                 flexWrap: 'wrap',
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                {notice.type === 'success' ? <CheckCircle2 size={18} color="#34d399" /> : <AlertTriangle size={18} color="#f87171" />}
-                <span style={{ fontSize: '0.88rem' }}>{notice.text}</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', minWidth: 0 }}>
+                {notice.type === 'success' ? <CheckCircle2 size={18} color="var(--color-success)" /> : <AlertTriangle size={18} color="var(--color-danger)" />}
+                <span style={{ fontSize: '0.88rem', color: 'var(--text-primary)' }}>{notice.text}</span>
               </div>
               {notice.type === 'success' && (
-                <Link href="/acquisition/leads" className="btn btn-primary btn-sm" style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}>
+                <Link href="/acquisition/leads" className="btn btn-primary btn-sm">
                   <span>View Discovered Leads</span>
                   <ArrowRight size={14} />
                 </Link>
@@ -160,18 +162,17 @@ export default function DiscoverBusinessesPage() {
             </div>
           )}
 
-          {/* New Discovery Campaign Form */}
-          <form onSubmit={handleCreateAndRun} className="card" style={{ padding: '1.35rem', marginBottom: '1.5rem' }}>
-            <h2 style={{ fontSize: '1.05rem', fontWeight: 700, marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <Radar size={18} color="var(--accent-cyan)" />
+          <form onSubmit={handleCreateAndRun} className="card" style={{ marginBottom: '1.5rem' }}>
+            <h2 className="card-title" style={{ marginBottom: '1.15rem' }}>
+              <Radar size={18} color="var(--accent-primary)" />
               <span>New Discovery Campaign</span>
             </h2>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))', gap: '1rem' }}>
+            <div className="grid-3" style={{ marginBottom: '1rem' }}>
               <div>
                 <label className="form-label">Campaign Name</label>
                 <input
-                  className="form-input"
+                  className="form-control"
                   type="text"
                   placeholder="e.g. London Dental Clinics Q4"
                   value={name}
@@ -182,7 +183,7 @@ export default function DiscoverBusinessesPage() {
               <div>
                 <label className="form-label">Business Industry *</label>
                 <input
-                  className="form-input"
+                  className="form-control"
                   type="text"
                   required
                   placeholder="e.g. Dental clinics, Restaurants, Auto repair"
@@ -194,7 +195,7 @@ export default function DiscoverBusinessesPage() {
               <div>
                 <label className="form-label">Target Country *</label>
                 <input
-                  className="form-input"
+                  className="form-control"
                   type="text"
                   required
                   placeholder="e.g. United Kingdom, United States, Nigeria"
@@ -206,7 +207,7 @@ export default function DiscoverBusinessesPage() {
               <div>
                 <label className="form-label">Target City (Optional)</label>
                 <input
-                  className="form-input"
+                  className="form-control"
                   type="text"
                   placeholder="e.g. London, Manchester, Austin, Lagos"
                   value={targetCity}
@@ -217,7 +218,7 @@ export default function DiscoverBusinessesPage() {
               <div>
                 <label className="form-label">Target Website Condition</label>
                 <select
-                  className="form-input"
+                  className="form-control"
                   value={websiteCondition}
                   onChange={(e) => setWebsiteCondition(e.target.value as any)}
                 >
@@ -230,7 +231,7 @@ export default function DiscoverBusinessesPage() {
               <div>
                 <label className="form-label">Number of Prospects</label>
                 <input
-                  className="form-input"
+                  className="form-control"
                   type="number"
                   min={5}
                   max={100}
@@ -240,10 +241,10 @@ export default function DiscoverBusinessesPage() {
               </div>
             </div>
 
-            <div style={{ marginTop: '1rem' }}>
+            <div className="form-group">
               <label className="form-label">Optional Keywords (comma-separated)</label>
               <input
-                className="form-input"
+                className="form-control"
                 type="text"
                 placeholder="e.g. cosmetic dentistry, emergency dentist, implants"
                 value={keywordsText}
@@ -251,20 +252,19 @@ export default function DiscoverBusinessesPage() {
               />
             </div>
 
-            <div style={{ marginTop: '1.15rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem' }}>
-              <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-                Powered by AutoSEO&apos;s built-in Native Worldwide Discovery &amp; Web Vitals Engine (zero third-party API keys). Credits are never charged for duplicates or failed requests.
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem' }}>
+              <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                Powered by AutoSEO&apos;s built-in Native Worldwide Discovery &amp; Web Vitals Engine (zero third-party API keys).
               </span>
-              <button type="submit" className="btn btn-primary" disabled={submitting} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.45rem' }}>
+              <button type="submit" className="btn btn-primary" disabled={submitting}>
                 <Radar size={16} />
                 <span>{submitting ? 'Discovering & Auditing...' : 'Start Discovery'}</span>
               </button>
             </div>
           </form>
 
-          {/* Campaigns History */}
-          <div className="card" style={{ padding: '1.25rem' }}>
-            <h2 style={{ fontSize: '1.05rem', fontWeight: 700, marginBottom: '1rem' }}>Discovery Campaigns</h2>
+          <div className="card">
+            <h2 className="card-title" style={{ marginBottom: '1rem' }}>Discovery Campaigns</h2>
             {loading ? (
               <LoadingSpinner label="Loading campaigns..." />
             ) : campaigns.length === 0 ? (
@@ -272,8 +272,8 @@ export default function DiscoverBusinessesPage() {
                 No campaigns created yet. Use the form above to discover prospects worldwide.
               </p>
             ) : (
-              <div style={{ overflowX: 'auto' }}>
-                <table className="data-table" style={{ width: '100%' }}>
+              <div className="table-container" style={{ marginBottom: 0 }}>
+                <table className="data-table">
                   <thead>
                     <tr>
                       <th>Campaign</th>
@@ -290,13 +290,13 @@ export default function DiscoverBusinessesPage() {
                       <tr key={c.id}>
                         <td>
                           <div style={{ fontWeight: 600 }}>{c.name}</div>
-                          <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{c.targetIndustry}</div>
+                          <div style={{ fontSize: '0.76rem', color: 'var(--text-muted)' }}>{c.targetIndustry}</div>
                         </td>
                         <td>{[c.targetCity, c.targetCountry].filter(Boolean).join(', ')}</td>
                         <td>{c.discoveredCount}</td>
                         <td>{c.auditedCount}</td>
-                        <td style={{ color: '#34d399', fontWeight: 600 }}>{c.qualifiedCount}</td>
-                        <td><span className="badge">{c.status}</span></td>
+                        <td style={{ color: 'var(--color-success)', fontWeight: 700 }}>{c.qualifiedCount}</td>
+                        <td><span className="badge badge-low">{c.status}</span></td>
                         <td>
                           <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
                             <button
@@ -304,7 +304,6 @@ export default function DiscoverBusinessesPage() {
                               className="btn btn-primary btn-sm"
                               disabled={runningId === c.id}
                               onClick={() => handleRunCampaign(c.id)}
-                              style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}
                             >
                               <Play size={13} />
                               <span>{runningId === c.id ? 'Running...' : 'Run'}</span>
@@ -313,14 +312,11 @@ export default function DiscoverBusinessesPage() {
                               type="button"
                               className="btn btn-secondary btn-sm"
                               onClick={() => handlePauseCampaign(c.id)}
+                              aria-label="Pause campaign"
                             >
                               <Pause size={13} />
                             </button>
-                            <Link
-                              href={`/acquisition/leads?campaignId=${c.id}`}
-                              className="btn btn-secondary btn-sm"
-                              style={{ textDecoration: 'none' }}
-                            >
+                            <Link href={`/acquisition/leads?campaignId=${c.id}`} className="btn btn-secondary btn-sm">
                               Leads
                             </Link>
                           </div>

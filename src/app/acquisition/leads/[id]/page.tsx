@@ -81,19 +81,19 @@ export default function LeadDetailPage() {
     }
   };
 
-  const handleRunAudit = async (runPageSpeed = false) => {
+  const handleRunAudit = async () => {
     setBusyAction('audit');
     setNotice(null);
     try {
       const res = await fetch(`/api/leads/${leadId}/analyse`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ runPageSpeed }),
+        body: JSON.stringify({}),
       });
       const json = await res.json();
       if (!res.ok) setNotice(json.error || 'Audit failed');
       else {
-        setNotice('Live SSRF-safe SEO audit and deterministic opportunity score updated.');
+        setNotice('Live SSRF-safe SEO & Web Vitals audit and opportunity score updated.');
         await loadLead();
       }
     } finally {
@@ -175,11 +175,11 @@ export default function LeadDetailPage() {
   return (
     <div className="app-layout">
       <Sidebar />
-      <div className="main-content">
+      <div className="main-wrapper">
         <TopHeader />
         <main className="page-container">
           <div style={{ marginBottom: '0.85rem' }}>
-            <Link href="/acquisition/leads" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', color: 'var(--accent-cyan)', textDecoration: 'none', fontSize: '0.85rem' }}>
+            <Link href="/acquisition/leads" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', color: 'var(--accent-primary)', fontWeight: 600, fontSize: '0.86rem' }}>
               <ArrowLeft size={15} />
               <span>Back to Lead Database</span>
             </Link>
@@ -188,7 +188,7 @@ export default function LeadDetailPage() {
           <AcquisitionWorkspaceBar />
 
           {notice && (
-            <div className="card" style={{ marginBottom: '1rem', padding: '0.85rem 1rem', borderColor: 'rgba(56,189,248,0.45)' }}>
+            <div className="card" style={{ marginBottom: '1rem', padding: '0.85rem 1rem', borderColor: 'rgba(37,99,235,0.35)', background: 'var(--color-info-bg)' }}>
               {notice}
             </div>
           )}
@@ -201,36 +201,35 @@ export default function LeadDetailPage() {
             <div className="card" style={{ padding: '2rem', textAlign: 'center' }}>Lead not found in this workspace.</div>
           ) : (
             <>
-              {/* Header Overview */}
-              <div className="card" style={{ padding: '1.35rem', marginBottom: '1.25rem' }}>
+              <div className="card" style={{ marginBottom: '1.25rem' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem' }}>
-                  <div>
-                    <h1 style={{ fontSize: '1.45rem', fontWeight: 700, marginBottom: '0.35rem' }}>{lead.businessName}</h1>
-                    <div style={{ display: 'flex', gap: '0.85rem', flexWrap: 'wrap', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                  <div style={{ minWidth: 0 }}>
+                    <h1 className="page-title" style={{ marginBottom: '0.35rem' }}>{lead.businessName}</h1>
+                    <div style={{ display: 'flex', gap: '0.65rem', flexWrap: 'wrap', fontSize: '0.86rem', color: 'var(--text-secondary)' }}>
                       <span>{lead.industry || 'General'}</span>
                       <span>•</span>
                       <span>{[lead.city, lead.country].filter(Boolean).join(', ') || 'Global'}</span>
                       {lead.websiteUrl && (
                         <>
                           <span>•</span>
-                          <a href={lead.websiteUrl} target="_blank" rel="noreferrer" style={{ color: 'var(--accent-cyan)', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
+                          <a href={lead.websiteUrl} target="_blank" rel="noreferrer" style={{ color: 'var(--accent-primary)', display: 'inline-flex', alignItems: 'center', gap: '0.25rem', wordBreak: 'break-all' }}>
                             <span>{lead.websiteUrl}</span>
                             <ExternalLink size={13} />
                           </a>
                         </>
                       )}
                     </div>
-                    <div style={{ marginTop: '0.5rem', fontSize: '0.82rem', color: 'var(--text-muted)' }}>
-                      Email: <strong style={{ color: 'var(--text-primary)' }}>{lead.publicEmail || 'Not found'}</strong> &nbsp;|&nbsp;
-                      Phone: <strong style={{ color: 'var(--text-primary)' }}>{lead.publicPhone || 'Not found'}</strong> &nbsp;|&nbsp;
-                      Source: <strong style={{ color: 'var(--text-primary)' }}>{lead.discoverySource}</strong>
+                    <div style={{ marginTop: '0.5rem', fontSize: '0.82rem', color: 'var(--text-muted)', display: 'flex', gap: '0.85rem', flexWrap: 'wrap' }}>
+                      <span>Email: <strong style={{ color: 'var(--text-primary)' }}>{lead.publicEmail || 'Not found'}</strong></span>
+                      <span>Phone: <strong style={{ color: 'var(--text-primary)' }}>{lead.publicPhone || 'Not found'}</strong></span>
+                      <span>Source: <strong style={{ color: 'var(--text-primary)' }}>{lead.discoverySource}</strong></span>
                     </div>
                   </div>
 
                   <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
                     <select
-                      className="form-input"
-                      style={{ width: 'auto' }}
+                      className="form-control"
+                      style={{ width: 'auto', minWidth: '150px' }}
                       value={lead.status}
                       disabled={busyAction === 'status'}
                       onChange={(e) => handleStatusChange(e.target.value)}
@@ -239,7 +238,7 @@ export default function LeadDetailPage() {
                         <option key={s} value={s}>{s}</option>
                       ))}
                     </select>
-                    <button type="button" className="btn btn-secondary btn-sm" disabled={busyAction === 'audit'} onClick={() => handleRunAudit(false)}>
+                    <button type="button" className="btn btn-secondary btn-sm" disabled={busyAction === 'audit'} onClick={handleRunAudit}>
                       <ShieldCheck size={14} /> {busyAction === 'audit' ? 'Auditing...' : 'Run SEO Audit'}
                     </button>
                     <button type="button" className="btn btn-primary btn-sm" disabled={busyAction === 'proposal' || lead.isOptedOut} onClick={handleGenerateProposal}>
@@ -249,20 +248,19 @@ export default function LeadDetailPage() {
                 </div>
               </div>
 
-              {/* Growth Loop Conversion Card */}
-              <div className="card" style={{ padding: '1.1rem 1.35rem', marginBottom: '1.25rem', borderColor: 'rgba(16,185,129,0.4)', background: 'rgba(16,185,129,0.06)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
-                <div>
-                  <div style={{ fontWeight: 700, color: '#34d399', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+              <div className="card" style={{ marginBottom: '1.25rem', borderColor: 'rgba(22,163,74,0.35)', background: 'var(--color-success-bg)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ fontWeight: 700, color: 'var(--color-success)', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                     <Rocket size={16} />
                     <span>AutoSEO Growth Loop — Convert Prospect to Live SEO Campaign</span>
                   </div>
-                  <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', marginTop: '0.2rem' }}>
+                  <p style={{ fontSize: '0.84rem', color: 'var(--text-secondary)', marginTop: '0.2rem' }}>
                     Record conversion revenue and automatically launch an autonomous AutoSEO optimization project for this customer.
                   </p>
                 </div>
-                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
                   <input
-                    className="form-input"
+                    className="form-control"
                     type="number"
                     min={0}
                     style={{ width: '110px' }}
@@ -270,29 +268,28 @@ export default function LeadDetailPage() {
                     onChange={(e) => setConvertRevenue(e.target.value)}
                     placeholder="USD"
                   />
-                  <button type="button" className="btn btn-primary btn-sm" disabled={busyAction === 'convert'} onClick={handleConvert} style={{ background: '#10b981', borderColor: '#10b981' }}>
+                  <button type="button" className="btn btn-success btn-sm" disabled={busyAction === 'convert'} onClick={handleConvert}>
                     {lead.status === 'CONVERTED' ? 'Converted ✓' : busyAction === 'convert' ? 'Converting...' : 'Convert & Start SEO'}
                   </button>
                 </div>
               </div>
 
-              {/* Two-column Intelligence Grid */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: '1.25rem', marginBottom: '1.25rem' }}>
-                {/* Opportunity Score Breakdown */}
-                <div className="card" style={{ padding: '1.25rem' }}>
-                  <h2 style={{ fontSize: '1.02rem', fontWeight: 700, marginBottom: '0.85rem' }}>
+              <div className="grid-2" style={{ marginBottom: '1.25rem' }}>
+                <div className="card">
+                  <h2 className="card-title" style={{ marginBottom: '0.85rem' }}>
                     Deterministic Opportunity Score ({latestScore?.version || 'v1.0'})
                   </h2>
-                  <div style={{ fontSize: '2rem', fontWeight: 800, color: '#38bdf8', marginBottom: '0.75rem' }}>
-                    {lead.opportunityScore ?? '—'} / 100 <span className="badge" style={{ marginLeft: '0.4rem', fontSize: '0.8rem' }}>Priority {lead.priority}</span>
+                  <div style={{ fontSize: '1.85rem', fontWeight: 800, color: 'var(--accent-primary)', marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+                    <span>{lead.opportunityScore ?? '—'} / 100</span>
+                    <span className="badge badge-low">Priority {lead.priority}</span>
                   </div>
 
                   {latestScore && (
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.45rem', fontSize: '0.82rem', marginBottom: '1rem' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(135px, 1fr))', gap: '0.5rem', fontSize: '0.83rem', marginBottom: '1rem', padding: '0.75rem', background: 'var(--bg-surface)', borderRadius: 'var(--radius-md)' }}>
                       <div>SEO Opportunity: <strong>{latestScore.seoOpportunityPts}/30</strong></div>
                       <div>Website Quality: <strong>{latestScore.websiteQualityPts}/20</strong></div>
-                      <div>Commercial Relevance: <strong>{latestScore.commercialRelevancePts}/20</strong></div>
-                      <div>Local Competition: <strong>{latestScore.competitionPts}/15</strong></div>
+                      <div>Commercial: <strong>{latestScore.commercialRelevancePts}/20</strong></div>
+                      <div>Competition: <strong>{latestScore.competitionPts}/15</strong></div>
                       <div>Completeness: <strong>{latestScore.completenessPts}/10</strong></div>
                       <div>Contactability: <strong>{latestScore.contactabilityPts}/5</strong></div>
                     </div>
@@ -300,8 +297,8 @@ export default function LeadDetailPage() {
 
                   {scoreReasons.length > 0 && (
                     <div style={{ marginBottom: '0.85rem' }}>
-                      <div style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '0.35rem' }}>QUALIFICATION REASONS</div>
-                      <ul style={{ paddingLeft: '1.1rem', fontSize: '0.83rem', color: 'var(--text-secondary)' }}>
+                      <div style={{ fontSize: '0.76rem', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '0.35rem' }}>QUALIFICATION REASONS</div>
+                      <ul style={{ paddingLeft: '1.1rem', fontSize: '0.84rem', color: 'var(--text-secondary)' }}>
                         {scoreReasons.map((r, i) => <li key={i}>{r}</li>)}
                       </ul>
                     </div>
@@ -309,8 +306,8 @@ export default function LeadDetailPage() {
 
                   {scoreServices.length > 0 && (
                     <div style={{ marginBottom: '0.85rem' }}>
-                      <div style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '0.35rem' }}>RECOMMENDED SERVICES</div>
-                      <ul style={{ paddingLeft: '1.1rem', fontSize: '0.83rem', color: '#34d399' }}>
+                      <div style={{ fontSize: '0.76rem', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '0.35rem' }}>RECOMMENDED SERVICES</div>
+                      <ul style={{ paddingLeft: '1.1rem', fontSize: '0.84rem', color: 'var(--color-success)' }}>
                         {scoreServices.map((s, i) => <li key={i}>{s}</li>)}
                       </ul>
                     </div>
@@ -318,18 +315,17 @@ export default function LeadDetailPage() {
 
                   {missingInfo.length > 0 && (
                     <div>
-                      <div style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '0.35rem' }}>UNKNOWN / MISSING INFO</div>
-                      <ul style={{ paddingLeft: '1.1rem', fontSize: '0.8rem', color: '#f59e0b' }}>
+                      <div style={{ fontSize: '0.76rem', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '0.35rem' }}>UNKNOWN / MISSING INFO</div>
+                      <ul style={{ paddingLeft: '1.1rem', fontSize: '0.82rem', color: 'var(--color-warning)' }}>
                         {missingInfo.map((m, i) => <li key={i}>{m}</li>)}
                       </ul>
                     </div>
                   )}
                 </div>
 
-                {/* SEO Audit Evidence */}
-                <div className="card" style={{ padding: '1.25rem' }}>
-                  <h2 style={{ fontSize: '1.02rem', fontWeight: 700, marginBottom: '0.85rem' }}>
-                    Website Intelligence & SEO Audit
+                <div className="card">
+                  <h2 className="card-title" style={{ marginBottom: '0.85rem' }}>
+                    Website Intelligence &amp; Native Web Vitals
                   </h2>
                   {!latestAudit ? (
                     <p style={{ color: 'var(--text-muted)', fontSize: '0.86rem' }}>
@@ -337,7 +333,7 @@ export default function LeadDetailPage() {
                     </p>
                   ) : (
                     <>
-                      <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginBottom: '0.9rem', fontSize: '0.82rem' }}>
+                      <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginBottom: '0.9rem', fontSize: '0.83rem', padding: '0.65rem', background: 'var(--bg-surface)', borderRadius: 'var(--radius-md)' }}>
                         <span>Overall: <strong>{latestAudit.seoScore}/100</strong></span>
                         <span>Technical: <strong>{latestAudit.technicalScore}</strong></span>
                         <span>On-Page: <strong>{latestAudit.onPageScore}</strong></span>
@@ -346,18 +342,18 @@ export default function LeadDetailPage() {
                       </div>
 
                       <div style={{ marginBottom: '0.85rem' }}>
-                        <div style={{ fontSize: '0.76rem', fontWeight: 700, color: '#34d399', marginBottom: '0.3rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                        <div style={{ fontSize: '0.76rem', fontWeight: 700, color: 'var(--color-success)', marginBottom: '0.3rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
                           <CheckCircle2 size={13} /> DIRECTLY MEASURED FACTS
                         </div>
-                        <ul style={{ paddingLeft: '1.1rem', fontSize: '0.81rem', color: 'var(--text-secondary)' }}>
+                        <ul style={{ paddingLeft: '1.1rem', fontSize: '0.82rem', color: 'var(--text-secondary)' }}>
                           {measuredFacts.map((f, i) => <li key={i}>{f}</li>)}
                         </ul>
                       </div>
 
                       {inferredInsights.length > 0 && (
                         <div style={{ marginBottom: '0.85rem' }}>
-                          <div style={{ fontSize: '0.76rem', fontWeight: 700, color: '#38bdf8', marginBottom: '0.3rem' }}>INFERRED OPPORTUNITIES</div>
-                          <ul style={{ paddingLeft: '1.1rem', fontSize: '0.81rem', color: 'var(--text-secondary)' }}>
+                          <div style={{ fontSize: '0.76rem', fontWeight: 700, color: 'var(--accent-primary)', marginBottom: '0.3rem' }}>INFERRED OPPORTUNITIES</div>
+                          <ul style={{ paddingLeft: '1.1rem', fontSize: '0.82rem', color: 'var(--text-secondary)' }}>
                             {inferredInsights.map((f, i) => <li key={i}>{f}</li>)}
                           </ul>
                         </div>
@@ -367,7 +363,7 @@ export default function LeadDetailPage() {
                         <div style={{ fontSize: '0.76rem', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '0.3rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
                           <AlertCircle size={13} /> NOT VERIFIABLE WITHOUT OWNER ACCESS
                         </div>
-                        <ul style={{ paddingLeft: '1.1rem', fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+                        <ul style={{ paddingLeft: '1.1rem', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
                           {unavailableData.map((u, i) => <li key={i}>{u}</li>)}
                         </ul>
                       </div>
@@ -376,12 +372,11 @@ export default function LeadDetailPage() {
                 </div>
               </div>
 
-              {/* Audit Issues Table */}
               {auditIssues.length > 0 && (
-                <div className="card" style={{ padding: '1.25rem', marginBottom: '1.25rem' }}>
-                  <h2 style={{ fontSize: '1.02rem', fontWeight: 700, marginBottom: '0.85rem' }}>Verified SEO Issues ({auditIssues.length})</h2>
-                  <div style={{ overflowX: 'auto' }}>
-                    <table className="data-table" style={{ width: '100%' }}>
+                <div className="card" style={{ marginBottom: '1.25rem' }}>
+                  <h2 className="card-title" style={{ marginBottom: '0.85rem' }}>Verified SEO &amp; Web Vitals Issues ({auditIssues.length})</h2>
+                  <div className="table-container" style={{ marginBottom: 0 }}>
+                    <table className="data-table">
                       <thead>
                         <tr>
                           <th>Severity</th>
@@ -394,11 +389,15 @@ export default function LeadDetailPage() {
                       <tbody>
                         {auditIssues.map((iss, idx) => (
                           <tr key={idx}>
-                            <td><span className="badge">{iss.severity}</span></td>
+                            <td>
+                              <span className={`badge ${iss.severity === 'CRITICAL' ? 'badge-critical' : iss.severity === 'HIGH' ? 'badge-high' : iss.severity === 'MEDIUM' ? 'badge-medium' : 'badge-low'}`}>
+                                {iss.severity}
+                              </span>
+                            </td>
                             <td>{iss.category}</td>
                             <td style={{ fontWeight: 600 }}>{iss.title}</td>
                             <td style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>{iss.evidence}</td>
-                            <td style={{ fontSize: '0.82rem', color: '#34d399' }}>{iss.recommendation}</td>
+                            <td style={{ fontSize: '0.82rem', color: 'var(--color-success)' }}>{iss.recommendation}</td>
                           </tr>
                         ))}
                       </tbody>
@@ -407,13 +406,12 @@ export default function LeadDetailPage() {
                 </div>
               )}
 
-              {/* Notes & Outreach History */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1.25rem' }}>
-                <div className="card" style={{ padding: '1.25rem' }}>
-                  <h2 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: '0.75rem' }}>Sales Notes</h2>
+              <div className="grid-2">
+                <div className="card">
+                  <h2 className="card-title" style={{ marginBottom: '0.75rem' }}>Sales Notes</h2>
                   <form onSubmit={handleAddNote} style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
                     <input
-                      className="form-input"
+                      className="form-control"
                       placeholder="Add internal note about this prospect..."
                       value={noteText}
                       onChange={(e) => setNoteText(e.target.value)}
@@ -423,13 +421,13 @@ export default function LeadDetailPage() {
                     </button>
                   </form>
                   {lead.notes?.length === 0 ? (
-                    <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>No notes yet.</p>
+                    <p style={{ fontSize: '0.84rem', color: 'var(--text-muted)' }}>No notes yet.</p>
                   ) : (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
                       {lead.notes?.map((n: any) => (
-                        <div key={n.id} style={{ padding: '0.65rem', borderRadius: 'var(--radius-md)', background: 'rgba(15,23,42,0.6)', border: '1px solid var(--border-color)' }}>
-                          <div style={{ fontSize: '0.84rem' }}>{n.content}</div>
-                          <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
+                        <div key={n.id} style={{ padding: '0.7rem', borderRadius: 'var(--radius-md)', background: 'var(--bg-surface)', border: '1px solid var(--border-color)' }}>
+                          <div style={{ fontSize: '0.85rem', color: 'var(--text-primary)' }}>{n.content}</div>
+                          <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
                             {n.author?.name || n.author?.email} • {new Date(n.createdAt).toLocaleString()}
                           </div>
                         </div>
@@ -438,24 +436,24 @@ export default function LeadDetailPage() {
                   )}
                 </div>
 
-                <div className="card" style={{ padding: '1.25rem' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
-                    <h2 style={{ fontSize: '1rem', fontWeight: 700 }}>Outreach History</h2>
-                    <Link href="/acquisition/outreach" style={{ fontSize: '0.8rem', color: 'var(--accent-cyan)', textDecoration: 'none' }}>
-                      Open Outreach Centre →
+                <div className="card">
+                  <div className="card-header">
+                    <h2 className="card-title">Outreach History</h2>
+                    <Link href="/acquisition/outreach" style={{ fontSize: '0.82rem', color: 'var(--accent-primary)', fontWeight: 600 }}>
+                      Outreach Centre →
                     </Link>
                   </div>
                   {lead.outreachMessages?.length === 0 ? (
-                    <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>No outreach drafts yet.</p>
+                    <p style={{ fontSize: '0.84rem', color: 'var(--text-muted)' }}>No outreach drafts yet.</p>
                   ) : (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
                       {lead.outreachMessages?.map((m: any) => (
-                        <div key={m.id} style={{ padding: '0.75rem', borderRadius: 'var(--radius-md)', background: 'rgba(15,23,42,0.6)', border: '1px solid var(--border-color)' }}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.3rem' }}>
+                        <div key={m.id} style={{ padding: '0.75rem', borderRadius: 'var(--radius-md)', background: 'var(--bg-surface)', border: '1px solid var(--border-color)' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '0.3rem' }}>
                             <strong style={{ fontSize: '0.84rem' }}>{m.subject || m.channel}</strong>
-                            <span className="badge">{m.status}</span>
+                            <span className="badge badge-low">{m.status}</span>
                           </div>
-                          <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', whiteSpace: 'pre-wrap' }}>{m.body}</p>
+                          <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', whiteSpace: 'pre-wrap' }}>{m.body}</p>
                         </div>
                       ))}
                     </div>

@@ -123,20 +123,22 @@ export default function OutreachCentrePage() {
   return (
     <div className="app-layout">
       <Sidebar />
-      <div className="main-content">
+      <div className="main-wrapper">
         <TopHeader />
         <main className="page-container">
           <div className="page-header">
-            <h1 className="page-title">Outreach Centre & Compliance Guard</h1>
-            <p className="page-subtitle">
-              Human approval workflow before initial contact, AI reply classification, frequency caps, and suppression list enforcement.
-            </p>
+            <div style={{ minWidth: 0 }}>
+              <h1 className="page-title">Outreach Centre &amp; Compliance Guard</h1>
+              <p className="page-subtitle">
+                Human approval workflow before initial contact, AI reply classification, frequency caps, and suppression list enforcement.
+              </p>
+            </div>
           </div>
 
           <AcquisitionWorkspaceBar onWorkspaceChanged={loadData} />
 
           {notice && (
-            <div className="card" style={{ marginBottom: '1rem', padding: '0.85rem 1rem', borderColor: 'rgba(56,189,248,0.45)' }}>
+            <div className="card" style={{ marginBottom: '1rem', padding: '0.85rem 1rem', borderColor: 'rgba(37,99,235,0.35)', background: 'var(--color-info-bg)' }}>
               {notice}
             </div>
           )}
@@ -160,27 +162,25 @@ export default function OutreachCentrePage() {
             </div>
           ) : messages.length === 0 ? (
             <div className="card" style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)', marginBottom: '1.5rem' }}>
-              No outreach messages yet. Open any lead in the <Link href="/acquisition/leads" style={{ color: 'var(--accent-cyan)' }}>Lead Database</Link> and click Generate AI Proposal.
+              No outreach messages yet. Open any lead in the <Link href="/acquisition/leads" style={{ color: 'var(--accent-primary)', fontWeight: 600 }}>Lead Database</Link> and click Generate AI Proposal.
             </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '1.5rem' }}>
               {messages.map((m) => (
-                <div key={m.id} className="card" style={{ padding: '1.15rem' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '0.75rem', marginBottom: '0.6rem' }}>
-                    <div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
-                        <Link href={`/acquisition/leads/${m.lead?.id}`} style={{ fontWeight: 700, color: 'var(--text-primary)', textDecoration: 'none' }}>
+                <div key={m.id} className="card">
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '0.75rem', marginBottom: '0.75rem' }}>
+                    <div style={{ minWidth: 0 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', flexWrap: 'wrap' }}>
+                        <Link href={`/acquisition/leads/${m.lead?.id}`} style={{ fontWeight: 700, color: 'var(--text-primary)' }}>
                           {m.lead?.businessName || 'Prospect'}
                         </Link>
-                        <span className="badge">{m.channel}</span>
-                        <span className="badge">{m.status}</span>
+                        <span className="badge badge-low">{m.channel}</span>
+                        <span className="badge badge-medium">{m.status}</span>
                         {m.replyClassification && (
-                          <span className="badge" style={{ background: 'rgba(16,185,129,0.2)', color: '#34d399' }}>
-                            Reply: {m.replyClassification}
-                          </span>
+                          <span className="badge badge-success">Reply: {m.replyClassification}</span>
                         )}
                       </div>
-                      <div style={{ fontSize: '0.84rem', fontWeight: 600, color: 'var(--accent-cyan)', marginTop: '0.25rem' }}>
+                      <div style={{ fontSize: '0.86rem', fontWeight: 600, color: 'var(--accent-primary)', marginTop: '0.3rem', wordBreak: 'break-word' }}>
                         Subject: {m.subject || '(No subject)'}
                       </div>
                     </div>
@@ -201,10 +201,9 @@ export default function OutreachCentrePage() {
                         <>
                           <button
                             type="button"
-                            className="btn btn-primary btn-sm"
+                            className="btn btn-success btn-sm"
                             disabled={busyId === m.id}
                             onClick={() => handleApproval(m.id, 'APPROVE')}
-                            style={{ background: '#10b981', borderColor: '#10b981' }}
                           >
                             <Check size={13} /> Approve
                           </button>
@@ -236,7 +235,7 @@ export default function OutreachCentrePage() {
                           className="btn btn-secondary btn-sm"
                           onClick={() => setReplyOpenId(replyOpenId === m.id ? null : m.id)}
                         >
-                          <MessageSquare size={13} /> Log & Classify Reply
+                          <MessageSquare size={13} /> Log &amp; Classify Reply
                         </button>
                       )}
                     </div>
@@ -245,11 +244,12 @@ export default function OutreachCentrePage() {
                   <pre
                     style={{
                       whiteSpace: 'pre-wrap',
+                      wordBreak: 'break-word',
                       fontFamily: 'inherit',
-                      fontSize: '0.84rem',
-                      color: 'var(--text-secondary)',
-                      background: 'rgba(15,23,42,0.65)',
-                      padding: '0.85rem',
+                      fontSize: '0.86rem',
+                      color: 'var(--text-primary)',
+                      background: 'var(--bg-surface)',
+                      padding: '0.9rem',
                       borderRadius: 'var(--radius-md)',
                       border: '1px solid var(--border-color)',
                       margin: 0,
@@ -259,9 +259,10 @@ export default function OutreachCentrePage() {
                   </pre>
 
                   {replyOpenId === m.id && (
-                    <div style={{ marginTop: '0.75rem', display: 'flex', gap: '0.5rem' }}>
+                    <div style={{ marginTop: '0.75rem', display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
                       <input
-                        className="form-input"
+                        className="form-control"
+                        style={{ flex: '1 1 220px' }}
                         placeholder="Paste prospect reply (e.g. 'Send pricing' or 'Please unsubscribe me')..."
                         value={replyText}
                         onChange={(e) => setReplyText(e.target.value)}
@@ -281,15 +282,15 @@ export default function OutreachCentrePage() {
             </div>
           )}
 
-          {/* Suppression List */}
-          <div className="card" style={{ padding: '1.25rem' }}>
-            <h2 style={{ fontSize: '1.02rem', fontWeight: 700, marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
-              <ShieldBan size={17} color="#f87171" />
-              <span>Unsubscribe & Suppression List ({suppressions.length})</span>
+          <div className="card">
+            <h2 className="card-title" style={{ marginBottom: '0.85rem' }}>
+              <ShieldBan size={17} color="var(--color-danger)" />
+              <span>Unsubscribe &amp; Suppression List ({suppressions.length})</span>
             </h2>
-            <form onSubmit={handleAddSuppression} style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem', maxWidth: '520px' }}>
+            <form onSubmit={handleAddSuppression} style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '1rem', maxWidth: '520px' }}>
               <input
-                className="form-input"
+                className="form-control"
+                style={{ flex: '1 1 220px' }}
                 placeholder="Email or domain to block (e.g. optout@example.com)"
                 value={newSuppress}
                 onChange={(e) => setNewSuppress(e.target.value)}
@@ -297,11 +298,11 @@ export default function OutreachCentrePage() {
               <button type="submit" className="btn btn-secondary btn-sm">Add Block</button>
             </form>
             {suppressions.length === 0 ? (
-              <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>No suppressed contacts yet.</p>
+              <p style={{ fontSize: '0.84rem', color: 'var(--text-muted)' }}>No suppressed contacts yet.</p>
             ) : (
               <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
                 {suppressions.map((s) => (
-                  <span key={s.id} className="badge" style={{ background: 'rgba(239,68,68,0.15)', color: '#fca5a5' }}>
+                  <span key={s.id} className="badge badge-critical">
                     {s.identifier} ({s.reason})
                   </span>
                 ))}

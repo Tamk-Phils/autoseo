@@ -44,19 +44,21 @@ export default function FollowUpsPage() {
   return (
     <div className="app-layout">
       <Sidebar />
-      <div className="main-content">
+      <div className="main-wrapper">
         <TopHeader />
         <main className="page-container">
           <div className="page-header">
-            <h1 className="page-title">Follow-up Centre</h1>
-            <p className="page-subtitle">
-              Scheduled prospect follow-ups. Tasks automatically cancel if a prospect opts out or unsubscribes.
-            </p>
+            <div style={{ minWidth: 0 }}>
+              <h1 className="page-title">Follow-up Centre</h1>
+              <p className="page-subtitle">
+                Scheduled prospect follow-ups. Tasks automatically cancel if a prospect opts out or unsubscribes.
+              </p>
+            </div>
           </div>
 
           <AcquisitionWorkspaceBar onWorkspaceChanged={loadTasks} />
 
-          <div style={{ display: 'flex', gap: '0.45rem', marginBottom: '1rem' }}>
+          <div style={{ display: 'flex', gap: '0.45rem', flexWrap: 'wrap', marginBottom: '1rem' }}>
             {['PENDING', 'COMPLETED', 'CANCELLED', 'ALL'].map((st) => (
               <button
                 key={st}
@@ -69,7 +71,7 @@ export default function FollowUpsPage() {
             ))}
           </div>
 
-          <div className="card" style={{ padding: '1.25rem' }}>
+          <div className="card">
             {loading ? (
               <LoadingSpinner label="Loading follow-up tasks..." />
             ) : tasks.length === 0 ? (
@@ -85,7 +87,7 @@ export default function FollowUpsPage() {
                     style={{
                       padding: '0.95rem 1.1rem',
                       borderRadius: 'var(--radius-md)',
-                      background: 'rgba(15,23,42,0.65)',
+                      background: 'var(--bg-surface)',
                       border: '1px solid var(--border-color)',
                       display: 'flex',
                       justifyContent: 'space-between',
@@ -94,23 +96,23 @@ export default function FollowUpsPage() {
                       gap: '0.75rem',
                     }}
                   >
-                    <div>
-                      <div style={{ fontWeight: 700, fontSize: '0.92rem' }}>{t.title}</div>
-                      <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '0.2rem' }}>
+                    <div style={{ minWidth: 0 }}>
+                      <div style={{ fontWeight: 700, fontSize: '0.92rem', color: 'var(--text-primary)' }}>{t.title}</div>
+                      <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', marginTop: '0.2rem' }}>
                         Lead:{' '}
-                        <Link href={`/acquisition/leads/${t.lead?.id}`} style={{ color: 'var(--accent-cyan)' }}>
+                        <Link href={`/acquisition/leads/${t.lead?.id}`} style={{ color: 'var(--accent-primary)', fontWeight: 600 }}>
                           {t.lead?.businessName}
                         </Link>{' '}
                         • Due: <strong>{new Date(t.dueAt).toLocaleDateString()}</strong>
                       </div>
-                      {t.notes && <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '0.2rem' }}>{t.notes}</div>}
+                      {t.notes && <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.2rem' }}>{t.notes}</div>}
                     </div>
 
-                    <div style={{ display: 'flex', gap: '0.45rem', alignItems: 'center' }}>
-                      <span className="badge">{t.status}</span>
+                    <div style={{ display: 'flex', gap: '0.45rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                      <span className="badge badge-low">{t.status}</span>
                       {t.status === 'PENDING' && (
                         <>
-                          <button type="button" className="btn btn-primary btn-sm" onClick={() => updateStatus(t.id, 'COMPLETED')}>
+                          <button type="button" className="btn btn-success btn-sm" onClick={() => updateStatus(t.id, 'COMPLETED')}>
                             <CheckCircle2 size={13} /> Done
                           </button>
                           <button type="button" className="btn btn-secondary btn-sm" onClick={() => updateStatus(t.id, 'CANCELLED')}>

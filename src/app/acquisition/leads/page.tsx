@@ -133,27 +133,27 @@ export default function LeadDatabasePage() {
   };
 
   const priorityColor = (p: string) =>
-    p === 'A' ? '#10b981' : p === 'B' ? '#38bdf8' : p === 'C' ? '#f59e0b' : '#94a3b8';
+    p === 'A' ? 'var(--color-success)' : p === 'B' ? 'var(--accent-primary)' : p === 'C' ? 'var(--color-warning)' : 'var(--text-muted)';
 
   return (
     <div className="app-layout">
       <Sidebar />
-      <div className="main-content">
+      <div className="main-wrapper">
         <TopHeader />
         <main className="page-container">
-          <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
-            <div>
+          <div className="page-header">
+            <div style={{ minWidth: 0 }}>
               <h1 className="page-title">Lead Database CRM</h1>
               <p className="page-subtitle">
                 Tenant-isolated prospect pipeline with verified websites, SEO scores, opportunity ratings, and outreach controls.
               </p>
             </div>
-            <div style={{ display: 'flex', gap: '0.5rem' }}>
-              <button type="button" className="btn btn-secondary btn-sm" onClick={() => setShowAdd(!showAdd)} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+              <button type="button" className="btn btn-secondary btn-sm" onClick={() => setShowAdd(!showAdd)}>
                 <Plus size={14} />
                 <span>Add Lead</span>
               </button>
-              <button type="button" className="btn btn-primary btn-sm" onClick={handleExport} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+              <button type="button" className="btn btn-primary btn-sm" onClick={handleExport}>
                 <Download size={14} />
                 <span>Export CSV</span>
               </button>
@@ -163,47 +163,46 @@ export default function LeadDatabasePage() {
           <AcquisitionWorkspaceBar onWorkspaceChanged={loadLeads} />
 
           {notice && (
-            <div className="card" style={{ marginBottom: '1rem', padding: '0.8rem 1rem', borderColor: 'rgba(56,189,248,0.4)' }}>
-              <span style={{ fontSize: '0.86rem' }}>{notice}</span>
+            <div className="card" style={{ marginBottom: '1rem', padding: '0.8rem 1rem', borderColor: 'rgba(37,99,235,0.35)', background: 'var(--color-info-bg)' }}>
+              <span style={{ fontSize: '0.86rem', color: 'var(--text-primary)' }}>{notice}</span>
             </div>
           )}
 
           {showAdd && (
-            <form onSubmit={handleManualAdd} className="card" style={{ marginBottom: '1rem', padding: '1rem' }}>
-              <h3 style={{ fontSize: '0.95rem', fontWeight: 700, marginBottom: '0.75rem' }}>Add Prospect Manually</h3>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.75rem' }}>
-                <input className="form-input" placeholder="Business Name *" required value={newBiz.businessName} onChange={(e) => setNewBiz({ ...newBiz, businessName: e.target.value })} />
-                <input className="form-input" placeholder="Website URL" value={newBiz.websiteUrl} onChange={(e) => setNewBiz({ ...newBiz, websiteUrl: e.target.value })} />
-                <input className="form-input" placeholder="Industry" value={newBiz.industry} onChange={(e) => setNewBiz({ ...newBiz, industry: e.target.value })} />
-                <input className="form-input" placeholder="Country" value={newBiz.country} onChange={(e) => setNewBiz({ ...newBiz, country: e.target.value })} />
-                <input className="form-input" placeholder="City" value={newBiz.city} onChange={(e) => setNewBiz({ ...newBiz, city: e.target.value })} />
-                <input className="form-input" placeholder="Public Email" type="email" value={newBiz.publicEmail} onChange={(e) => setNewBiz({ ...newBiz, publicEmail: e.target.value })} />
+            <form onSubmit={handleManualAdd} className="card" style={{ marginBottom: '1rem' }}>
+              <h3 className="card-title" style={{ marginBottom: '0.85rem' }}>Add Prospect Manually</h3>
+              <div className="grid-3" style={{ marginBottom: '0.85rem' }}>
+                <input className="form-control" placeholder="Business Name *" required value={newBiz.businessName} onChange={(e) => setNewBiz({ ...newBiz, businessName: e.target.value })} />
+                <input className="form-control" placeholder="Website URL" value={newBiz.websiteUrl} onChange={(e) => setNewBiz({ ...newBiz, websiteUrl: e.target.value })} />
+                <input className="form-control" placeholder="Industry" value={newBiz.industry} onChange={(e) => setNewBiz({ ...newBiz, industry: e.target.value })} />
+                <input className="form-control" placeholder="Country" value={newBiz.country} onChange={(e) => setNewBiz({ ...newBiz, country: e.target.value })} />
+                <input className="form-control" placeholder="City" value={newBiz.city} onChange={(e) => setNewBiz({ ...newBiz, city: e.target.value })} />
+                <input className="form-control" placeholder="Public Email" type="email" value={newBiz.publicEmail} onChange={(e) => setNewBiz({ ...newBiz, publicEmail: e.target.value })} />
               </div>
-              <div style={{ marginTop: '0.75rem', display: 'flex', justifyContent: 'flex-end', gap: '0.5rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem' }}>
                 <button type="button" className="btn btn-secondary btn-sm" onClick={() => setShowAdd(false)}>Cancel</button>
                 <button type="submit" className="btn btn-primary btn-sm">Save Prospect</button>
               </div>
             </form>
           )}
 
-          {/* Search & Filters */}
           <div className="card" style={{ marginBottom: '1rem', padding: '0.9rem', display: 'flex', flexWrap: 'wrap', gap: '0.75rem', alignItems: 'center' }}>
-            <div style={{ position: 'relative', flex: '1 1 240px' }}>
+            <div style={{ position: 'relative', flex: '1 1 220px', minWidth: 0 }}>
               <Search size={15} style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
               <input
-                className="form-input"
-                style={{ paddingLeft: '2.2rem' }}
+                className="form-control"
+                style={{ paddingLeft: '2.25rem' }}
                 placeholder="Search business, website, city, industry..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
               />
             </div>
-            <select className="form-input" style={{ width: 'auto' }} value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
+            <select className="form-control" style={{ flex: '0 1 190px' }} value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
               {STATUS_OPTIONS.map((s) => (
                 <option key={s} value={s}>{s === 'ALL' ? 'All Pipeline Stages' : s}</option>
               ))}
             </select>
-            <select className="form-input" style={{ width: 'auto' }} value={priorityFilter} onChange={(e) => setPriorityFilter(e.target.value)}>
+            <select className="form-control" style={{ flex: '0 1 180px' }} value={priorityFilter} onChange={(e) => setPriorityFilter(e.target.value)}>
               <option value="ALL">All Priorities</option>
               <option value="A">Priority A (80–100)</option>
               <option value="B">Priority B (60–79)</option>
@@ -212,19 +211,21 @@ export default function LeadDatabasePage() {
             </select>
           </div>
 
-          <div className="card" style={{ padding: '1rem' }}>
+          <div className="card" style={{ padding: 0 }}>
             {loading ? (
-              <LoadingSpinner label="Loading Lead CRM..." />
+              <div style={{ padding: '2.5rem', textAlign: 'center' }}>
+                <LoadingSpinner label="Loading Lead CRM..." />
+              </div>
             ) : leads.length === 0 ? (
               <div style={{ padding: '2.5rem', textAlign: 'center', color: 'var(--text-muted)' }}>
                 <p style={{ marginBottom: '0.8rem' }}>No matching leads found in this workspace.</p>
-                <Link href="/acquisition/discover" className="btn btn-primary btn-sm" style={{ textDecoration: 'none' }}>
+                <Link href="/acquisition/discover" className="btn btn-primary btn-sm">
                   Discover Businesses
                 </Link>
               </div>
             ) : (
-              <div style={{ overflowX: 'auto' }}>
-                <table className="data-table" style={{ width: '100%' }}>
+              <div className="table-container" style={{ marginBottom: 0, border: 'none', boxShadow: 'none' }}>
+                <table className="data-table">
                   <thead>
                     <tr>
                       <th>Business</th>
@@ -240,16 +241,16 @@ export default function LeadDatabasePage() {
                     {leads.map((l) => (
                       <tr key={l.id}>
                         <td>
-                          <Link href={`/acquisition/leads/${l.id}`} style={{ fontWeight: 600, color: 'var(--text-primary)', textDecoration: 'none' }}>
+                          <Link href={`/acquisition/leads/${l.id}`} style={{ fontWeight: 600, color: 'var(--text-primary)' }}>
                             {l.businessName}
                           </Link>
-                          <div style={{ fontSize: '0.73rem', color: 'var(--text-muted)' }}>
+                          <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
                             {l.publicEmail || l.publicPhone || 'No public contact yet'}
                           </div>
                         </td>
                         <td>
                           {l.websiteUrl ? (
-                            <a href={l.websiteUrl} target="_blank" rel="noreferrer" style={{ color: 'var(--accent-cyan)', fontSize: '0.82rem', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
+                            <a href={l.websiteUrl} target="_blank" rel="noreferrer" style={{ color: 'var(--accent-primary)', fontSize: '0.82rem', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
                               <span>{l.normalizedDomain || l.websiteUrl}</span>
                               <ExternalLink size={12} />
                             </a>
@@ -259,13 +260,13 @@ export default function LeadDatabasePage() {
                         </td>
                         <td>
                           <div style={{ fontSize: '0.84rem' }}>{l.industry || '—'}</div>
-                          <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>
+                          <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
                             {[l.city, l.country].filter(Boolean).join(', ') || '—'}
                           </div>
                         </td>
                         <td>
                           {l.seoScore !== null && l.seoScore !== undefined ? (
-                            <strong style={{ color: l.seoScore < 60 ? '#f87171' : l.seoScore < 80 ? '#f59e0b' : '#34d399' }}>
+                            <strong style={{ color: l.seoScore < 60 ? 'var(--color-danger)' : l.seoScore < 80 ? 'var(--color-warning)' : 'var(--color-success)' }}>
                               {l.seoScore}/100
                             </strong>
                           ) : (
@@ -277,12 +278,10 @@ export default function LeadDatabasePage() {
                             {l.opportunityScore ?? '—'}/100 ({l.priority})
                           </span>
                         </td>
-                        <td>
-                          <span className="badge">{l.status}</span>
-                        </td>
+                        <td><span className="badge badge-low">{l.status}</span></td>
                         <td>
                           <div style={{ display: 'flex', gap: '0.35rem', flexWrap: 'wrap' }}>
-                            <Link href={`/acquisition/leads/${l.id}`} className="btn btn-secondary btn-sm" style={{ textDecoration: 'none' }}>
+                            <Link href={`/acquisition/leads/${l.id}`} className="btn btn-secondary btn-sm">
                               Profile
                             </Link>
                             <button
